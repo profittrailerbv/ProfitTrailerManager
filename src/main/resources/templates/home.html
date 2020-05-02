@@ -1,0 +1,18 @@
+<html>
+<head><title>Home Page</title></head>
+<body>
+<h1>Hello !</h1>
+<p>Welcome to <span th:text="${appName}">Our App</span></p>
+<table>
+    <tr th:each="bot: ${bots}">
+        <td th:text="${bot.name}"  />
+        <td>
+            <a th:href="@{/status(botName=${bot.name})}"><span th:text="${bot.status}" /></a>
+        </td>
+        <td>
+            <a th:href="@{/startBot(botName=${bot.name})}">Start Bot</a>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

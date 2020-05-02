@@ -1,0 +1,15 @@
+<html>
+<head><title>Home Page</title></head>
+<body>
+<h1>ProfitTrailer Manager !</h1>
+<p>bot status <span th:text="${bot.status}"></span></p>
+<select id="BotsSelection">
+    <option th:each="bot : ${bots}" th:value="${bot.name}" th:text="${bot.name}">
+
+    </option>
+</select>
+
+<iframe th:src="${botUrl}" style="width:50%;height:80%">
+</iframe>
+</body>
+</html>
