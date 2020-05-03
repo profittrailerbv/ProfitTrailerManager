@@ -28,8 +28,7 @@ public class HomeController {
 	}
 
 	@GetMapping("/startBot")
-	public String startBot(String botName,
-	                       Model model) {
+	public String startBot(String botName) {
 
 		processService.startBot(botName);
 
