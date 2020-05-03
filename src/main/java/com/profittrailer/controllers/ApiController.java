@@ -43,10 +43,7 @@ public class ApiController {
 	public String checkStatus(String botName) {
 		Gson gson = new Gson();
 		JsonObject object = new JsonObject();
-		Properties botProperties = processService.getBotProperties(botName);
 		object.add("bot", gson.toJsonTree(processService.getBotInfoMap().get(botName)));
-		object.addProperty("botUrl", botProperties.getProperty("url"));
-		object.add("bots", gson.toJsonTree(processService.getBotList()));
 
 		return object.toString();
 	}
