@@ -15,10 +15,6 @@ public class Application {
 	@Autowired
 	private ProcessService processService;
 
-	public static void main(String... args) {
-		SpringApplication.run(Application.class, args);
-	}
-
 	@PostConstruct
 	public void init() {
 		processService.init();

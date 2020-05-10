@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 @Service
 @Getter
@@ -21,13 +22,14 @@ public class ProcessService {
 
 	@Value("${server.bots.directory}")
 	private String botsLocation;
-	private Map<String, BotInfo> botInfoMap = new HashMap<>();
+	private Map<String, BotInfo> botInfoMap = new TreeMap<>();
 
 	public void init() {
 		File botsDirectory = new File(botsLocation);
 		File[] files = botsDirectory.listFiles();
 		if (files != null) {
 			Arrays.stream(files)
+					.filter(File::isDirectory)
 					.map(File::getName)
 					.forEach(e -> {
 						BotInfo botInfo = new BotInfo(e);
