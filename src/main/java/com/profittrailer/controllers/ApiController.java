@@ -1,20 +1,16 @@
 package com.profittrailer.controllers;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.profittrailer.models.BotInfo;
 import com.profittrailer.services.ProcessService;
+import com.profittrailer.utils.BotInfoSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletResponse;
-import java.util.Collections;
-import java.util.Properties;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -41,9 +37,12 @@ public class ApiController {
 
 	@GetMapping("/status")
 	public String checkStatus(String botName) {
-		Gson gson = new Gson();
+		GsonBuilder gson = new GsonBuilder();
+		gson.registerTypeAdapter(BotInfo.class, new BotInfoSerializer());
+		Gson parser = gson.create();
+
 		JsonObject object = new JsonObject();
-		object.add("bot", gson.toJsonTree(processService.getBotInfoMap().get(botName)));
+		object.add("bot", parser.toJsonTree(processService.getBotInfoMap().get(botName)));
 
 		return object.toString();
 	}
