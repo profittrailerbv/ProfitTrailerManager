@@ -20520,7 +20520,7 @@ var render = function() {
           _c("div", { staticClass: "card-body" }, [
             _c("h5", { staticClass: "card-title" }, [_vm._v(_vm._s(bot.name))]),
             _vm._v(" "),
-            _c("a", { attrs: { href: "#" } }, [_vm._v("Status")]),
+            _c("p", [_vm._v(_vm._s(bot.status))]),
             _vm._v(" "),
             _c(
               "a",
