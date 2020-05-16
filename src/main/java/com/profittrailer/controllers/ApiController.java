@@ -12,18 +12,28 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
+
 @RestController
 @RequestMapping("/api/v1")
 public class ApiController {
 
 	@Autowired
 	private ProcessService processService;
+	private Gson parser;
+
+	@PostConstruct
+	public void init() {
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(BotInfo.class, new BotInfoSerializer());
+		parser = gsonBuilder.create();
+	}
 
 	@GetMapping("/data")
 	public String data() {
 
 		JsonObject object = new JsonObject();
-		object.add("bots", new Gson().toJsonTree(processService.getBotList()));
+		object.add("bots", parser.toJsonTree(processService.getBotList()));
 
 		return object.toString();
 	}
@@ -37,10 +47,6 @@ public class ApiController {
 
 	@GetMapping("/status")
 	public String checkStatus(String botName) {
-		GsonBuilder gson = new GsonBuilder();
-		gson.registerTypeAdapter(BotInfo.class, new BotInfoSerializer());
-		Gson parser = gson.create();
-
 		JsonObject object = new JsonObject();
 		object.add("bot", parser.toJsonTree(processService.getBotInfoMap().get(botName)));
 
