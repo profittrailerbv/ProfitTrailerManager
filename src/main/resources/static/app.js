@@ -1921,8 +1921,44 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
-  props: ['botName', 'bot']
+  data: function data() {
+    return {
+      bots: [],
+      loading: true
+    };
+  },
+  methods: {
+    getAllBots: function getAllBots() {
+      var _this = this;
+
+      axios.get('/api/v1/data').then(function (response) {
+        _this.bots = response.data.bots;
+        console.log(response);
+      });
+    },
+    startBot: function startBot(name) {
+      axios.post('/api/v1/startBot?botName=' + name).then(function (response) {
+        console.log(response);
+      })["catch"](function (error) {
+        console.log(error);
+      });
+    },
+    getBotStatus: function getBotStatus(name) {
+      axios.get('/api/v1/status?botName=' + name).then(function (response) {
+        console.log(response);
+      })["catch"](function (error) {
+        console.log(error);
+      });
+    }
+  },
+  mounted: function mounted() {
+    this.getAllBots();
+  }
 });
 
 /***/ }),
@@ -20474,25 +20510,43 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div", { staticClass: "col mb-4" }, [
-    _c("div", { staticClass: "card" }, [
-      _c("div", { staticClass: "card-body" }, [
-        _c("h5", { staticClass: "card-title" }, [_vm._v(_vm._s(_vm.botName))]),
-        _vm._v(" "),
-        _c("p", [_vm._v(_vm._s(_vm.bot))]),
-        _vm._v(" "),
-        _c("a", { attrs: { href: "/status/" + _vm.botName } }, [
-          _vm._v(_vm._s(_vm.bot.status))
-        ]),
-        _vm._v(" "),
-        _c("p", { staticClass: "card-text" }, [
-          _vm._v(
-            "This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer."
-          )
+  return _c(
+    "div",
+    { staticClass: "row row-cols-1 row-cols-md-3" },
+    _vm._l(_vm.bots, function(bot) {
+      return _c("div", { staticClass: "col mb-4" }, [
+        _vm._v("\n        " + _vm._s(bot) + "\n        "),
+        _c("div", { staticClass: "card" }, [
+          _c("div", { staticClass: "card-body" }, [
+            _c("h5", { staticClass: "card-title" }, [_vm._v(_vm._s(bot.name))]),
+            _vm._v(" "),
+            _c("a", { attrs: { href: "#" } }, [_vm._v("Status")]),
+            _vm._v(" "),
+            _c(
+              "a",
+              {
+                attrs: { href: "#" },
+                on: {
+                  click: function($event) {
+                    $event.preventDefault()
+                    return _vm.startBot(bot.name)
+                  }
+                }
+              },
+              [_vm._v("Start Bot")]
+            ),
+            _vm._v(" "),
+            _c("p", { staticClass: "card-text" }, [
+              _vm._v(
+                "This is a longer card with supporting text below as a natural lead-in to\n                    additional content. This content is a little bit longer."
+              )
+            ])
+          ])
         ])
       ])
-    ])
-  ])
+    }),
+    0
+  )
 }
 var staticRenderFns = []
 render._withStripped = true

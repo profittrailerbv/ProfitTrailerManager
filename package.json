@@ -23,7 +23,6 @@
   "devDependencies": {
     "axios": "^0.19.2",
     "bootstrap": "^4.4.1",
-    "bootstrap-vue": "^2.13.1",
     "cross-env": "^7.0.2",
     "laravel-mix": "^5.0.4",
     "lodash": "^4.17.15",
@@ -32,9 +31,10 @@
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",
     "vue": "^2.6.11",
-    "vue-template-compiler": "^2.6.11"
+    "vue-template-compiler": "^2.6.11",
+    "jquery": "^3.5.1"
   },
   "dependencies": {
-    "jquery": "^3.5.1"
+
   }
 }
