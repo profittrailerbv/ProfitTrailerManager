@@ -9,7 +9,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import javax.annotation.PostConstruct;
 
 @SpringBootApplication(scanBasePackages = "com.profittrailer")
-@EnableWebMvc
 public class Application {
 
 	@Autowired
