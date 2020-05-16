@@ -1,5 +1,6 @@
 package com.profittrailer.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.util.Properties;
@@ -8,6 +9,7 @@ import java.util.Properties;
 public class BotInfo {
 
 	private String name;
+	@JsonIgnore
 	private Process process;
 	private Properties botProperties;
 
