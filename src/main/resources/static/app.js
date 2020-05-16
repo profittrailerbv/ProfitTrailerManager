@@ -1925,6 +1925,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -1947,6 +1948,7 @@ __webpack_require__.r(__webpack_exports__);
       })["catch"](function (error) {
         console.log(error);
       });
+      this.getBotStatus(name);
     },
     getBotStatus: function getBotStatus(name) {
       axios.get('/api/v1/status?botName=' + name).then(function (response) {
@@ -20521,6 +20523,22 @@ var render = function() {
             _c("h5", { staticClass: "card-title" }, [_vm._v(_vm._s(bot.name))]),
             _vm._v(" "),
             _c("p", [_vm._v(_vm._s(bot.status))]),
+            _vm._v(" "),
+            _c("p", [
+              _c(
+                "a",
+                {
+                  attrs: { href: "#" },
+                  on: {
+                    click: function($event) {
+                      $event.preventDefault()
+                      return _vm.getBotStatus(bot.name)
+                    }
+                  }
+                },
+                [_vm._v("Refresh Status")]
+              )
+            ]),
             _vm._v(" "),
             _c(
               "a",

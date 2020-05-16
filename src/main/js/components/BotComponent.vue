@@ -6,6 +6,7 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ bot.name }}</h5>
                     <p>{{ bot.status }}</p>
+                    <p><a href="#" @click.prevent="getBotStatus(bot.name)">Refresh Status</a></p>
                     <a href="#" @click.prevent="startBot(bot.name)">Start Bot</a>
                     <p class="card-text">This is a longer card with supporting text below as a natural lead-in to
                         additional content. This content is a little bit longer.</p>
@@ -36,6 +37,8 @@
                 }).catch((error) => {
                     console.log(error)
                 })
+
+                this.getBotStatus(name)
             },
             getBotStatus(name) {
                 axios.get('/api/v1/status?botName=' + name).then((response) => {
