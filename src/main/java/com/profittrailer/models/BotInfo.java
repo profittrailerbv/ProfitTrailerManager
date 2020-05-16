@@ -9,8 +9,7 @@ import java.util.Properties;
 public class BotInfo {
 
 	private String name;
-	@JsonIgnore
-	private Process process;
+	private transient Process process;
 	private Properties botProperties;
 
 	public BotInfo() {
