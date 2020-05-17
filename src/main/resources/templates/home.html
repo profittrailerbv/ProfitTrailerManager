@@ -44,9 +44,7 @@
             Welcome to <span th:text="${appName}">Our App</span>
         </h3>
 
-        <div class="row row-cols-1 row-cols-md-3">
-            <bot-component th:each="bot: ${bots}" th:bot-name="${bot.name}" th:bot="${bot}"></bot-component>
-        </div>
+        <bot-component></bot-component>
 
     </div>
 </div>
