@@ -1,17 +1,18 @@
 package com.profittrailer.application;
 
 import com.profittrailer.form.ManagerForm;
-import org.apache.catalina.Manager;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ApplicationContext;
+import org.springframework.boot.system.ApplicationPid;
 
 import javax.annotation.PostConstruct;
 import java.awt.*;
 import java.util.Map;
 import java.util.TreeMap;
 
+@Log4j2
 @SpringBootApplication(scanBasePackages = "com.profittrailer")
 public class ProfitTrailerManager {
 
@@ -45,14 +46,15 @@ public class ProfitTrailerManager {
 				ManagerForm ex = new ManagerForm(port);
 				ex.setVisible(true);
 			});
+
 		}
+		ApplicationPid pid = new ApplicationPid();
+		log.info(pid.toString());
 	}
 
 	private static boolean hasGui() {
 		String os = System.getProperty("os.name").toLowerCase();
 		return os.contains("win")
-				|| os.contains("nix")
-				|| os.contains("nux") ||
-				os.contains("mac os x");
+				|| os.contains("mac os x");
 	}
 }

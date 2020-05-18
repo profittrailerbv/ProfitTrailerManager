@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.profittrailer.models.BotInfo;
 import com.profittrailer.services.ProcessService;
 import com.profittrailer.utils.BotInfoSerializer;
+import com.profittrailer.utils.StaticUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -30,10 +33,11 @@ public class ApiController {
 	}
 
 	@GetMapping("/data")
-	public String data() {
+	public String data(HttpServletRequest request) throws MalformedURLException {
 
 		JsonObject object = new JsonObject();
 		object.add("bots", parser.toJsonTree(processService.getBotList()));
+		object.addProperty("baseUrl", StaticUtil.getBaseUrl(request));
 
 		return object.toString();
 	}
@@ -43,6 +47,11 @@ public class ApiController {
 
 		processService.startBot(botName);
 
+	}
+
+	@PostMapping("/stopBot")
+	public void stopBot(String botName) {
+		processService.stopBot(botName);
 	}
 
 	@GetMapping("/status")

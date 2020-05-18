@@ -1,16 +1,28 @@
-<html xmlns:th="http://www.w3.org/1999/xhtml">
-<head><title>Home Page</title></head>
+<!doctype html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>ProfitTrailer Manager</title>
+
+    <link rel="stylesheet" th:href="@{/app.css}"/>
+</head>
 <body>
-<h1>ProfitTrailer Manager !</h1>
-<p>bot status <span th:text="${bot.status}"></span></p>
-<select id="BotsSelection">
-    <option th:each="bot : ${bots}" th:value="${bot.name}" th:text="${bot.name}">
+<div id="app">
 
-    </option>
-</select>
+    <my-component></my-component>
+    <div class="container mt-3">
+        <p>Bot status <span th:text="${bot.status}"></span></p>
 
-<iframe th:src="${botUrl}" style="width:50%;height:80%">
+        <iframe th:src="${botUrl}" style="width:100%;height:100%">
 
-</iframe>
+        </iframe>
+
+    </div>
+</div>
+
+<script th:src="@{/app.js}"></script>
 </body>
 </html>

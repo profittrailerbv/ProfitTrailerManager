@@ -7,3 +7,6 @@ target/
 application.properties
 
 yarn-error.log
+package-lock.json
+
+yarn-error.log
