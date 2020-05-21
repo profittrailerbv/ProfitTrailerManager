@@ -5,13 +5,10 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ bot.siteName }}</h5>
                     <p>{{ bot.status }} {{ bot.botProperties.managed }}</p>
-                    <p><a href="#" @click.prevent="getBotStatus(bot.directory)">Refresh Status</a></p>
                     <p><a href="#" @click.prevent="stopBot(bot.directory)">Stop Bot</a></p>
-                    <p><a href="#" @click.prevent="startBot(bot.directory)">Start Bot</a></p>
-                    <p v-if="containsKey(bot, 'statsData')"> Today: {{bot.statsData.basic.totalProfitToday}} ({{bot.statsData.basic.totalProfitPercToday}}%)</p>
-                    <p v-if="containsKey(bot, 'statsData')"> Yesterday: {{bot.statsData.basic.totalProfitYesterday}} ({{bot.statsData.basic.totalProfitPercYesterday}}%)</p>
-                    <p class="card-text">This is a longer card with supporting text below as a natural lead-in to
-                        additional content. This content is a little bit longer.</p>
+                    <p><a href="#" @click.prevent="restartBot(bot.directory)">Restart Bot</a></p>
+                    <p v-if="bot.botProperties.managed && containsKey(bot, 'statsData')"> Today: {{roundNumber(bot.statsData.basic.totalProfitToday, 3)}} ({{bot.statsData.basic.totalProfitPercToday}}%)</p>
+                    <p v-if="bot.botProperties.managed && containsKey(bot, 'statsData')"> Yesterday: {{roundNumber(bot.statsData.basic.totalProfitYesterday, 3)}} ({{bot.statsData.basic.totalProfitPercYesterday}}%)</p>
                 </div>
             </div>
         </div>
@@ -24,7 +21,11 @@
             return {
                 bots: [],
                 loading: true,
+                timer: ''
             }
+        },
+        created() {
+            this.timer = setInterval(this.getAllBots, 5000)
         },
         methods: {
             getAllBots() {
@@ -34,7 +35,7 @@
                 })
             },
             stopBot(name) {
-                axios.post('/api/v1/stopBot?botName=' + name).then((response) => {
+                axios.post('/api/v1/stopBot?directoryName=' + name).then((response) => {
                     console.log(response)
                 }).catch((error) => {
                     console.log(error)
@@ -42,8 +43,8 @@
 
                 this.getBotStatus(name)
             },
-            startBot(name) {
-                axios.post('/api/v1/startBot?botName=' + name).then((response) => {
+            restartBot(name) {
+                axios.post('/api/v1/restartBot?directoryName=' + name).then((response) => {
                     console.log(response)
                 }).catch((error) => {
                     console.log(error)
@@ -52,7 +53,7 @@
                 this.getBotStatus(name)
             },
             getBotStatus(name) {
-                axios.get('/api/v1/status?botName=' + name).then((response) => {
+                axios.get('/api/v1/status?directoryName=' + name).then((response) => {
                     console.log(response)
                 }).catch((error) => {
                     console.log(error)
@@ -60,10 +61,16 @@
             },
             containsKey(obj, key ) {
                 return Object.keys(obj).includes(key);
+            },
+            roundNumber(number, decimals) {
+                return number.toFixed(decimals);
             }
         },
         mounted() {
             this.getAllBots()
+        },
+        beforeDestroy () {
+            clearInterval(this.timer)
         }
     }
 </script>

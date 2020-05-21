@@ -19,7 +19,7 @@
                             Bots
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" v-for="bot in bots" :href="'/status?botName=' + bot.directory">
+                            <a class="dropdown-item" v-for="bot in bots" :href="'/status?directoryName=' + bot.directory">
                                <span>{{bot.siteName}}</span>
                                </a>
                         </div>
@@ -47,7 +47,7 @@
                 })
             },
             startBot(name) {
-                axios.post('/api/v1/startBot?botName=' + name).then((response) => {
+                axios.post('/api/v1/startBot?directoryName=' + name).then((response) => {
                     console.log(response)
                 }).catch((error) => {
                     console.log(error)
@@ -56,7 +56,7 @@
                 this.getBotStatus(name)
             },
             getBotStatus(name) {
-                axios.get('/api/v1/status?botName=' + name).then((response) => {
+                axios.get('/api/v1/status?directoryName=' + name).then((response) => {
                     console.log(response)
                 }).catch((error) => {
                     console.log(error)

@@ -1925,15 +1925,16 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       bots: [],
-      loading: true
+      loading: true,
+      timer: ''
     };
+  },
+  created: function created() {
+    this.timer = setInterval(this.getAllBots, 5000);
   },
   methods: {
     getAllBots: function getAllBots() {
@@ -1945,15 +1946,15 @@ __webpack_require__.r(__webpack_exports__);
       });
     },
     stopBot: function stopBot(name) {
-      axios.post('/api/v1/stopBot?botName=' + name).then(function (response) {
+      axios.post('/api/v1/stopBot?directoryName=' + name).then(function (response) {
         console.log(response);
       })["catch"](function (error) {
         console.log(error);
       });
       this.getBotStatus(name);
     },
-    startBot: function startBot(name) {
-      axios.post('/api/v1/startBot?botName=' + name).then(function (response) {
+    restartBot: function restartBot(name) {
+      axios.post('/api/v1/restartBot?directoryName=' + name).then(function (response) {
         console.log(response);
       })["catch"](function (error) {
         console.log(error);
@@ -1961,7 +1962,7 @@ __webpack_require__.r(__webpack_exports__);
       this.getBotStatus(name);
     },
     getBotStatus: function getBotStatus(name) {
-      axios.get('/api/v1/status?botName=' + name).then(function (response) {
+      axios.get('/api/v1/status?directoryName=' + name).then(function (response) {
         console.log(response);
       })["catch"](function (error) {
         console.log(error);
@@ -1969,10 +1970,16 @@ __webpack_require__.r(__webpack_exports__);
     },
     containsKey: function containsKey(obj, key) {
       return Object.keys(obj).includes(key);
+    },
+    roundNumber: function roundNumber(number, decimals) {
+      return number.toFixed(decimals);
     }
   },
   mounted: function mounted() {
     this.getAllBots();
+  },
+  beforeDestroy: function beforeDestroy() {
+    clearInterval(this.timer);
   }
 });
 
@@ -2037,7 +2044,7 @@ __webpack_require__.r(__webpack_exports__);
       });
     },
     startBot: function startBot(name) {
-      axios.post('/api/v1/startBot?botName=' + name).then(function (response) {
+      axios.post('/api/v1/startBot?directoryName=' + name).then(function (response) {
         console.log(response);
       })["catch"](function (error) {
         console.log(error);
@@ -2045,7 +2052,7 @@ __webpack_require__.r(__webpack_exports__);
       this.getBotStatus(name);
     },
     getBotStatus: function getBotStatus(name) {
-      axios.get('/api/v1/status?botName=' + name).then(function (response) {
+      axios.get('/api/v1/status?directoryName=' + name).then(function (response) {
         console.log(response);
       })["catch"](function (error) {
         console.log(error);
@@ -20530,22 +20537,6 @@ var render = function() {
                   on: {
                     click: function($event) {
                       $event.preventDefault()
-                      return _vm.getBotStatus(bot.directory)
-                    }
-                  }
-                },
-                [_vm._v("Refresh Status")]
-              )
-            ]),
-            _vm._v(" "),
-            _c("p", [
-              _c(
-                "a",
-                {
-                  attrs: { href: "#" },
-                  on: {
-                    click: function($event) {
-                      $event.preventDefault()
                       return _vm.stopBot(bot.directory)
                     }
                   }
@@ -20562,19 +20553,21 @@ var render = function() {
                   on: {
                     click: function($event) {
                       $event.preventDefault()
-                      return _vm.startBot(bot.directory)
+                      return _vm.restartBot(bot.directory)
                     }
                   }
                 },
-                [_vm._v("Start Bot")]
+                [_vm._v("Restart Bot")]
               )
             ]),
             _vm._v(" "),
-            _vm.containsKey(bot, "statsData")
+            bot.botProperties.managed && _vm.containsKey(bot, "statsData")
               ? _c("p", [
                   _vm._v(
                     " Today: " +
-                      _vm._s(bot.statsData.basic.totalProfitToday) +
+                      _vm._s(
+                        _vm.roundNumber(bot.statsData.basic.totalProfitToday, 3)
+                      ) +
                       " (" +
                       _vm._s(bot.statsData.basic.totalProfitPercToday) +
                       "%)"
@@ -20582,23 +20575,22 @@ var render = function() {
                 ])
               : _vm._e(),
             _vm._v(" "),
-            _vm.containsKey(bot, "statsData")
+            bot.botProperties.managed && _vm.containsKey(bot, "statsData")
               ? _c("p", [
                   _vm._v(
                     " Yesterday: " +
-                      _vm._s(bot.statsData.basic.totalProfitYesterday) +
+                      _vm._s(
+                        _vm.roundNumber(
+                          bot.statsData.basic.totalProfitYesterday,
+                          3
+                        )
+                      ) +
                       " (" +
                       _vm._s(bot.statsData.basic.totalProfitPercYesterday) +
                       "%)"
                   )
                 ])
-              : _vm._e(),
-            _vm._v(" "),
-            _c("p", { staticClass: "card-text" }, [
-              _vm._v(
-                "This is a longer card with supporting text below as a natural lead-in to\n                    additional content. This content is a little bit longer."
-              )
-            ])
+              : _vm._e()
           ])
         ])
       ])
@@ -20681,7 +20673,9 @@ var render = function() {
                       "a",
                       {
                         staticClass: "dropdown-item",
-                        attrs: { href: "/status?botName=" + bot.directory }
+                        attrs: {
+                          href: "/status?directoryName=" + bot.directory
+                        }
                       },
                       [_c("span", [_vm._v(_vm._s(bot.siteName))])]
                     )

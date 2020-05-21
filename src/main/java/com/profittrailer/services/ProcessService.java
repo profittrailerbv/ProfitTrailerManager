@@ -13,30 +13,20 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jutils.jprocesses.JProcesses;
 import org.jutils.jprocesses.model.ProcessInfo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -47,6 +37,8 @@ public class ProcessService {
 	private String managerToken;
 	@Value("${server.bots.directory}")
 	private String botsLocation;
+	@Value("${server.bots.autostart:false}")
+	private boolean autoStartManagedBots;
 	private Map<String, BotInfo> botInfoMap = new ConcurrentHashMap<>();
 	private boolean initialzed = false;
 	private Gson parser;
@@ -87,10 +79,23 @@ public class ProcessService {
 						botInfoMap.put(e, botInfo);
 					});
 		}
+
+		if (autoStartManagedBots) {
+			for (BotInfo botInfo : botInfoMap.values()) {
+				boolean managed = Boolean.parseBoolean((String) botInfo.getBotProperties().getOrDefault("managed", "false"));
+				if (botInfo.getStatus().equals("OFFLINE") && managed) {
+					startBot(botInfo.getDirectory());
+				}
+			}
+		}
 	}
 
-	public void startBot(String botName) {
-		ProcessBuilder builder = new ProcessBuilder("java",
+	public void startBot(String directoryName) {
+		String startup = "java ";
+		if (StaticUtil.isUnix()) {
+			startup = "shopt -u huponexit; java" + startup;
+		}
+		ProcessBuilder builder = new ProcessBuilder(startup,
 				"-Djava.net.preferIPv4Stack=true",
 				"-XX:+UseSerialGC",
 				"-XX:+UseStringDeduplication",
@@ -100,17 +105,19 @@ public class ProcessService {
 				"-XX:MaxMetaspaceSize=256m",
 				"-jar",
 				"ProfitTrailer.jar",
+				"--server.port.forcenew",
 				"--server.manager.token=" + managerToken);
 
-		builder.directory(new File(botsLocation + "/" + botName));
+		builder.directory(new File(botsLocation + "/" + directoryName));
 
 		try {
-			if (!botInfoMap.containsKey(botName)
-					|| botInfoMap.get(botName).getStatus().equals("OFFLINE")) {
+			if (!botInfoMap.containsKey(directoryName)
+					|| botInfoMap.get(directoryName).getStatus().equals("OFFLINE")) {
 				Process process = builder.start();
-				BotInfo botInfo = botInfoMap.getOrDefault(botName, new BotInfo(botName));
+				BotInfo botInfo = botInfoMap.getOrDefault(directoryName, new BotInfo(directoryName));
 				botInfo.setProcess(process);
-				botInfoMap.put(botName, botInfo);
+				botInfo.setStartDate(LocalDateTime.now());
+				botInfoMap.put(directoryName, botInfo);
 			}
 		} catch (Exception e) {
 			log.error(e);
@@ -119,11 +126,10 @@ public class ProcessService {
 
 	public void stopBot(String botName) {
 		BotInfo bot = botInfoMap.get(botName);
-		boolean managed = Boolean.valueOf((String) bot.getBotProperties().getOrDefault("managed", false));
+		boolean managed = Boolean.parseBoolean((String) bot.getBotProperties().getOrDefault("managed", "false"));
 		if (managed && bot.getProcess() != null) {
 			bot.getProcess().destroy();
 		} else if (bot.getProcessInfo() != null) {
-			JProcesses.killProcessGracefully(Integer.parseInt(bot.getProcessInfo().getPid()));
 			JProcesses.killProcess(Integer.parseInt(bot.getProcessInfo().getPid()));
 		}
 	}
@@ -152,7 +158,7 @@ public class ProcessService {
 			return;
 		}
 		try {
-			boolean managed = Boolean.parseBoolean((String) botInfo.getBotProperties().getOrDefault("managed", false));
+			boolean managed = Boolean.parseBoolean((String) botInfo.getBotProperties().getOrDefault("managed", "false"));
 			if (managed) {
 				String token = managerToken;
 				if (botInfo.getProcessInfo() != null) {
@@ -162,8 +168,11 @@ public class ProcessService {
 				String contextPath = (String) botInfo.getBotProperties().get("context");
 				String url = String.format("%s:%s%s", StaticUtil.url, port, contextPath);
 				String dataUrl = url + "/api/v2/data/stats?token=" + token;
+				String miscUrl = url + "/api/v2/data/misc?token=" + token;
 				String data = HttpClientManager.getHttp(dataUrl, Collections.emptyList());
 				botInfo.setStatsData(parser.fromJson(data, JsonObject.class));
+				String misc = HttpClientManager.getHttp(miscUrl, Collections.emptyList());
+				botInfo.setMiscData(parser.fromJson(misc, JsonObject.class));
 			}
 		} catch (Exception e) {
 			log.error(e);

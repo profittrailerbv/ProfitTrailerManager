@@ -10,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public class StaticUtil {
+
 	public static String url = null;
 
 	public static String getBaseUrl(HttpServletRequest request) throws MalformedURLException {
@@ -20,6 +21,13 @@ public class StaticUtil {
 		String scheme = uriComponents.getScheme();
 		URL requestURL = new URL(request.getRequestURL().toString());
 		return scheme + "://" + requestURL.getHost();
+	}
+
+	public static boolean isUnix() {
+		String os = System.getProperty("os.name").toLowerCase();
+		return os.contains("nix")
+				|| os.contains("nux")
+				|| os.contains("mac os x");
 	}
 
 }

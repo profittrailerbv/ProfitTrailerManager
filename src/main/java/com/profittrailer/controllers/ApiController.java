@@ -42,22 +42,23 @@ public class ApiController {
 		return object.toString();
 	}
 
-	@PostMapping("/startBot")
-	public void startBot(String botName) {
-
-		processService.startBot(botName);
+	@PostMapping("/restartBot")
+	public void startBot(String directoryName) throws InterruptedException {
+		processService.stopBot(directoryName);
+		Thread.sleep(5000);
+		processService.startBot(directoryName);
 
 	}
 
 	@PostMapping("/stopBot")
-	public void stopBot(String botName) {
-		processService.stopBot(botName);
+	public void stopBot(String directoryName) {
+		processService.stopBot(directoryName);
 	}
 
 	@GetMapping("/status")
-	public String checkStatus(String botName) {
+	public String checkStatus(String directoryName) {
 		JsonObject object = new JsonObject();
-		object.add("bot", parser.toJsonTree(processService.getBotInfoMap().get(botName)));
+		object.add("bot", parser.toJsonTree(processService.getBotInfoMap().get(directoryName)));
 
 		return object.toString();
 	}
