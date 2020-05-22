@@ -3,7 +3,7 @@
         <div class="col mb-4" v-for="bot in bots">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">{{ bot.siteName }}</h5>
+                    <h5 class="card-title">{{ bot.siteName }} <i class="fas fa-check-square"></i></h5>
                     <p>{{ bot.status }} {{ bot.botProperties.managed }}</p>
                     <p><a href="#" @click.prevent="stopBot(bot.directory)">Stop Bot</a></p>
                     <p><a href="#" @click.prevent="restartBot(bot.directory)">Restart Bot</a></p>
