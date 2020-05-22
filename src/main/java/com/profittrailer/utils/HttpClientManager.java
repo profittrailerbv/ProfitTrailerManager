@@ -32,7 +32,7 @@ public class HttpClientManager {
 	private static RequestConfig config;
 
 	private HttpClientManager() {
-		int TIMEOUT = 60;
+		int TIMEOUT = 2;
 		config = RequestConfig.custom()
 				.setConnectTimeout(TIMEOUT * 1000)
 				.setConnectionRequestTimeout(TIMEOUT * 1000)

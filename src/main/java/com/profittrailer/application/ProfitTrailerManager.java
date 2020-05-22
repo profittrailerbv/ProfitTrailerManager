@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.system.ApplicationPid;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
 import java.awt.*;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 @Log4j2
+@EnableScheduling
 @SpringBootApplication(scanBasePackages = "com.profittrailer")
 public class ProfitTrailerManager {
 
@@ -29,6 +31,10 @@ public class ProfitTrailerManager {
 		props.put("spring.main.banner-mode", "off");
 		props.put("server.compression.enabled", true);
 		props.put("server.compression.mime-types", "text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json,application/xml");
+		props.put("spring.resources.static-locations[0]", "file:src/main/resources/static/");
+		props.put("spring.resources.static-locations[1]", "classpath:/static/");
+		props.put("spring.resources.static-locations[2]", "file:src/main/js/");
+		props.put("spring.resources.static-locations[3]", "file:classpath:/js/");
 
 		new SpringApplicationBuilder()
 				.sources(ProfitTrailerManager.class)

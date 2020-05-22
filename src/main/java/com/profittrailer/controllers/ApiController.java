@@ -24,6 +24,7 @@ public class ApiController {
 	@Autowired
 	private ProcessService processService;
 	private Gson parser;
+	private boolean onlyManaged = true;
 
 	@PostConstruct
 	public void init() {
@@ -36,7 +37,7 @@ public class ApiController {
 	public String data(HttpServletRequest request) throws MalformedURLException {
 
 		JsonObject object = new JsonObject();
-		object.add("bots", parser.toJsonTree(processService.getBotList()));
+		object.add("bots", parser.toJsonTree(processService.getBotList(onlyManaged)));
 		object.addProperty("baseUrl", StaticUtil.getBaseUrl(request));
 
 		return object.toString();
@@ -60,6 +61,21 @@ public class ApiController {
 		JsonObject object = new JsonObject();
 		object.add("bot", parser.toJsonTree(processService.getBotInfoMap().get(directoryName)));
 
+		return object.toString();
+	}
+
+	@GetMapping("/toggleCards")
+	public String getToggle(HttpServletRequest request) throws MalformedURLException {
+		JsonObject object = new JsonObject();
+		object.addProperty("onlyManaged", onlyManaged);
+		return object.toString();
+	}
+
+	@PostMapping("/toggleCards")
+	public String postToggle() throws InterruptedException {
+		onlyManaged = !onlyManaged;
+		JsonObject object = new JsonObject();
+		object.addProperty("onlyManaged", onlyManaged);
 		return object.toString();
 	}
 }

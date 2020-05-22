@@ -17,6 +17,7 @@ window.axios = require('axios');
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 
+Vue.component('toggle-component', require('./components/ToggleComponent').default);
 Vue.component('my-component', require('./components/MyComponent').default);
 Vue.component('test-component', require('./components/TestComponent').default);
 Vue.component('bot-component', require('./components/BotComponent').default);

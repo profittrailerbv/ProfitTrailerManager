@@ -34,7 +34,7 @@ public class HomeController {
 		String url = String.format("%s:%s%s", StaticUtil.getBaseUrl(request), port, contextPath);
 		model.addAttribute("bot", botInfo);
 		model.addAttribute("botUrl", url);
-		model.addAttribute("bots", processService.getBotList());
+		//model.addAttribute("bots", processService.getBotList());
 		model.addAttribute("logs", Collections.emptyList());
 		return "status";
 	}
