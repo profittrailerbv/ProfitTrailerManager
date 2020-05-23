@@ -1,20 +1,13 @@
 <template>
     <div class="row row-cols-1 row-cols-md-1">
         <div class="card">
-            <div class="card-body" v-if="onlyManaged">
+            <div class="card-body">
                 <h5>
                 <a href="#" @click.prevent="toggleCards()">
-                    <font-awesome-icon class="text-success" :icon="['fas','toggle-on']"></font-awesome-icon>
+                    <font-awesome-icon v-if="onlyManaged" class="text-success" :icon="['fas','toggle-on']"></font-awesome-icon>
+                    <font-awesome-icon v-if="!onlyManaged" class="text-danger" :icon="['fas','toggle-off']"></font-awesome-icon>
                 </a>
-                Toggle to display only managed bots : true
-                </h5>
-            </div>
-            <div class="card-body" v-if="!onlyManaged">
-                <h5>
-                <a href="#" @click.prevent="toggleCards()">
-                    <font-awesome-icon class="text-danger" :icon="['fas','toggle-off']"></font-awesome-icon>
-                </a>
-                Toggle to display only managed bots : false
+                Toggle to display only managed bots
                 </h5>
             </div>
         </div>
@@ -49,8 +42,6 @@
         },
         mounted() {
             this.getToggle()
-        },
-        computed: {
-       }
+        }
     }
 </script>
