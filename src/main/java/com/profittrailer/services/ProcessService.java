@@ -102,7 +102,8 @@ public class ProcessService {
 			if (autoStartManagedBots && processedInitialized) {
 				for (BotInfo botInfo : botInfoMap.values()) {
 					boolean offline = botInfo.getStatus().equals("OFFLINE");
-					if (!offline && StringUtils.isNotBlank(StaticUtil.url) && processedInitialized) {
+					boolean managed = Boolean.parseBoolean((String) botInfo.getBotProperties().getOrDefault("managed", "false"));
+					if (!offline && StringUtils.isNotBlank(StaticUtil.url) && processedInitialized && managed) {
 						String healthUrl = createUrl(botInfo, managerToken, "/api/v2/health");
 						try {
 							Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
@@ -113,7 +114,6 @@ public class ProcessService {
 							log.error("Erorr pinging health" + e.getMessage());
 						}
 					}
-					boolean managed = Boolean.parseBoolean((String) botInfo.getBotProperties().getOrDefault("managed", "false"));
 					if (offline && managed) {
 						stopBot(botInfo.getDirectory());
 						Thread.sleep(3000);
@@ -129,11 +129,9 @@ public class ProcessService {
 
 	public void startBot(String directoryName) {
 		List<String> commands = new ArrayList<>();
-//		if (StaticUtil.isUnix()) {
-//			commands.add("shopt");
-//			commands.add("-u");
-//			commands.add("huponexit;");
-//		}
+		if (StaticUtil.isUnix()) {
+			commands.add("setsid");
+		}
 		commands.add("java");
 		commands.add("-Djava.net.preferIPv4Stack=true");
 		commands.add("-XX:+UseSerialGC");
@@ -146,6 +144,12 @@ public class ProcessService {
 		commands.add("ProfitTrailer.jar");
 		commands.add("--server.port.forcenew");
 		commands.add("--server.manager.token=" + managerToken);
+		commands.add("--server.manager.dummy");
+		if (StaticUtil.isUnix()) {
+			commands.add("&");
+			commands.add("disown");
+		}
+		log.info(commands.toString());
 		ProcessBuilder builder = new ProcessBuilder(commands);
 		builder.directory(new File(botsLocation + "/" + directoryName));
 
@@ -242,7 +246,8 @@ public class ProcessService {
 		if (botInfo.getProcessInfo() != null) {
 			String[] splitted = botInfo.getProcessInfo().getCommand().split("--server.manager.token=");
 			if (splitted.length > 1) {
-				token = botInfo.getProcessInfo().getCommand().split("--server.manager.token=")[1];
+				String[] finalSplitted = splitted[1].split("--server.manager.dummy");
+				token = finalSplitted[0].trim();
 			}
 		}
 		String port = (String) botInfo.getBotProperties().get("port");

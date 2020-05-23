@@ -11,11 +11,12 @@
 </head>
 <body>
 <div id="app">
-    <my-component></my-component>
-    <h3 th:text="${siteName}"></h3>
-    <iframe th:src="${botUrl}" style="position:absolute;width:99.9%;height:83%">
+    <my-component th:attr="title=${siteName}"></my-component>
+    <div class="container mt-3">
+        <iframe th:src="${botUrl}" style="position:absolute;width:81%;height:83%">
 
-    </iframe>
+        </iframe>
+    </div>
 </div>
 
 <script th:src="@{/app.js}"></script>

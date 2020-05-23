@@ -2,7 +2,8 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">ProfitTrailer Manager</a>
+            <a class="navbar-brand" v-if="title" href="/">ProfitTrailer Manager -- {{title}}</a>
+            <a class="navbar-brand" v-else href="/">ProfitTrailer Manager</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -39,6 +40,7 @@
                 loading: true,
             }
         },
+        props: ['title'],
         methods: {
             getAllBots() {
                 axios.get('/api/v1/data').then((response) => {
