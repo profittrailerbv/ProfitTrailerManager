@@ -4,7 +4,7 @@
             <div class="card">
                 <div class="card-header">
 	                <h5 class="card-title">
-	                <i class="fas fa-circle" v-bind:class="getStatusClass(bot.status)"></i> {{ bot.siteName }}
+                        <font-awesome-icon :class="getStatusClass(bot.status)" :icon="['fas','circle']"></font-awesome-icon> {{ bot.siteName }}
 	                </h5>
                   </div>
                 <div class="card-body">
@@ -13,7 +13,9 @@
                     <p v-if="bot.botProperties.managed && containsKey(bot, 'statsData')"> Yesterday: {{roundNumber(bot.statsData.basic.totalProfitYesterday, 3)}} ({{bot.statsData.basic.totalProfitPercYesterday}}%)</p>
                 </div>
                 <div class="card-footer text-muted text-right">
-                    <a href="#" @click.prevent="restartBot(bot.directory)"><i class="fas fa-redo-alt"></i></a>
+                    <a href="#" @click.prevent="restartBot(bot.directory)">
+                        <font-awesome-icon :icon="['fas','redo-alt']"></font-awesome-icon>
+                    </a>
                 </div>
             </div>
         </div>
