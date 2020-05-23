@@ -4,17 +4,17 @@
             <div class="card-body" v-if="onlyManaged">
                 <h5>
                 <a href="#" @click.prevent="toggleCards()">
-                    <i class="fas fa-toggle-on text-success"></i>
+                    <font-awesome-icon class="text-success" :icon="['fas','toggle-on']"></font-awesome-icon>
                 </a>
-                Toggle to display only managed bots
+                Toggle to display only managed bots : true
                 </h5>
             </div>
             <div class="card-body" v-if="!onlyManaged">
                 <h5>
                 <a href="#" @click.prevent="toggleCards()">
-                    <i class="fas fa-toggle-off text-danger"></i>
+                    <font-awesome-icon class="text-danger" :icon="['fas','toggle-off']"></font-awesome-icon>
                 </a>
-                Toggle to display only managed bots
+                Toggle to display only managed bots : false
                 </h5>
             </div>
         </div>
@@ -54,7 +54,3 @@
        }
     }
 </script>
-
-<style scoped>
-
-</style>

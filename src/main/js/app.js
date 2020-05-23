@@ -10,8 +10,13 @@ try {
 
 }
 
-import '@fortawesome/fontawesome-free/css/all.css'
-import '@fortawesome/fontawesome-free/js/all.js'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import {faToggleOff, faToggleOn, faCircle, faRedoAlt} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+library.add(faToggleOff, faToggleOn, faCircle, faRedoAlt)
+Vue.component('font-awesome-icon', FontAwesomeIcon)
+
 
 window.axios = require('axios');
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
