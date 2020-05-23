@@ -8,7 +8,6 @@
 	                </h5>
                   </div>
                 <div class="card-body">
-                    <p>{{ bot.status }} {{ bot.botProperties.managed }}</p>
                     <p v-if="bot.botProperties.managed && containsKey(bot, 'statsData')"> Today: {{roundNumber(bot.statsData.basic.totalProfitToday, 3)}} ({{bot.statsData.basic.totalProfitPercToday}}%)</p>
                     <p v-if="bot.botProperties.managed && containsKey(bot, 'statsData')"> Yesterday: {{roundNumber(bot.statsData.basic.totalProfitYesterday, 3)}} ({{bot.statsData.basic.totalProfitPercYesterday}}%)</p>
                 </div>
@@ -63,7 +62,7 @@
                 })
             },
             getStatusClass(status) {
-                return status === 'ONLINE' ? 'text-success' : 'text-danger';
+                return status === 'ONLINE' ? 'text-success' : status === 'INITIALIZING' ? 'text-warning' : 'text-danger';
             },
             containsKey(obj, key ) {
                 return Object.keys(obj).includes(key);

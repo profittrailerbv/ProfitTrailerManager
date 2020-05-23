@@ -32,7 +32,7 @@ public class BotInfo {
 			return "INITIALIZING";
 		}
 
-		if (startDate != null && startDate.plusSeconds(30).isAfter(LocalDateTime.now())) {
+		if (startDate != null && startDate.plusSeconds(60).isAfter(LocalDateTime.now())) {
 			return "STARTING";
 		}
 

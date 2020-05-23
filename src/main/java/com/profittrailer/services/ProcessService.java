@@ -2,8 +2,10 @@ package com.profittrailer.services;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.profittrailer.models.BotInfo;
+import com.profittrailer.models.StreamGobbler;
 import com.profittrailer.utils.BotInfoSerializer;
 import com.profittrailer.utils.HttpClientManager;
 import com.profittrailer.utils.StaticUtil;
@@ -11,6 +13,8 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jutils.jprocesses.JProcesses;
 import org.jutils.jprocesses.model.ProcessInfo;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,10 +25,12 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileReader;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,12 +46,14 @@ public class ProcessService {
 	private String botsLocation;
 	@Value("${server.bots.autostart:false}")
 	private boolean autoStartManagedBots;
+	private Map<String, ProcessInfo> processInfoMap = new HashMap<>();
 	private Map<String, BotInfo> botInfoMap = new ConcurrentHashMap<>();
 	private boolean initialzed = false;
+	private boolean processedInitialized = false;
 	private Gson parser;
 
 	@PostConstruct
-	public void init() throws InterruptedException {
+	public void init() {
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.registerTypeAdapter(BotInfo.class, new BotInfoSerializer());
 		parser = gsonBuilder.create();
@@ -55,72 +63,90 @@ public class ProcessService {
 	}
 
 	@Scheduled(initialDelay = 10000, fixedDelay = 10000)
-	public void refreshBotData() throws InterruptedException {
-		File botsDirectory = new File(botsLocation);
-		File[] files = botsDirectory.listFiles();
-		if (files != null) {
-			Map<String, ProcessInfo> processInfoMap = new HashMap<>();
-			if (initialzed) {
-				JProcesses.getProcessList()
-						.forEach(e -> processInfoMap.put(e.getPid(), e));
+	public void readProcesses() {
+		//log.info("Start");
+		if (initialzed) {
+			Map<String, ProcessInfo> tmpProcessInfoMap = new HashMap<>();
+			JProcesses.getProcessList()
+					.forEach(e -> tmpProcessInfoMap.put(e.getPid(), e));
+			processInfoMap = tmpProcessInfoMap;
+			processedInitialized = true;
+		}
+		//log.info("Done");
+	}
+
+	@Scheduled(initialDelay = 10000, fixedDelay = 10000)
+	public void refreshBotData() {
+		try {
+			File botsDirectory = new File(botsLocation);
+			File[] files = botsDirectory.listFiles();
+			if (files != null) {
+				Arrays.stream(files)
+						.filter(File::isDirectory)
+						.map(File::getName)
+						.forEach(e -> {
+							BotInfo botInfo = botInfoMap.getOrDefault(e, new BotInfo(e));
+							botInfo.setBotProperties(getBotProperties(e));
+							String pid = (String) botInfo.getBotProperties().get("process");
+							if (pid != null) {
+								botInfo.setProcessInfo(processInfoMap.get("" + pid));
+							}
+							if (processedInitialized) {
+								getBotData(botInfo);
+								botInfo.setInitialized(initialzed);
+							}
+							botInfoMap.put(e, botInfo);
+						});
 			}
 
-			Arrays.stream(files)
-					.filter(File::isDirectory)
-					.map(File::getName)
-					.forEach(e -> {
-						BotInfo botInfo = botInfoMap.getOrDefault(e, new BotInfo(e));
-						botInfo.setBotProperties(getBotProperties(e));
-						String pid = (String) botInfo.getBotProperties().get("process");
-						if (pid != null) {
-							botInfo.setProcessInfo(processInfoMap.get("" + pid));
+			if (autoStartManagedBots && processedInitialized) {
+				for (BotInfo botInfo : botInfoMap.values()) {
+					boolean offline = botInfo.getStatus().equals("OFFLINE");
+					if (!offline && StringUtils.isNotBlank(StaticUtil.url) && processedInitialized) {
+						String healthUrl = createUrl(botInfo, managerToken, "/api/v2/health");
+						try {
+							Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
+							if (data.getKey() < 202) {
+								offline = !StringUtils.equalsIgnoreCase(data.getValue(), "true");
+							}
+						} catch (Exception e) {
+							log.error("Erorr pinging health" + e.getMessage());
 						}
-						getBotData(botInfo);
-						botInfo.setInitialized(initialzed);
-						botInfoMap.put(e, botInfo);
-					});
-		}
-
-		if (autoStartManagedBots) {
-			for (BotInfo botInfo : botInfoMap.values()) {
-				boolean offline = botInfo.getStatus().equals("OFFLINE");
-				if (!offline && StringUtils.isNotBlank(StaticUtil.url)) {
-					String healthUrl = createUrl(botInfo, managerToken, "/api/v2/health");
-					try {
-						String data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
-						offline = !StringUtils.equalsIgnoreCase(data, "true");
-					} catch (Exception e) {
-						log.error(e.getMessage());
+					}
+					boolean managed = Boolean.parseBoolean((String) botInfo.getBotProperties().getOrDefault("managed", "false"));
+					if (offline && managed) {
+						stopBot(botInfo.getDirectory());
+						Thread.sleep(3000);
+						startBot(botInfo.getDirectory());
+						Thread.sleep(30000);
 					}
 				}
-				boolean managed = Boolean.parseBoolean((String) botInfo.getBotProperties().getOrDefault("managed", "false"));
-				if (offline && managed) {
-					stopBot(botInfo.getDirectory());
-					Thread.sleep(3000);
-					startBot(botInfo.getDirectory());
-				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
 	public void startBot(String directoryName) {
-		String startup = "java ";
-		if (StaticUtil.isUnix()) {
-			startup = "shopt -u huponexit; java" + startup;
-		}
-		ProcessBuilder builder = new ProcessBuilder(startup,
-				"-Djava.net.preferIPv4Stack=true",
-				"-XX:+UseSerialGC",
-				"-XX:+UseStringDeduplication",
-				"-Xms64m",
-				"-Xmx512m",
-				"-XX:CompressedClassSpaceSize=300m",
-				"-XX:MaxMetaspaceSize=256m",
-				"-jar",
-				"ProfitTrailer.jar",
-				"--server.port.forcenew",
-				"--server.manager.token=" + managerToken);
-
+		List<String> commands = new ArrayList<>();
+//		if (StaticUtil.isUnix()) {
+//			commands.add("shopt");
+//			commands.add("-u");
+//			commands.add("huponexit;");
+//		}
+		commands.add("java");
+		commands.add("-Djava.net.preferIPv4Stack=true");
+		commands.add("-XX:+UseSerialGC");
+		commands.add("-XX:+UseStringDeduplication");
+		commands.add("-Xms64m");
+		commands.add("-Xmx512m");
+		commands.add("-XX:CompressedClassSpaceSize=300m");
+		commands.add("-XX:MaxMetaspaceSize=256m");
+		commands.add("-jar");
+		commands.add("ProfitTrailer.jar");
+		commands.add("--server.port.forcenew");
+		commands.add("--server.manager.token=" + managerToken);
+		ProcessBuilder builder = new ProcessBuilder(commands);
 		builder.directory(new File(botsLocation + "/" + directoryName));
 
 		try {
@@ -131,8 +157,11 @@ public class ProcessService {
 				botInfo.setProcess(process);
 				botInfo.setStartDate(LocalDateTime.now());
 				botInfoMap.put(directoryName, botInfo);
+				Thread.sleep(5000);
+				readError(process);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			log.error(e);
 		}
 	}
@@ -140,11 +169,17 @@ public class ProcessService {
 	public void stopBot(String botName) {
 		BotInfo bot = botInfoMap.get(botName);
 		boolean managed = Boolean.parseBoolean((String) bot.getBotProperties().getOrDefault("managed", "false"));
+		int processId = NumberUtils.toInt((String) bot.getBotProperties().getOrDefault("process", 0));
 		if (managed && bot.getProcess() != null) {
 			bot.getProcess().destroy();
+			if (processId > 0) {
+				JProcesses.killProcess(processId);
+			}
 		} else if (bot.getProcessInfo() != null) {
 			JProcesses.killProcess(Integer.parseInt(bot.getProcessInfo().getPid()));
 		}
+		bot.setProcessInfo(null);
+		bot.setProcess(null);
 	}
 
 	public Properties getBotProperties(String botName) {
@@ -157,6 +192,7 @@ public class ProcessService {
 				return properties;
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			log.error(e);
 		}
 		return new Properties();
@@ -184,10 +220,14 @@ public class ProcessService {
 			if (managed) {
 				String dataUrl = createUrl(botInfo, managerToken, "/api/v2/data/stats");
 				String miscUrl = createUrl(botInfo, managerToken, "/api/v2/data/misc");
-				String data = HttpClientManager.getHttp(dataUrl, Collections.emptyList());
-				botInfo.setStatsData(parser.fromJson(data, JsonObject.class));
-				String misc = HttpClientManager.getHttp(miscUrl, Collections.emptyList());
-				botInfo.setMiscData(parser.fromJson(misc, JsonObject.class));
+				Pair<Integer, String> data = HttpClientManager.getHttp(dataUrl, Collections.emptyList());
+				if (data.getKey() < 202) {
+					botInfo.setStatsData(parser.fromJson(data.getValue(), JsonObject.class));
+				}
+				Pair<Integer, String> misc = HttpClientManager.getHttp(miscUrl, Collections.emptyList());
+				if (misc.getKey() < 202) {
+					botInfo.setMiscData(parser.fromJson(misc.getValue(), JsonObject.class));
+				}
 			}
 		} catch (Exception e) {
 			log.error(e);
@@ -200,11 +240,33 @@ public class ProcessService {
 
 		String token = managerToken;
 		if (botInfo.getProcessInfo() != null) {
-			token = botInfo.getProcessInfo().getCommand().split("--server.manager.token=")[1];
+			String[] splitted = botInfo.getProcessInfo().getCommand().split("--server.manager.token=");
+			if (splitted.length > 1) {
+				token = botInfo.getProcessInfo().getCommand().split("--server.manager.token=")[1];
+			}
 		}
 		String port = (String) botInfo.getBotProperties().get("port");
 		String contextPath = (String) botInfo.getBotProperties().get("context");
 		String url = String.format("%s:%s%s", StaticUtil.url, port, contextPath);
 		return url + endPoint + "?token=" + token;
+	}
+
+	private void readError(Process process) {
+		if (process != null && !process.isAlive()) {
+			StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream());
+			StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream());
+
+			// kick them off concurrently
+			errorGobbler.start();
+			outputGobbler.start();
+
+			//process.waitFor();
+			log.info(errorGobbler.getOutput());
+			log.info("OutPut " + outputGobbler.getOutput());
+		}
+	}
+
+	public JsonElement convertBotInfo(BotInfo botInfo) {
+		return parser.toJsonTree(botInfo);
 	}
 }

@@ -12,13 +12,11 @@
 <body>
 <div id="app">
     <my-component></my-component>
-    <div class="container mt-3">
-        <p>Bot status <span th:text="${bot.status}"></span></p>
+    <h3 th:text="${siteName}"></h3>
 
-        <iframe th:src="${botUrl}" style="width:100%;height:100%">
+    <iframe th:src="${botUrl}" style="position:absolute;width:99.9%;height:83%">
 
-        </iframe>
-    </div>
+    </iframe>
 </div>
 
 <script th:src="@{/app.js}"></script>

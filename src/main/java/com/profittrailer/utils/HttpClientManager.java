@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -116,7 +118,7 @@ public class HttpClientManager {
 		return new ResponseHolder(put, getHttpClientInstance().execute(put));
 	}
 
-	public static String getHttp(String url, List<NameValuePair> headers) throws Exception {
+	public static Pair<Integer, String> getHttp(String url, List<NameValuePair> headers) throws Exception {
 		String result = null;
 		ResponseHolder holder = getHttpWithResponse(url, headers);
 		HttpResponse response = holder.getResponse();
@@ -126,7 +128,7 @@ public class HttpClientManager {
 		}
 
 		holder.getRequest().releaseConnection();
-		return result;
+		return ImmutablePair.of(response.getStatusLine().getStatusCode(), result);
 	}
 
 	public static String deleteHttp(String url, List<NameValuePair> headers) throws Exception {
@@ -159,7 +161,6 @@ public class HttpClientManager {
 
 	public static ResponseHolder deleteHttpWithResponse(String url, List<NameValuePair> headers) throws IOException {
 		HttpRequestBase request = new HttpDelete(url);
-
 
 		if (headers != null) {
 			for (NameValuePair header : headers) {

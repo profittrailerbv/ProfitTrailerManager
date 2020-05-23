@@ -32,10 +32,8 @@ public class HomeController {
 		String port = (String) botInfo.getBotProperties().get("port");
 		String contextPath = (String) botInfo.getBotProperties().get("context");
 		String url = String.format("%s:%s%s", StaticUtil.getBaseUrl(request), port, contextPath);
-		model.addAttribute("bot", botInfo);
+		model.addAttribute("siteName", processService.convertBotInfo(botInfo).getAsJsonObject().get("siteName").getAsString());
 		model.addAttribute("botUrl", url);
-		//model.addAttribute("bots", processService.getBotList());
-		model.addAttribute("logs", Collections.emptyList());
 		return "status";
 	}
 }

@@ -65,14 +65,14 @@ public class ApiController {
 	}
 
 	@GetMapping("/toggleCards")
-	public String getToggle(HttpServletRequest request) throws MalformedURLException {
+	public String getToggle(HttpServletRequest request) {
 		JsonObject object = new JsonObject();
 		object.addProperty("onlyManaged", onlyManaged);
 		return object.toString();
 	}
 
 	@PostMapping("/toggleCards")
-	public String postToggle() throws InterruptedException {
+	public String postToggle() {
 		onlyManaged = !onlyManaged;
 		JsonObject object = new JsonObject();
 		object.addProperty("onlyManaged", onlyManaged);
