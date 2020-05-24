@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,7 +103,7 @@ public class ProcessService {
 			if (autoStartManagedBots && processedInitialized) {
 				for (BotInfo botInfo : botInfoMap.values()) {
 					boolean offline = botInfo.getStatus().equals("OFFLINE");
-					boolean managed = Boolean.parseBoolean((String) botInfo.getBotProperties().getOrDefault("managed", "false"));
+					boolean managed = botInfo.isManaged();
 					if (!offline && StringUtils.isNotBlank(StaticUtil.url) && processedInitialized && managed) {
 						String healthUrl = createUrl(botInfo, managerToken, "/api/v2/health");
 						try {
@@ -172,7 +173,7 @@ public class ProcessService {
 
 	public void stopBot(String botName) {
 		BotInfo bot = botInfoMap.get(botName);
-		boolean managed = Boolean.parseBoolean((String) bot.getBotProperties().getOrDefault("managed", "false"));
+		boolean managed = bot.isManaged();
 		int processId = NumberUtils.toInt((String) bot.getBotProperties().getOrDefault("process", 0));
 		if (managed && bot.getProcess() != null) {
 			bot.getProcess().destroy();
@@ -206,11 +207,12 @@ public class ProcessService {
 
 		return botInfoMap.values()
 				.stream()
+				.sorted(Comparator.comparing(BotInfo::isManaged))
 				.filter(e -> {
 					if (!onlyManaged) {
 						return true;
 					}
-					return Boolean.parseBoolean((String) e.getBotProperties().getOrDefault("managed", "false"));
+					return e.isManaged();
 				})
 				.collect(Collectors.toList());
 	}
@@ -220,7 +222,7 @@ public class ProcessService {
 			return;
 		}
 		try {
-			boolean managed = Boolean.parseBoolean((String) botInfo.getBotProperties().getOrDefault("managed", "false"));
+			boolean managed = botInfo.isManaged();
 			if (managed) {
 				String dataUrl = createUrl(botInfo, managerToken, "/api/v2/data/stats");
 				String miscUrl = createUrl(botInfo, managerToken, "/api/v2/data/misc");

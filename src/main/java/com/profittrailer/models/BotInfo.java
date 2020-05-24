@@ -11,7 +11,7 @@ import java.util.Properties;
 public class BotInfo {
 
 	private String directory;
-	private Properties botProperties;
+	private Properties botProperties = new Properties();
 	private String url;
 	private transient boolean initialized;
 	private transient Process process;
@@ -40,5 +40,9 @@ public class BotInfo {
 				|| process != null && !process.isAlive()
 				? "OFFLINE"
 				: "ONLINE";
+	}
+
+	public boolean isManaged() {
+		return Boolean.parseBoolean((String) botProperties.getOrDefault("managed", "false"));
 	}
 }
