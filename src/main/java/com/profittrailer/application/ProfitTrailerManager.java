@@ -51,11 +51,10 @@ public class ProfitTrailerManager {
 			EventQueue.invokeLater(() -> {
 				ManagerForm ex = new ManagerForm(port);
 				ex.setVisible(true);
+				log.info("ProfitTrailer Manager is started");
 			});
 
 		}
-		ApplicationPid pid = new ApplicationPid();
-		log.info(pid.toString());
 	}
 
 	private static boolean hasGui() {

@@ -25,6 +25,11 @@
                                </a>
                         </div>
                     </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#" @click.prevent="shutdownApp()">
+                            <font-awesome-icon :icon="['fas','power-off']"></font-awesome-icon>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -60,6 +65,12 @@
             getBotStatus(name) {
                 axios.get('/api/v1/status?directoryName=' + name).then((response) => {
                     console.log(response)
+                }).catch((error) => {
+                    console.log(error)
+                })
+            },
+            shutdownApp() {
+                axios.post('/api/v1/shutdown').then((response) => {
                 }).catch((error) => {
                     console.log(error)
                 })

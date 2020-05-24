@@ -130,9 +130,9 @@ public class ProcessService {
 
 	public void startBot(String directoryName) {
 		List<String> commands = new ArrayList<>();
-		if (StaticUtil.isUnix()) {
-			commands.add("setsid");
-		}
+//		if (StaticUtil.isUnix()) {
+//			commands.add("setsid");
+//		}
 		commands.add("java");
 		commands.add("-Djava.net.preferIPv4Stack=true");
 		commands.add("-XX:+UseSerialGC");
@@ -145,12 +145,12 @@ public class ProcessService {
 		commands.add("ProfitTrailer.jar");
 		commands.add("--server.port.forcenew");
 		commands.add("--server.manager.token=" + managerToken);
-		commands.add("--server.manager.dummy");
-		if (StaticUtil.isUnix()) {
-			commands.add("&");
-			commands.add("disown");
-		}
-		log.info(commands.toString());
+//		commands.add("--server.manager.dummy");
+//		if (StaticUtil.isUnix()) {
+//			commands.add("&");
+//			commands.add("disown");
+//		}
+
 		ProcessBuilder builder = new ProcessBuilder(commands);
 		builder.directory(new File(botsLocation + "/" + directoryName));
 
@@ -207,7 +207,7 @@ public class ProcessService {
 
 		return botInfoMap.values()
 				.stream()
-				.sorted(Comparator.comparing(BotInfo::isManaged))
+				.sorted(Comparator.comparing(BotInfo::isManaged, Comparator.reverseOrder()))
 				.filter(e -> {
 					if (!onlyManaged) {
 						return true;

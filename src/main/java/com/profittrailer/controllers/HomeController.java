@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
@@ -23,9 +24,14 @@ public class HomeController {
 		return "home";
 	}
 
+	@GetMapping("/login")
+	public String login() {
+		return "login";
+	}
+
 	@GetMapping("/status")
 	public String checkStatus(HttpServletRequest request,
-	                          String directoryName,
+	                          @RequestParam(defaultValue = "") String directoryName,
 	                          Model model) throws MalformedURLException {
 
 		BotInfo botInfo = processService.getBotInfoMap().get(directoryName);

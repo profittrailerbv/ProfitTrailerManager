@@ -78,4 +78,9 @@ public class ApiController {
 		object.addProperty("onlyManaged", onlyManaged);
 		return object.toString();
 	}
+
+	@PostMapping("/shutdown")
+	public void shutdown() {
+		System.exit(0);
+	}
 }

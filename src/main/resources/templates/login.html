@@ -5,17 +5,18 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>ProfitTrailer Manager</title>
+    <title>ProfitTrailer Manager - Login</title>
 
     <link rel="stylesheet" th:href="@{/app.css}"/>
 </head>
 <body>
 <div id="app">
-    <navigation-component th:attr="title=${siteName}"></navigation-component>
-    <div class="container mt-3">
-        <iframe th:src="${botUrl}" style="position:absolute;width:81%;height:83%">
 
-        </iframe>
+    <navigation-component></navigation-component>
+    <div class="container mt-3">
+        <form>
+            <input type="password">
+        </form>
     </div>
 </div>
 
