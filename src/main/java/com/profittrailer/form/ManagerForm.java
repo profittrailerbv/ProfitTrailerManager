@@ -1,6 +1,7 @@
 package com.profittrailer.form;
 
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,16 +12,18 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 @Log4j2
-//@Component
 public class ManagerForm extends JFrame {
 
 	private JPanel mainPanel;
 	private JLabel lblUrl;
 	private JButton btnQuit;
+	private JTextField fldPassword;
 	private String managerUrl = "http://localhost:";
+	private String defaultPassword = "";
 
-	public ManagerForm(String port) {
+	public ManagerForm(String port, String defaultPassword) {
 		managerUrl = managerUrl + port;
+		this.defaultPassword = defaultPassword;
 		initUI();
 	}
 
@@ -35,6 +38,13 @@ public class ManagerForm extends JFrame {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		lblUrlSetupListener();
 		btnQuitSetupListener();
+
+		fldPassword.setVisible(false);
+		fldPassword.setBorder(null);
+		if (StringUtils.isNotBlank(defaultPassword)) {
+			fldPassword.setText(defaultPassword);
+			fldPassword.setVisible(true);
+		}
 	}
 
 	private void lblUrlSetupListener() {
@@ -133,6 +143,43 @@ public class ManagerForm extends JFrame {
 		gbc.anchor = GridBagConstraints.WEST;
 		gbc.insets = new Insets(0, 10, 0, 0);
 		mainPanel.add(label3, gbc);
+		fldPassword = new JTextField();
+		fldPassword.setEditable(false);
+		fldPassword.setEnabled(true);
+		Font fldPasswordFont = this.$$$getFont$$$(null, -1, -1, fldPassword.getFont());
+		if (fldPasswordFont != null) {
+			fldPassword.setFont(fldPasswordFont);
+		}
+		fldPassword.setForeground(new Color(-16382458));
+		fldPassword.setToolTipText("Default Password");
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;
+		gbc.gridy = 3;
+		gbc.anchor = GridBagConstraints.WEST;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.insets = new Insets(0, 10, 0, 0);
+		mainPanel.add(fldPassword, gbc);
+	}
+
+	/**
+	 * @noinspection ALL
+	 */
+	private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
+		if (currentFont == null) {
+			return null;
+		}
+		String resultName;
+		if (fontName == null) {
+			resultName = currentFont.getName();
+		} else {
+			Font testFont = new Font(fontName, Font.PLAIN, 10);
+			if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+				resultName = fontName;
+			} else {
+				resultName = currentFont.getName();
+			}
+		}
+		return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
 	}
 
 	/**

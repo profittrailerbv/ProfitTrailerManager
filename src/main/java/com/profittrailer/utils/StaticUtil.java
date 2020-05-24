@@ -1,5 +1,6 @@
 package com.profittrailer.utils;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.util.UriComponents;
@@ -12,7 +13,12 @@ import java.net.URL;
 public class StaticUtil {
 
 	public static String url = null;
+	public static String defaultPassword;
 
+	static {
+		defaultPassword = RandomStringUtils.randomAlphanumeric(25);
+		//If password file exists, load the password
+	}
 	public static String getBaseUrl(HttpServletRequest request) throws MalformedURLException {
 
 		HttpRequest httpRequest = new ServletServerHttpRequest(request);

@@ -1,6 +1,7 @@
 package com.profittrailer.application;
 
 import com.profittrailer.form.ManagerForm;
+import com.profittrailer.utils.StaticUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -49,7 +50,7 @@ public class ProfitTrailerManager {
 	public void init() {
 		if (hasGui()) {
 			EventQueue.invokeLater(() -> {
-				ManagerForm ex = new ManagerForm(port);
+				ManagerForm ex = new ManagerForm(port, StaticUtil.defaultPassword);
 				ex.setVisible(true);
 				log.info("ProfitTrailer Manager is started");
 			});

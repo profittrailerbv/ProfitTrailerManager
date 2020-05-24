@@ -1,6 +1,7 @@
 package com.profittrailer.application;
 
 import com.profittrailer.interceptors.CustomFilter;
+import com.profittrailer.utils.StaticUtil;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +49,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 		if (!new File("password").exists()) {
-			String initialPassword = RandomStringUtils.randomAlphanumeric(40);
 			auth.inMemoryAuthentication().withUser("user")
-					.password(passwordEncoder().encode(initialPassword))
+					.password(passwordEncoder().encode(StaticUtil.defaultPassword))
 					.roles("USER", "ADMIN");
 
-			log.info("Your random initial password {}", initialPassword);
+			log.info("Your random initial password {}", StaticUtil.defaultPassword);
 		}
 	}
 }
