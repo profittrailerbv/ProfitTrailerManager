@@ -11,10 +11,10 @@ try {
 }
 
 import { library } from '@fortawesome/fontawesome-svg-core'
-import {faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff} from '@fortawesome/free-solid-svg-icons'
+import {faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff, faExternalLinkAlt} from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-library.add(faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff)
+library.add(faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff, faExternalLinkAlt)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 
 

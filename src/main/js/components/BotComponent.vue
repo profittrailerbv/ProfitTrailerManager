@@ -4,17 +4,33 @@
             <div class="card">
                 <div class="card-header">
 	                <h5 class="card-title">
-                        <font-awesome-icon :class="getStatusClass(bot.status)" :icon="['fas','circle']"></font-awesome-icon> {{ bot.siteName }}
+	                    <div class="row">
+		                    <div class="col-10 text-left">
+	                            <font-awesome-icon :class="getStatusClass(bot.status)" :icon="['fas','circle']"></font-awesome-icon> {{ bot.siteName }}
+	                        </div>
+	                        <div class="col-2 text-right">
+	                            <a :href="bot.url" target="_blank">
+	                                <font-awesome-icon :icon="['fas','external-link-alt']"></font-awesome-icon>
+	                            </a>
+	                        </div>
+                        </div>
 	                </h5>
                   </div>
                 <div class="card-body">
-                    <p v-if="bot.botProperties.managed && containsKey(bot, 'statsData')"> Today: {{roundNumber(bot.statsData.basic.totalProfitToday, 3)}} ({{bot.statsData.basic.totalProfitPercToday}}%)</p>
-                    <p v-if="bot.botProperties.managed && containsKey(bot, 'statsData')"> Yesterday: {{roundNumber(bot.statsData.basic.totalProfitYesterday, 3)}} ({{bot.statsData.basic.totalProfitPercYesterday}}%)</p>
+                    <p v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitToday')"> Today: {{roundNumber(bot.data.totalProfitToday, 3)}} ({{bot.data.totalProfitPercToday}}%)</p>
+                    <p v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitYesterday')"> Yesterday: {{roundNumber(bot.data.totalProfitYesterday, 3)}} ({{bot.data.totalProfitPercYesterday}}%)</p>
                 </div>
-                <div class="card-footer text-muted text-right">
-                    <a href="#" @click.prevent="restartBot(bot.directory)">
-                        <font-awesome-icon :icon="['fas','redo-alt']"></font-awesome-icon>
-                    </a>
+                <div class="card-footer text-muted">
+                    <div class="row">
+	                    <div class="col-10" style="font-size:12px">
+	                        <p v-if="bot.botProperties.managed && containsKey(bot.data, 'version')"> Version: {{bot.data.version}}</p>
+	                    </div>
+	                    <div class="col-2 text-right">
+		                     <a href="#" @click.prevent="restartBot(bot.directory)">
+		                         <font-awesome-icon :icon="['fas','redo-alt']"></font-awesome-icon>
+		                     </a>
+	                    </div>
+                    </div>
                 </div>
             </div>
         </div>

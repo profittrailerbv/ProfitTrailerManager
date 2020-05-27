@@ -50,12 +50,10 @@
             getAllBots() {
                 axios.get('/api/v1/data').then((response) => {
                     this.bots = response.data.bots
-                    console.log(response)
                 })
             },
             startBot(name) {
                 axios.post('/api/v1/startBot?directoryName=' + name).then((response) => {
-                    console.log(response)
                 }).catch((error) => {
                     console.log(error)
                 })
@@ -64,7 +62,6 @@
             },
             getBotStatus(name) {
                 axios.get('/api/v1/status?directoryName=' + name).then((response) => {
-                    console.log(response)
                 }).catch((error) => {
                     console.log(error)
                 })

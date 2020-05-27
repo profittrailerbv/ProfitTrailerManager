@@ -104,10 +104,16 @@ public class ProcessService {
 				for (BotInfo botInfo : botInfoMap.values()) {
 					boolean offline = botInfo.getStatus().equals("OFFLINE");
 					boolean managed = botInfo.isManaged();
+					if (managed) {
+						log.info("Checking {} -- offline?: {} -- managed?: {}", botInfo.getSiteName(), offline, managed);
+					}
+
 					if (!offline && StringUtils.isNotBlank(StaticUtil.url) && processedInitialized && managed) {
 						String healthUrl = createUrl(botInfo, managerToken, "/api/v2/health");
 						try {
+							log.info("Health url: {}", healthUrl);
 							Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
+							log.info("Result {} -- code: {} -- data: {}", botInfo.getSiteName(), data.getKey(), data.getValue());
 							if (data.getKey() < 202) {
 								offline = !StringUtils.equalsIgnoreCase(data.getValue(), "true");
 							}
@@ -130,9 +136,6 @@ public class ProcessService {
 
 	public void startBot(String directoryName) {
 		List<String> commands = new ArrayList<>();
-//		if (StaticUtil.isUnix()) {
-//			commands.add("setsid");
-//		}
 		commands.add("java");
 		commands.add("-Djava.net.preferIPv4Stack=true");
 		commands.add("-XX:+UseSerialGC");
@@ -145,14 +148,10 @@ public class ProcessService {
 		commands.add("ProfitTrailer.jar");
 		commands.add("--server.port.forcenew");
 		commands.add("--server.manager.token=" + managerToken);
-//		commands.add("--server.manager.dummy");
-//		if (StaticUtil.isUnix()) {
-//			commands.add("&");
-//			commands.add("disown");
-//		}
 
 		ProcessBuilder builder = new ProcessBuilder(commands);
 		builder.directory(new File(botsLocation + "/" + directoryName));
+		builder.redirectErrorStream(true);
 
 		try {
 			if (!botInfoMap.containsKey(directoryName)
@@ -207,14 +206,15 @@ public class ProcessService {
 
 		return botInfoMap.values()
 				.stream()
-				.sorted(Comparator.comparing(BotInfo::isManaged, Comparator.reverseOrder()))
+				.sorted(Comparator.comparing(BotInfo::isManaged, Comparator.reverseOrder())
+						.thenComparing(BotInfo::getProfitToday, Comparator.reverseOrder()))
 				.filter(e -> {
 					if (!onlyManaged) {
 						return true;
 					}
 					return e.isManaged();
-				})
-				.collect(Collectors.toList());
+				}).collect(Collectors.toList());
+
 	}
 
 	public void getBotData(BotInfo botInfo) {
@@ -259,17 +259,9 @@ public class ProcessService {
 	}
 
 	private void readError(Process process) {
-		if (process != null && !process.isAlive()) {
-			StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream());
+		if (process != null) {
 			StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream());
-
-			// kick them off concurrently
-			errorGobbler.start();
 			outputGobbler.start();
-
-			//process.waitFor();
-			log.info(errorGobbler.getOutput());
-			log.info("OutPut " + outputGobbler.getOutput());
 		}
 	}
 

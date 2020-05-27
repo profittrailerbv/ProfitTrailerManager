@@ -1,6 +1,7 @@
 package com.profittrailer.utils;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.util.UriComponents;
@@ -27,6 +28,25 @@ public class StaticUtil {
 		String scheme = uriComponents.getScheme();
 		URL requestURL = new URL(request.getRequestURL().toString());
 		return scheme + "://" + requestURL.getHost();
+	}
+
+	public static String getBaseUrlWithPort(HttpServletRequest request) throws MalformedURLException {
+
+		HttpRequest httpRequest = new ServletServerHttpRequest(request);
+		UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(httpRequest).build();
+
+		String scheme = uriComponents.getScheme();
+		URL requestURL = new URL(request.getRequestURL().toString());
+		String port = requestURL.getPort() == -1 ? "" : ":" + requestURL.getPort();
+		return scheme + "://" + requestURL.getHost() + port + request.getContextPath();
+	}
+
+	public static String redirectUrl(HttpServletRequest request, String path) {
+		try {
+			return getBaseUrlWithPort(request) + StringUtils.stripEnd(path, "/");
+		} catch (Exception e) {
+			return path;
+		}
 	}
 
 	public static boolean isUnix() {

@@ -8,7 +8,8 @@
                     <font-awesome-icon v-if="!onlyManaged" class="text-danger"
                                        :icon="['fas','toggle-off']"></font-awesome-icon>
                 </a>
-                Toggle to display only managed bots
+                <span v-if="onlyManaged">Displaying Only Managed Bots</span>
+                <span v-if="!onlyManaged">Displaying All Bots</span>
             </h5>
         </div>
     </div>
@@ -24,16 +25,13 @@
         methods: {
             getToggle() {
                 axios.get('/api/v1/toggleCards').then((response) => {
-                    console.log(response.data)
                     this.onlyManaged = response.data.onlyManaged
-                    console.log("After get " + this.onlyManaged)
                 }).catch((error) => {
                     console.log(error)
                 })
             },
             toggleCards() {
                 axios.post('/api/v1/toggleCards').then((response) => {
-                    console.log(response.data)
                     this.onlyManaged = response.data.onlyManaged
                 }).catch((error) => {
                     console.log(error)

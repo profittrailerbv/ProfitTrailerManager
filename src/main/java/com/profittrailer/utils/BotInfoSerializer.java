@@ -21,11 +21,27 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 		siteName = StringUtils.isNotBlank(siteName)
 				? siteName
 				: botInfo.getDirectory() + " (Dir)";
+
+		String port = (String) botInfo.getBotProperties().get("port");
+		String contextPath = (String) botInfo.getBotProperties().get("context");
+		String url = String.format("%s:%s%s", StaticUtil.url, port, contextPath);
+
 		root.addProperty("siteName", siteName);
 		root.addProperty("status", botInfo.getStatus());
+		root.addProperty("url", url);
 		root.add("botProperties", new Gson().toJsonTree(botInfo.getBotProperties()));
-		root.add("statsData", new Gson().toJsonTree(botInfo.getStatsData()));
 
+		JsonObject data = new JsonObject();
+		if (botInfo.getStatsData() != null) {
+			data.addProperty("totalProfitToday", botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitToday").getAsDouble());
+			data.addProperty("totalProfitPercToday", botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitPercToday").getAsDouble());
+			data.addProperty("totalProfitYesterday", botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitYesterday").getAsDouble());
+			data.addProperty("totalProfitPercYesterday", botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitPercYesterday").getAsDouble());
+		}
+		if (botInfo.getMiscData() != null) {
+			data.addProperty("version", botInfo.getMiscData().get("version").getAsString());
+		}
+		root.add("data", data);
 		return root;
 	}
 

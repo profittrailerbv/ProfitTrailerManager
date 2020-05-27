@@ -13,6 +13,7 @@ import javax.annotation.PostConstruct;
 import java.awt.*;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @EnableScheduling
@@ -28,6 +29,12 @@ public class ProfitTrailerManager {
 		props.put("spring.thymeleaf.enabled", true);
 		props.put("spring.thymeleaf.prefix", "classpath:/templates/");
 		props.put("spring.thymeleaf.suffix", ".html");
+
+		props.put("server.servlet.session.cookie.http-only", true);
+		props.put("server.servlet.session.cookie.max-age", TimeUnit.DAYS.toSeconds(1));
+		props.put("server.servlet.session.timeout", TimeUnit.DAYS.toSeconds(1));
+		props.put("server.servlet.session.persistent", true);
+
 		props.put("spring.application.name", "ProfitTrailer Manager");
 		props.put("spring.main.banner-mode", "off");
 		props.put("server.compression.enabled", true);

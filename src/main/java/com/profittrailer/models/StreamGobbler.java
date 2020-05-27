@@ -1,19 +1,21 @@
 package com.profittrailer.models;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
+@Log4j2
 public class StreamGobbler extends Thread {
+
 	InputStream is;
 	String output;
 
 	public StreamGobbler(InputStream is) {
 		this.is = is;
+		this.setDaemon(true);
 	}
 
 	public String getOutput() {
@@ -22,9 +24,7 @@ public class StreamGobbler extends Thread {
 
 	public void run() {
 		try {
-			StringWriter writer = new StringWriter();
-			IOUtils.copy(is, writer, StandardCharsets.UTF_8);
-			output = writer.toString();
+			IOUtils.copy(is, new NullOutputStream());
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
