@@ -41,6 +41,9 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 		if (botInfo.getMiscData() != null) {
 			data.addProperty("version", botInfo.getMiscData().get("version").getAsString());
 		}
+		if (botInfo.getPropertiesData() != null) {
+			data.addProperty("paper", botInfo.getPropertiesData().get("testMode").getAsString());
+		}
 		root.add("data", data);
 		return root;
 	}

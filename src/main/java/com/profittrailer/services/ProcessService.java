@@ -226,6 +226,7 @@ public class ProcessService {
 			if (managed) {
 				String dataUrl = createUrl(botInfo, managerToken, "/api/v2/data/stats");
 				String miscUrl = createUrl(botInfo, managerToken, "/api/v2/data/misc");
+				String propertiesUrl = createUrl(botInfo, managerToken, "/api/v2/data/properties");
 				Pair<Integer, String> data = HttpClientManager.getHttp(dataUrl, Collections.emptyList());
 				if (data.getKey() < 202) {
 					botInfo.setStatsData(parser.fromJson(data.getValue(), JsonObject.class));
@@ -233,6 +234,10 @@ public class ProcessService {
 				Pair<Integer, String> misc = HttpClientManager.getHttp(miscUrl, Collections.emptyList());
 				if (misc.getKey() < 202) {
 					botInfo.setMiscData(parser.fromJson(misc.getValue(), JsonObject.class));
+				}
+				Pair<Integer, String> properties = HttpClientManager.getHttp(propertiesUrl, Collections.emptyList());
+				if (properties.getKey() < 202) {
+					botInfo.setPropertiesData(parser.fromJson(properties.getValue(), JsonObject.class));
 				}
 			}
 		} catch (Exception e) {

@@ -19,6 +19,7 @@ public class BotInfo {
 	private transient ProcessInfo processInfo;
 	private JsonObject statsData;
 	private JsonObject miscData;
+	private JsonObject propertiesData;
 	private transient LocalDateTime startDate;
 	private transient double profitToday;
 

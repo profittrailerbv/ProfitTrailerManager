@@ -5,10 +5,11 @@
                 <div class="card-header">
 	                <h5 class="card-title">
 	                    <div class="row">
-		                    <div class="col-10 text-left">
+		                    <div class="col-8 text-left">
 	                            <font-awesome-icon :class="getStatusClass(bot.status)" :icon="['fas','circle']"></font-awesome-icon> {{ bot.siteName }}
 	                        </div>
-	                        <div class="col-2 text-right">
+	                        <div class="col-4 text-right">
+                                <font-awesome-icon :icon="['fas','file-alt']" v-if="bot.data.paper"></font-awesome-icon>
 	                            <a :href="bot.url" target="_blank">
 	                                <font-awesome-icon :icon="['fas','external-link-alt']"></font-awesome-icon>
 	                            </a>
