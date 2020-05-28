@@ -22,23 +22,26 @@
                     <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitYesterday')"> Yesterday: {{roundNumber(bot.data.totalProfitYesterday, 3)}} ({{bot.data.totalProfitPercYesterday}}%)</span>
 
                     <br /><br />
-                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')"> PAIRS: {{bot.data.pairsTotal}}</span>
-                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'dcaTotal')"> DCA: {{bot.data.dcaTotal}}</span>
-                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')" :class="bot.data.diff > 0 ? 'text-success' : bot.data.diff < 0 ? 'text-danger' : ''"> Diff: {{roundNumber(bot.data.diff, 4)}}</span>
+                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')" class="mr-3"> PAIRS: {{bot.data.pairsTotal}}</span>
+                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'dcaTotal')" class="mr-3"> DCA: {{bot.data.dcaTotal}}</span>
+                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')" class="" :class="bot.data.diff > 0 ? 'text-success' : bot.data.diff < 0 ? 'text-danger' : ''"> Diff: {{roundNumber(bot.data.diff, 4)}}</span>
                 </div>
                 <div class="card-footer text-muted">
                     <div class="row">
 	                    <div class="col-10" style="font-size:12px">
 	                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'balance')" class="mr-3"> BAL: {{roundNumber(bot.data.balance, 6)}}</span>
-	                        <span class="text-info" v-if="bot.botProperties.managed && containsKey(bot.data, 'tcv')"> TCV: {{roundNumber(bot.data.tcv, 6)}}</span><br /><br /><br />
-	                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'version')"> Version: {{bot.data.version}}</span>
+	                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'tcv')" class="text-info"> TCV: {{roundNumber(bot.data.tcv, 6)}}</span><br /><br />
 	                    </div>
-	                    <div class="col-2 text-right">
-	                        <br /><br />
-		                     <a href="#" @click.prevent="restartBot(bot.directory)">
-		                         <font-awesome-icon :icon="['fas','redo-alt']"></font-awesome-icon>
-		                     </a>
-	                    </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-10" style="font-size:12px">
+							<span v-if="bot.botProperties.managed && containsKey(bot.data, 'version')"> Version: {{bot.data.version}}</span>
+                        </div>
+                        <div class="col-2 text-right">
+                             <a href="#" @click.prevent="restartBot(bot.directory)">
+                                 <font-awesome-icon :icon="['fas','redo-alt']"></font-awesome-icon>
+                             </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -62,6 +65,10 @@
             getAllBots() {
                 axios.get('/api/v1/data').then((response) => {
                     this.bots = response.data.bots
+                }).catch((error) => {
+                    if (!error.response) {
+                        window.location.href = '/';
+                    }
                 })
             },
             stopBot(name) {
