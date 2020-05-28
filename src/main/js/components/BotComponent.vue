@@ -6,7 +6,7 @@
 	                <h5 class="card-title">
 	                    <div class="row">
 		                    <div class="col-8 text-left">
-	                            <font-awesome-icon :class="getStatusClass(bot.status)" :icon="['fas','circle']"></font-awesome-icon> {{ bot.siteName }}
+	                            <font-awesome-icon :class="getStatusClass(bot.status)" :icon="['fas','circle']"></font-awesome-icon> {{ bot.siteName }} {{bot.data.market}}
 	                        </div>
 	                        <div class="col-4 text-right">
                                 <font-awesome-icon :icon="['fas','file-alt']" v-if="bot.data.paper"></font-awesome-icon>
@@ -24,16 +24,17 @@
                     <br /><br />
                     <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')"> PAIRS: {{bot.data.pairsTotal}}</span>
                     <span v-if="bot.botProperties.managed && containsKey(bot.data, 'dcaTotal')"> DCA: {{bot.data.dcaTotal}}</span>
-                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'diff')" :class="bot.data.diff > 0 ? 'text-success' : bot.data.diff < 0 ? 'text-danger' : ''"> Diff: {{roundNumber(bot.data.diff, 4)}}</span>
+                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')" :class="bot.data.diff > 0 ? 'text-success' : bot.data.diff < 0 ? 'text-danger' : ''"> Diff: {{roundNumber(bot.data.diff, 4)}}</span>
                 </div>
                 <div class="card-footer text-muted">
                     <div class="row">
 	                    <div class="col-10" style="font-size:12px">
-	                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'balance')"> BAL: {{roundNumber(bot.data.balance, 6)}}</span><br />
-	                        <span class="text-info" v-if="bot.botProperties.managed && containsKey(bot.data, 'tcv')"> TCV: {{roundNumber(bot.data.tcv, 6)}}</span><br /><br />
+	                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'balance')" class="mr-3"> BAL: {{roundNumber(bot.data.balance, 6)}}</span>
+	                        <span class="text-info" v-if="bot.botProperties.managed && containsKey(bot.data, 'tcv')"> TCV: {{roundNumber(bot.data.tcv, 6)}}</span><br /><br /><br />
 	                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'version')"> Version: {{bot.data.version}}</span>
 	                    </div>
 	                    <div class="col-2 text-right">
+	                        <br /><br />
 		                     <a href="#" @click.prevent="restartBot(bot.directory)">
 		                         <font-awesome-icon :icon="['fas','redo-alt']"></font-awesome-icon>
 		                     </a>
