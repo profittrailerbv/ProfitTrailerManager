@@ -1,5 +1,6 @@
 package com.profittrailer.models;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +21,8 @@ public class BotInfo {
 	private JsonObject statsData;
 	private JsonObject miscData;
 	private JsonObject propertiesData;
+	private JsonArray pairsData;
+	private JsonArray dcaData;
 	private transient LocalDateTime startDate;
 	private transient double profitToday;
 

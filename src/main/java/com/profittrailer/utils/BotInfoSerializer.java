@@ -1,6 +1,7 @@
 package com.profittrailer.utils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
@@ -39,11 +40,41 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 			data.addProperty("totalProfitPercYesterday", botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitPercYesterday").getAsDouble());
 		}
 		if (botInfo.getMiscData() != null) {
+			double realBalance = botInfo.getMiscData().get("realBalance").getAsDouble();
+			double tcv = botInfo.getMiscData().get("totalPairsCurrentValue").getAsDouble()
+					+ botInfo.getMiscData().get("totalDCACurrentValue").getAsDouble()
+					+ botInfo.getMiscData().get("totalPendingCurrentValue").getAsDouble()
+					+ botInfo.getMiscData().get("totalDustCurrentValue").getAsDouble();
+			double exchangeTcv = botInfo.getMiscData().get("totalExchangeCurrentValue").getAsDouble();
+			if (exchangeTcv > 0) {
+				tcv = exchangeTcv;
+			}
+
 			data.addProperty("version", botInfo.getMiscData().get("version").getAsString());
+			data.addProperty("balance", realBalance);
+			data.addProperty("tcv", realBalance + tcv);
 		}
 		if (botInfo.getPropertiesData() != null) {
-			data.addProperty("paper", botInfo.getPropertiesData().get("testMode").getAsString());
+			data.addProperty("paper", botInfo.getPropertiesData().get("testMode").getAsBoolean());
 		}
+
+		JsonArray jsonArray = new JsonArray();
+		if (botInfo.getPairsData() != null) {
+			data.addProperty("pairsTotal", botInfo.getPairsData().size());
+			jsonArray.addAll(botInfo.getPairsData());
+		}
+
+		if (botInfo.getDcaData() != null) {
+			data.addProperty("dcaTotal", botInfo.getDcaData().size());
+			jsonArray.addAll(botInfo.getDcaData());
+		}
+
+		double totalDown = 0;
+		for (JsonElement element : jsonArray) {
+			totalDown += (element.getAsJsonObject().get("currentValue").getAsDouble() - element.getAsJsonObject().get("totalCost").getAsDouble());
+		}
+		data.addProperty("diff", totalDown);
+
 		root.add("data", data);
 		return root;
 	}

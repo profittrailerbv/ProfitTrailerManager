@@ -2,6 +2,7 @@ package com.profittrailer.services;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.profittrailer.models.BotInfo;
@@ -227,6 +228,8 @@ public class ProcessService {
 				String dataUrl = createUrl(botInfo, managerToken, "/api/v2/data/stats");
 				String miscUrl = createUrl(botInfo, managerToken, "/api/v2/data/misc");
 				String propertiesUrl = createUrl(botInfo, managerToken, "/api/v2/data/properties");
+				String pairsUrl = createUrl(botInfo, managerToken, "/api/v2/data/pairs");
+				String dcaUrl = createUrl(botInfo, managerToken, "/api/v2/data/dca");
 				Pair<Integer, String> data = HttpClientManager.getHttp(dataUrl, Collections.emptyList());
 				if (data.getKey() < 202) {
 					botInfo.setStatsData(parser.fromJson(data.getValue(), JsonObject.class));
@@ -238,6 +241,14 @@ public class ProcessService {
 				Pair<Integer, String> properties = HttpClientManager.getHttp(propertiesUrl, Collections.emptyList());
 				if (properties.getKey() < 202) {
 					botInfo.setPropertiesData(parser.fromJson(properties.getValue(), JsonObject.class));
+				}
+				Pair<Integer, String> pairs = HttpClientManager.getHttp(pairsUrl, Collections.emptyList());
+				if (pairs.getKey() < 202) {
+					botInfo.setPairsData(parser.fromJson(pairs.getValue(), JsonArray.class));
+				}
+				Pair<Integer, String> dca = HttpClientManager.getHttp(dcaUrl, Collections.emptyList());
+				if (dca.getKey() < 202) {
+					botInfo.setDcaData(parser.fromJson(dca.getValue(), JsonArray.class));
 				}
 			}
 		} catch (Exception e) {
