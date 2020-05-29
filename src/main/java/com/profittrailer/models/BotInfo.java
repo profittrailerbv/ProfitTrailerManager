@@ -23,6 +23,7 @@ public class BotInfo {
 	private JsonObject propertiesData;
 	private JsonArray pairsData;
 	private JsonArray dcaData;
+	private JsonArray salesData;
 	private transient LocalDateTime startDate;
 	private transient double profitToday;
 

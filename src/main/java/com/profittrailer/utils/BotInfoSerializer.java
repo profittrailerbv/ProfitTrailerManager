@@ -10,6 +10,9 @@ import com.profittrailer.models.BotInfo;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 
@@ -34,10 +37,15 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 
 		JsonObject data = new JsonObject();
 		if (botInfo.getStatsData() != null) {
+			data.addProperty("totalSalesToday", botInfo.getStatsData().getAsJsonObject("basic").get("totalSalesToday").getAsDouble());
 			data.addProperty("totalProfitToday", botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitToday").getAsDouble());
 			data.addProperty("totalProfitPercToday", botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitPercToday").getAsDouble());
+			data.addProperty("totalSalesYesterday", botInfo.getStatsData().getAsJsonObject("basic").get("totalSalesYesterday").getAsDouble());
 			data.addProperty("totalProfitYesterday", botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitYesterday").getAsDouble());
 			data.addProperty("totalProfitPercYesterday", botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitPercYesterday").getAsDouble());
+			data.addProperty("totalSalesAllTime", botInfo.getStatsData().getAsJsonObject("basic").get("totalSales").getAsDouble());
+			data.addProperty("totalProfitAllTime", botInfo.getStatsData().getAsJsonObject("basic").get("totalProfit").getAsDouble());
+			data.addProperty("totalProfitPercAllTime", botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitPerc").getAsDouble());
 		}
 		if (botInfo.getMiscData() != null) {
 			double realBalance = botInfo.getMiscData().get("realBalance").getAsDouble();
@@ -72,10 +80,27 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 			jsonArray.addAll(botInfo.getDcaData());
 		}
 
+		if (botInfo.getSalesData() != null) {
+			long date = 0;
+			double profit = 0;
+			for (JsonElement element : botInfo.getSalesData()) {
+				if (element.getAsJsonObject().get("soldDate").getAsLong() > date) {
+					date = element.getAsJsonObject().get("soldDate").getAsLong();
+					profit = element.getAsJsonObject().get("profit").getAsDouble();
+				}
+			}
+			if (date > 0) {
+				long minutes = StaticUtil.minutesLeft(date, LocalDateTime.now(ZoneId.of("UTC")).toEpochSecond(ZoneOffset.UTC));
+				data.addProperty("lastSaleMinutes", minutes);
+				data.addProperty("lastSaleProfit", profit);
+			}
+		}
+
 		double totalDown = 0;
 		for (JsonElement element : jsonArray) {
 			totalDown += (element.getAsJsonObject().get("currentValue").getAsDouble() - element.getAsJsonObject().get("totalCost").getAsDouble());
 		}
+
 		data.addProperty("diff", totalDown);
 
 		root.add("data", data);

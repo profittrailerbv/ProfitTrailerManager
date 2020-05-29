@@ -16,15 +16,49 @@
 	                        </div>
                         </div>
 	                </h5>
-                  </div>
+                </div>
                 <div class="card-body">
-                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitToday')"> Today: {{roundNumber(bot.data.totalProfitToday, 3)}} ({{bot.data.totalProfitPercToday}}%)</span><br />
-                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitYesterday')"> Yesterday: {{roundNumber(bot.data.totalProfitYesterday, 3)}} ({{bot.data.totalProfitPercYesterday}}%)</span>
-
-                    <br /><br />
-                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')" class="mr-3"> PAIRS: {{bot.data.pairsTotal}}</span>
-                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'dcaTotal')" class="mr-3"> DCA: {{bot.data.dcaTotal}}</span>
-                    <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')" class="" :class="bot.data.diff > 0 ? 'text-success' : bot.data.diff < 0 ? 'text-danger' : ''"> Diff: {{roundNumber(bot.data.diff, 4)}}</span>
+                    <div class="row text-white">
+                        <div class="col-4 text-left small font-weight-bold px-2" :class="bot.data.totalProfitToday > 0 ? 'bg-success' : bot.data.totalProfitToday < 0 ? 'bg-danger' : 'bg-secondary'">
+                            <span class="">T ({{bot.data.totalSalesToday}})</span><br/>
+                        </div>
+                        <div class="col-4 text-left small font-weight-bold px-2" :class="bot.data.totalProfitYesterday > 0 ? 'bg-success' : bot.data.totalProfitYesterday < 0 ? 'bg-danger' : 'bg-secondary'">
+                            <span>Y ({{bot.data.totalSalesYesterday}})</span><br/>
+                        </div>
+                        <div class="col-4 text-left small font-weight-bold px-2" :class="bot.data.totalProfitAllTime > 0 ? 'bg-success' : bot.data.totalProfitAllTime < 0 ? 'bg-danger' : 'bg-secondary'">
+                            <span>All ({{bot.data.totalSalesAllTime}})</span><br/>
+                        </div>
+                    </div>
+                    <div class="row text-white">
+                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitToday > 0 ? 'bg-success' : bot.data.totalProfitToday < 0 ? 'bg-danger' : 'bg-secondary'">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitToday')"> {{roundNumber(bot.data.totalProfitToday, 3)}}</span>
+                        </div>
+                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitYesterday > 0 ? 'bg-success' : bot.data.totalProfitYesterday < 0 ? 'bg-danger' : 'bg-secondary'">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitYesterday')"> {{roundNumber(bot.data.totalProfitYesterday, 3)}}</span>
+                        </div>
+                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitAllTime > 0 ? 'bg-success' : bot.data.totalProfitAllTime < 0 ? 'bg-danger' : 'bg-secondary'">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitAllTime')"> {{roundNumber(bot.data.totalProfitAllTime, 3)}}</span>
+                        </div>
+                    </div>
+                    <div class="row text-white">
+                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitToday > 0 ? 'bg-success' : bot.data.totalProfitToday < 0 ? 'bg-danger' : 'bg-secondary'">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercToday')"> ({{bot.data.totalProfitPercToday}}%)</span><br />
+                        </div>
+                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitYesterday > 0 ? 'bg-success' : bot.data.totalProfitYesterday < 0 ? 'bg-danger' : 'bg-secondary'">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercYesterday')"> ({{bot.data.totalProfitPercYesterday}}%)</span>
+                        </div>
+                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitAllTime > 0 ? 'bg-success' : bot.data.totalProfitAllTime < 0 ? 'bg-danger' : 'bg-secondary'">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercAllTime')"> ({{bot.data.totalProfitPercAllTime}}%)</span>
+                        </div>
+                    </div>
+                    <div class="row text-dark mt-3 px-2">
+                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')" class="mr-3"> PAIRS: {{bot.data.pairsTotal}}</span>
+                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'dcaTotal')" class="mr-3"> DCA: {{bot.data.dcaTotal}}</span>
+                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')" class="" :class="bot.data.diff > 0 ? 'text-success' : bot.data.diff < 0 ? 'text-danger' : ''"> Diff: {{roundNumber(bot.data.diff, 4)}}</span>
+                    </div>
+                    <div class="row text-dark mt-3 px-2">
+                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'lastSaleMinutes')"> Last sale {{bot.data.lastSaleMinutes}} minutes ago ({{bot.data.lastSaleProfit}}%) </span>
+                    </div>
                 </div>
                 <div class="card-footer text-muted">
                     <div class="row">

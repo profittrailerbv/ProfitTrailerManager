@@ -230,6 +230,7 @@ public class ProcessService {
 				String propertiesUrl = createUrl(botInfo, managerToken, "/api/v2/data/properties");
 				String pairsUrl = createUrl(botInfo, managerToken, "/api/v2/data/pairs");
 				String dcaUrl = createUrl(botInfo, managerToken, "/api/v2/data/dca");
+				String salesUrl = createUrl(botInfo, managerToken, "/api/v2/data/sales");
 				Pair<Integer, String> data = HttpClientManager.getHttp(dataUrl, Collections.emptyList());
 				if (data.getKey() < 202) {
 					botInfo.setStatsData(parser.fromJson(data.getValue(), JsonObject.class));
@@ -249,6 +250,13 @@ public class ProcessService {
 				Pair<Integer, String> dca = HttpClientManager.getHttp(dcaUrl, Collections.emptyList());
 				if (dca.getKey() < 202) {
 					botInfo.setDcaData(parser.fromJson(dca.getValue(), JsonArray.class));
+				}
+				Pair<Integer, String> sales = HttpClientManager.getHttp(salesUrl, Collections.emptyList());
+				if (sales.getKey() < 202) {
+					JsonObject object = parser.fromJson(sales.getValue(), JsonObject.class);
+					if (object.has("data")) {
+						botInfo.setSalesData(object.getAsJsonArray("data"));
+					}
 				}
 			}
 		} catch (Exception e) {

@@ -56,4 +56,13 @@ public class StaticUtil {
 				|| os.contains("mac os x");
 	}
 
+	public static long minutesLeft(long currentTime, long untilTime) {
+		long seconds = untilTime - currentTime;
+		if (seconds > 0 && seconds < 60) {
+			return 1;
+		} else if (seconds > 0) {
+			return (seconds / 60) + 1;
+		}
+		return 0;
+	}
 }
