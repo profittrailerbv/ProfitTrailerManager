@@ -1,5 +1,5 @@
 <template>
-    <div class="bot-component row row-cols-1 row-cols-md-3">
+    <div class="bot-component row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xxl-4">
         <div class="col mb-4" v-for="bot in bots">
             <div class="card">
                 <div class="card-body bg-light">
