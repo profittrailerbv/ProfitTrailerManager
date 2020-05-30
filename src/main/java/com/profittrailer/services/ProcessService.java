@@ -105,21 +105,16 @@ public class ProcessService {
 				for (BotInfo botInfo : botInfoMap.values()) {
 					boolean offline = botInfo.getStatus().equals("OFFLINE");
 					boolean managed = botInfo.isManaged();
-					if (managed) {
-						log.info("Checking {} -- offline?: {} -- managed?: {}", botInfo.getSiteName(), offline, managed);
-					}
 
 					if (!offline && StringUtils.isNotBlank(StaticUtil.url) && processedInitialized && managed) {
 						String healthUrl = createUrl(botInfo, managerToken, "/api/v2/health");
 						try {
-							log.info("Health url: {}", healthUrl);
 							Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
-							log.info("Result {} -- code: {} -- data: {}", botInfo.getSiteName(), data.getKey(), data.getValue());
 							if (data.getKey() < 202) {
 								offline = !StringUtils.equalsIgnoreCase(data.getValue(), "true");
 							}
 						} catch (Exception e) {
-							log.error("Erorr pinging health" + e.getMessage());
+							log.error("Error pinging health: " + e.getMessage());
 						}
 					}
 					if (offline && managed) {
