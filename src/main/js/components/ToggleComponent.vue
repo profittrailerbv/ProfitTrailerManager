@@ -1,6 +1,6 @@
 <template>
     <div class="card mb-3">
-        <div class="card-body">
+        <div class="card-body bg-light text-soft-dark">
             <h5>
                 <a href="#" @click.prevent="toggleCards()">
                     <font-awesome-icon v-if="onlyManaged" class="text-success"
@@ -43,3 +43,6 @@
         }
     }
 </script>
+
+<style scoped>
+</style>

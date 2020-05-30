@@ -1,79 +1,87 @@
 <template>
-    <div class="row row-cols-1 row-cols-md-3">
+    <div class="bot-component row row-cols-1 row-cols-md-3">
         <div class="col mb-4" v-for="bot in bots">
             <div class="card">
-                <div class="card-header">
-	                <h5 class="card-title">
-	                    <div class="row">
-		                    <div class="col-8 text-left">
-	                            <font-awesome-icon :class="getStatusClass(bot.status)" :icon="['fas','circle']"></font-awesome-icon> {{ bot.siteName }} {{bot.data.market}}
-	                        </div>
-	                        <div class="col-4 text-right">
-                                <font-awesome-icon :icon="['fas','file-alt']" v-if="bot.data.paper"></font-awesome-icon>
-	                            <a :href="bot.url" target="_blank">
-	                                <font-awesome-icon :icon="['fas','external-link-alt']"></font-awesome-icon>
-	                            </a>
-	                        </div>
+                <div class="card-body bg-light">
+                    <div class="row text-muted">
+	                    <div class="col-10 text-left font-weight-bold pr-0">
+							<font-awesome-icon :class="getStatusClass(bot.status)" :icon="['fas','circle']"></font-awesome-icon>
+                            {{ bot.siteName }}
+                            <span class="small"><sup>({{bot.data.exchange}})</sup></span>
                         </div>
-	                </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-white">
-                        <div class="col-4 text-left small font-weight-bold px-2" :class="bot.data.totalProfitToday > 0 ? 'bg-success' : bot.data.totalProfitToday < 0 ? 'bg-danger' : 'bg-secondary'">
-                            <span class="">T ({{bot.data.totalSalesToday}})</span><br/>
-                        </div>
-                        <div class="col-4 text-left small font-weight-bold px-2" :class="bot.data.totalProfitYesterday > 0 ? 'bg-success' : bot.data.totalProfitYesterday < 0 ? 'bg-danger' : 'bg-secondary'">
-                            <span>Y ({{bot.data.totalSalesYesterday}})</span><br/>
-                        </div>
-                        <div class="col-4 text-left small font-weight-bold px-2" :class="bot.data.totalProfitAllTime > 0 ? 'bg-success' : bot.data.totalProfitAllTime < 0 ? 'bg-danger' : 'bg-secondary'">
-                            <span>All ({{bot.data.totalSalesAllTime}})</span><br/>
+                        <div class="col-2 text-right pl-0">
+                            <font-awesome-icon :icon="['fas','file-alt']" v-if="bot.data.paper"></font-awesome-icon>
+                            <a :href="bot.url" target="_blank" class="text-muted">
+                                <font-awesome-icon :icon="['fas','external-link-alt']"></font-awesome-icon>
+                            </a>
                         </div>
                     </div>
-                    <div class="row text-white">
-                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitToday > 0 ? 'bg-success' : bot.data.totalProfitToday < 0 ? 'bg-danger' : 'bg-secondary'">
+                    <div class="row text-soft-dark mt-3">
+                        <div class="col-6 text-left font-weight-bold">
+                            <span class="">Today ({{bot.data.totalSalesToday}})</span><br/>
+                        </div>
+                        <div class="col-6 text-left font-weight-bold" :class="bot.data.totalProfitToday > 0 ? 'text-soft-success' : bot.data.totalProfitToday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                             <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitToday')"> {{roundNumber(bot.data.totalProfitToday, 3)}}</span>
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercToday')" class="small"> ({{bot.data.totalProfitPercToday}}%)</span>
                         </div>
-                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitYesterday > 0 ? 'bg-success' : bot.data.totalProfitYesterday < 0 ? 'bg-danger' : 'bg-secondary'">
+                    </div>
+                    <div class="row text-soft-dark">
+                        <div class="col-6 text-left font-weight-bold">
+                            <span class="">Yesterday ({{bot.data.totalSalesYesterday}})</span><br/>
+                        </div>
+                        <div class="col-6 text-left font-weight-bold" :class="bot.data.totalProfitYesterday > 0 ? 'text-soft-success' : bot.data.totalProfitYesterday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                             <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitYesterday')"> {{roundNumber(bot.data.totalProfitYesterday, 3)}}</span>
-                        </div>
-                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitAllTime > 0 ? 'bg-success' : bot.data.totalProfitAllTime < 0 ? 'bg-danger' : 'bg-secondary'">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitAllTime')"> {{roundNumber(bot.data.totalProfitAllTime, 3)}}</span>
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercYesterday')" class="small"> ({{bot.data.totalProfitPercYesterday}}%)</span>
                         </div>
                     </div>
-                    <div class="row text-white">
-                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitToday > 0 ? 'bg-success' : bot.data.totalProfitToday < 0 ? 'bg-danger' : 'bg-secondary'">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercToday')"> ({{bot.data.totalProfitPercToday}}%)</span><br />
+                    <div class="row text-soft-dark">
+                        <div class="col-6 text-left font-weight-bold">
+                            <span class="">Current Diff</span><br/>
                         </div>
-                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitYesterday > 0 ? 'bg-success' : bot.data.totalProfitYesterday < 0 ? 'bg-danger' : 'bg-secondary'">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercYesterday')"> ({{bot.data.totalProfitPercYesterday}}%)</span>
-                        </div>
-                        <div class="col-4 text-left px-2" :class="bot.data.totalProfitAllTime > 0 ? 'bg-success' : bot.data.totalProfitAllTime < 0 ? 'bg-danger' : 'bg-secondary'">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercAllTime')"> ({{bot.data.totalProfitPercAllTime}}%)</span>
+                        <div class="col-6 text-left font-weight-bold pl-6" :class="bot.data.diff > 0 ? 'text-soft-success' : bot.data.diff < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')"> {{roundNumber(bot.data.diff, 4)}}</span>
+                            <span>{{bot.data.market}}</span>
                         </div>
                     </div>
-                    <div class="row text-dark mt-3 px-2">
-                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')" class="mr-3"> PAIRS: {{bot.data.pairsTotal}}</span>
-                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'dcaTotal')" class="mr-3"> DCA: {{bot.data.dcaTotal}}</span>
-                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')" class="" :class="bot.data.diff > 0 ? 'text-success' : bot.data.diff < 0 ? 'text-danger' : ''"> Diff: {{roundNumber(bot.data.diff, 4)}}</span>
-                    </div>
-                    <div class="row text-dark mt-3 px-2">
-                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'lastSaleMinutes')"> Last sale {{bot.data.lastSaleMinutes}} minutes ago ({{bot.data.lastSaleProfit}}%) </span>
+                    <div class="row text-soft-dark mt-3">
+                        <div class="col-12 text-left">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'lastSaleMinutes')"> Last sale {{bot.data.lastSaleMinutes}} minutes ago ({{bot.data.lastSaleProfit}}%) </span>
+                            <span v-if="!bot.botProperties.managed || !containsKey(bot.data, 'lastSaleMinutes')">&nbsp;</span>
+                        </div>
                     </div>
                 </div>
-                <div class="card-footer text-muted">
-                    <div class="row">
-	                    <div class="col-10" style="font-size:12px">
-	                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'balance')" class="mr-3"> BAL: {{roundNumber(bot.data.balance, 6)}}</span>
-	                        <span v-if="bot.botProperties.managed && containsKey(bot.data, 'tcv')" class="text-info"> TCV: {{roundNumber(bot.data.tcv, 6)}}</span><br /><br />
-	                    </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-10" style="font-size:12px">
-							<span v-if="bot.botProperties.managed && containsKey(bot.data, 'version')"> Version: {{bot.data.version}}</span>
+                <div style="border-width:5px" class="card-footer border-dark" :class="bot.data.totalProfitAllTime > 0 ? 'bg-soft-green' : bot.data.totalProfitAllTime < 0 ? 'bg-soft-red' : ''">
+                    <div class="row" :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
+                        <div class="col-6 text-left font-weight-bold font-italic">
+                            <span class="">Profit All Time</span><br/>
                         </div>
-                        <div class="col-2 text-right">
-                             <a href="#" @click.prevent="restartBot(bot.directory)">
-                                 <font-awesome-icon :icon="['fas','redo-alt']"></font-awesome-icon>
+                        <div class="col-6 text-right font-weight-bold pl-6" :class="bot.data.totalProfitAllTime > 0 ? 'text-soft-success' : bot.data.totalProfitAllTime < 0 ? 'text-soft-danger' : 'text-secondary'">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitAllTime')"> {{roundNumber(bot.data.totalProfitAllTime, 3)}}</span>
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercAllTime')" class="small"> ({{bot.data.totalProfitPercAllTime}}%)</span>
+                        </div>
+                    </div>
+                    <div class="row mt-3 small" :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
+                        <div class="col-4 text-left">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')"> PAIRS: {{bot.data.pairsTotal}}</span>
+                        </div>
+                        <div class="col-8 text-right">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'balance')"> BAL: {{roundNumber(bot.data.balance, 6)}}</span>
+                        </div>
+                    </div>
+                    <div class="row small" :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
+                        <div class="col-4 text-left">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'dcaTotal')"> DCA: {{bot.data.dcaTotal}}</span>
+                        </div>
+                        <div class="col-8 text-right">
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'tcv')"> TCV: {{roundNumber(bot.data.tcv, 6)}}</span>
+                        </div>
+                    </div>
+
+                    <div class="row text-right small mt-2" :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
+                        <div class="col-12">
+							<span v-if="bot.botProperties.managed && containsKey(bot.data, 'version')"> V{{bot.data.version}}</span>
+                            <a href="#" @click.prevent="restartBot(bot.directory)">
+                                 <font-awesome-icon :icon="['fas','redo-alt']" class="text-dark"></font-awesome-icon>
                              </a>
                         </div>
                     </div>
@@ -128,7 +136,7 @@
                 })
             },
             getStatusClass(status) {
-                return status === 'ONLINE' ? 'text-success' : status === 'INITIALIZING' ? 'text-warning' : 'text-danger';
+                return status === 'ONLINE' ? 'text-soft-success' : status === 'INITIALIZING' ? 'text-warning' : 'text-soft-danger';
             },
             containsKey(obj, key ) {
                 return Object.keys(obj).includes(key);
@@ -147,5 +155,16 @@
 </script>
 
 <style scoped>
-
+	.bg-soft-green {
+		background-color: #c2efa2;
+	}
+	.bg-soft-red {
+        background-color: #e3a09c;
+    }
+    .text-soft-danger {
+        color: #be584a;
+    }
+    .text-soft-success {
+        color: #61a242;
+    }
 </style>

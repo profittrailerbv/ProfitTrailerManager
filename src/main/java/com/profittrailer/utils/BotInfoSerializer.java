@@ -58,10 +58,10 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 				tcv = exchangeTcv;
 			}
 
+			data.addProperty("exchange", botInfo.getMiscData().get("exchange").getAsString());
 			data.addProperty("version", botInfo.getMiscData().get("version").getAsString());
-			if (!siteName.contains(botInfo.getMiscData().get("market").getAsString())) {
-				data.addProperty("market", botInfo.getMiscData().get("market").getAsString());
-			}
+			data.addProperty("market", botInfo.getMiscData().get("market").getAsString());
+
 			data.addProperty("balance", realBalance);
 			data.addProperty("tcv", realBalance + tcv);
 		}
