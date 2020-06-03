@@ -61,17 +61,16 @@ public class ProfitTrailerManager {
 		File dataDir = new File("data");
 		Files.createDirectories(dataDir.toPath());
 
-		if (hasGui()) {
-			EventQueue.invokeLater(() -> {
+		EventQueue.invokeLater(() -> {
+			if (hasGui()) {
 				ManagerForm ex = new ManagerForm(port, StaticUtil.randomSystemId);
 				ex.setVisible(true);
-				log.info("ProfitTrailer Manager is started");
-				if (StringUtils.isNotBlank(StaticUtil.randomSystemId)) {
-					System.out.println("Random System Id " + StaticUtil.randomSystemId);
-				}
-			});
-
-		}
+			}
+			log.info("ProfitTrailer Manager is started");
+			if (StringUtils.isNotBlank(StaticUtil.randomSystemId)) {
+				System.out.println("Random System Id " + StaticUtil.randomSystemId);
+			}
+		});
 	}
 
 	private static boolean hasGui() {
