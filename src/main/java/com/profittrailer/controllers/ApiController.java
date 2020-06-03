@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.net.MalformedURLException;
 
 @RestController
@@ -39,12 +40,16 @@ public class ApiController {
 		JsonObject object = new JsonObject();
 		object.add("bots", parser.toJsonTree(processService.getBotList(onlyManaged)));
 		object.addProperty("baseUrl", StaticUtil.getBaseUrl(request));
+		object.addProperty("demoServer", processService.isDemoServer());
 
 		return object.toString();
 	}
 
 	@PostMapping("/restartBot")
 	public void startBot(String directoryName) throws InterruptedException {
+		if (processService.isDemoServer()) {
+			return;
+		}
 		processService.stopBot(directoryName);
 		Thread.sleep(5000);
 		processService.startBot(directoryName);
@@ -53,6 +58,9 @@ public class ApiController {
 
 	@PostMapping("/stopBot")
 	public void stopBot(String directoryName) {
+		if (processService.isDemoServer()) {
+			return;
+		}
 		processService.stopBot(directoryName);
 	}
 
@@ -65,7 +73,7 @@ public class ApiController {
 	}
 
 	@GetMapping("/toggleCards")
-	public String getToggle(HttpServletRequest request) {
+	public String getToggle() {
 		JsonObject object = new JsonObject();
 		object.addProperty("onlyManaged", onlyManaged);
 		return object.toString();
@@ -73,7 +81,9 @@ public class ApiController {
 
 	@PostMapping("/toggleCards")
 	public String postToggle() {
-		onlyManaged = !onlyManaged;
+		if (!processService.isDemoServer()) {
+			onlyManaged = !onlyManaged;
+		}
 		JsonObject object = new JsonObject();
 		object.addProperty("onlyManaged", onlyManaged);
 		return object.toString();
@@ -81,6 +91,38 @@ public class ApiController {
 
 	@PostMapping("/shutdown")
 	public void shutdown() {
+		if (processService.isDemoServer()) {
+			return;
+		}
 		System.exit(0);
+	}
+
+	@GetMapping("/toggleData")
+	public String toggleData() {
+
+		JsonObject object = new JsonObject();
+		object.addProperty("latestVersion", processService.getLatestVersion());
+
+		return object.toString();
+	}
+
+	@PostMapping("/updateBot")
+	public void updateBot(String directoryName,
+	                      String forceUrl) {
+
+		processService.updateBot(directoryName, forceUrl);
+		//startBot(directoryName);
+	}
+
+	@GetMapping("/linkout")
+	public void linkOut(String directoryName,
+	                    HttpServletResponse response) throws Exception {
+		JsonObject object = new JsonObject();
+		object.add("bot", parser.toJsonTree(processService.getBotInfoMap().get(directoryName)));
+
+		BotInfo botInfo = processService.getBotInfoMap().get(directoryName);
+		String token = processService.getSSOKey(directoryName);
+		String redirectUrl = processService.createUrl(botInfo, "?sso=" + token, false);
+		response.sendRedirect(redirectUrl);
 	}
 }

@@ -4,14 +4,16 @@
             <div class="card">
                 <div class="card-body bg-light">
                     <div class="row text-muted">
-	                    <div class="col-10 text-left font-weight-bold pr-0">
-							<font-awesome-icon :class="getStatusClass(bot.status)" :icon="['fas','circle']"></font-awesome-icon>
+                        <div class="col-10 text-left font-weight-bold pr-0">
+                            <font-awesome-icon :class="getStatusClass(bot.status)"
+                                               :icon="['fas','circle']"></font-awesome-icon>
                             {{ bot.siteName }}
                             <span class="small"><sup>({{bot.data.exchange}})</sup></span>
                         </div>
                         <div class="col-2 text-right pl-0">
                             <font-awesome-icon :icon="['fas','file-alt']" v-if="bot.data.paper"></font-awesome-icon>
-                            <a :href="bot.url" target="_blank" class="text-muted">
+                            <a :href="'api/v1/linkout?directoryName=' + bot.directory" target="_blank"
+                               class="text-muted">
                                 <font-awesome-icon :icon="['fas','external-link-alt']"></font-awesome-icon>
                             </a>
                         </div>
@@ -20,25 +22,30 @@
                         <div class="col-6 text-left font-weight-bold">
                             <span class="">Today ({{bot.data.totalSalesToday}})</span><br/>
                         </div>
-                        <div class="col-6 text-left font-weight-bold" :class="bot.data.totalProfitToday > 0 ? 'text-soft-success' : bot.data.totalProfitToday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                        <div class="col-6 text-left font-weight-bold"
+                             :class="bot.data.totalProfitToday > 0 ? 'text-soft-success' : bot.data.totalProfitToday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                             <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitToday')"> {{roundNumber(bot.data.totalProfitToday, 3)}}</span>
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercToday')" class="small"> ({{bot.data.totalProfitPercToday}}%)</span>
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercToday')"
+                                  class="small"> ({{bot.data.totalProfitPercToday}}%)</span>
                         </div>
                     </div>
                     <div class="row text-soft-dark">
                         <div class="col-6 text-left font-weight-bold">
                             <span class="">Yesterday ({{bot.data.totalSalesYesterday}})</span><br/>
                         </div>
-                        <div class="col-6 text-left font-weight-bold" :class="bot.data.totalProfitYesterday > 0 ? 'text-soft-success' : bot.data.totalProfitYesterday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                        <div class="col-6 text-left font-weight-bold"
+                             :class="bot.data.totalProfitYesterday > 0 ? 'text-soft-success' : bot.data.totalProfitYesterday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                             <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitYesterday')"> {{roundNumber(bot.data.totalProfitYesterday, 3)}}</span>
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercYesterday')" class="small"> ({{bot.data.totalProfitPercYesterday}}%)</span>
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercYesterday')"
+                                  class="small"> ({{bot.data.totalProfitPercYesterday}}%)</span>
                         </div>
                     </div>
                     <div class="row text-soft-dark">
                         <div class="col-6 text-left font-weight-bold">
                             <span class="">Current Diff</span><br/>
                         </div>
-                        <div class="col-6 text-left font-weight-bold pl-6" :class="bot.data.diff > 0 ? 'text-soft-success' : bot.data.diff < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                        <div class="col-6 text-left font-weight-bold pl-6"
+                             :class="bot.data.diff > 0 ? 'text-soft-success' : bot.data.diff < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                             <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')"> {{roundNumber(bot.data.diff, 4)}}</span>
                             <span>{{bot.data.market}}</span>
                         </div>
@@ -50,17 +57,21 @@
                         </div>
                     </div>
                 </div>
-                <div style="border-width:5px" class="card-footer border-dark" :class="bot.data.totalProfitAllTime > 0 ? 'bg-soft-green' : bot.data.totalProfitAllTime < 0 ? 'bg-soft-red' : ''">
+                <div style="border-width:5px" class="card-footer border-dark"
+                     :class="bot.data.totalProfitAllTime > 0 ? 'bg-soft-green' : bot.data.totalProfitAllTime < 0 ? 'bg-soft-red' : ''">
                     <div class="row" :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
                         <div class="col-6 text-left font-weight-bold font-italic">
                             <span class="">Profit All Time</span><br/>
                         </div>
-                        <div class="col-6 text-right font-weight-bold pl-6" :class="bot.data.totalProfitAllTime > 0 ? 'text-soft-success' : bot.data.totalProfitAllTime < 0 ? 'text-soft-danger' : 'text-secondary'">
+                        <div class="col-6 text-right font-weight-bold pl-6"
+                             :class="bot.data.totalProfitAllTime > 0 ? 'text-soft-success' : bot.data.totalProfitAllTime < 0 ? 'text-soft-danger' : 'text-secondary'">
                             <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitAllTime')"> {{roundNumber(bot.data.totalProfitAllTime, 3)}}</span>
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercAllTime')" class="small"> ({{bot.data.totalProfitPercAllTime}}%)</span>
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercAllTime')"
+                                  class="small"> ({{bot.data.totalProfitPercAllTime}}%)</span>
                         </div>
                     </div>
-                    <div class="row mt-3 small" :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
+                    <div class="row mt-3 small"
+                         :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
                         <div class="col-4 text-left">
                             <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')"> PAIRS: {{bot.data.pairsTotal}}</span>
                         </div>
@@ -77,12 +88,13 @@
                         </div>
                     </div>
 
-                    <div class="row text-right small mt-2" :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
+                    <div class="row text-right small mt-2"
+                         :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
                         <div class="col-12">
-							<span v-if="bot.botProperties.managed && containsKey(bot.data, 'version')"> V{{bot.data.version}}</span>
-                            <a href="#" @click.prevent="restartBot(bot.directory)">
-                                 <font-awesome-icon :icon="['fas','redo-alt']" class="text-dark"></font-awesome-icon>
-                             </a>
+                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'version')" class="smaller"> V{{bot.data.version}}</span>
+                            <a v-if="!demoServer" href="#" @click.prevent="restartBot(bot.directory)">
+                                <font-awesome-icon :icon="['fas','redo-alt']" class="text-dark"></font-awesome-icon>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -97,7 +109,8 @@
             return {
                 bots: [],
                 loading: true,
-                timer: ''
+                timer: '',
+                demoServer: false
             }
         },
         created() {
@@ -107,6 +120,7 @@
             getAllBots() {
                 axios.get('/api/v1/data').then((response) => {
                     this.bots = response.data.bots
+                    this.demoServer = response.data.demoServer
                 }).catch((error) => {
                     if (!error.response) {
                         window.location.href = '/';
@@ -138,7 +152,7 @@
             getStatusClass(status) {
                 return status === 'ONLINE' ? 'text-soft-success' : status === 'INITIALIZING' ? 'text-warning' : 'text-soft-danger';
             },
-            containsKey(obj, key ) {
+            containsKey(obj, key) {
                 return Object.keys(obj).includes(key);
             },
             roundNumber(number, decimals) {
@@ -148,23 +162,30 @@
         mounted() {
             this.getAllBots()
         },
-        beforeDestroy () {
+        beforeDestroy() {
             clearInterval(this.timer)
         }
     }
 </script>
 
 <style scoped>
-	.bg-soft-green {
-		background-color: #c2efa2;
-	}
-	.bg-soft-red {
+    .bg-soft-green {
+        background-color: #c2efa2;
+    }
+
+    .bg-soft-red {
         background-color: #e3a09c;
     }
+
     .text-soft-danger {
         color: #be584a;
     }
+
     .text-soft-success {
         color: #61a242;
+    }
+
+    .smaller {
+        font-size: 11px;
     }
 </style>

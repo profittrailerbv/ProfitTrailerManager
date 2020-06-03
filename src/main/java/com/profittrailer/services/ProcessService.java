@@ -34,6 +34,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -43,16 +44,22 @@ import java.util.stream.Collectors;
 @Log4j2
 public class ProcessService {
 
+	private static final String githubUrl = "https://api.github.com/repos/taniman/profit-trailer/releases/latest";
+
 	private String managerToken;
 	@Value("${server.bots.directory}")
 	private String botsLocation;
 	@Value("${server.bots.autostart:false}")
 	private boolean autoStartManagedBots;
+	@Value("${server.demo:false}")
+	private boolean demoServer;
 	private Map<String, ProcessInfo> processInfoMap = new HashMap<>();
 	private Map<String, BotInfo> botInfoMap = new ConcurrentHashMap<>();
 	private boolean initialzed = false;
 	private boolean processedInitialized = false;
 	private Gson parser;
+	private String latestVersion = "0.0.0";
+	private String downloadUrl;
 
 	@PostConstruct
 	public void init() {
@@ -64,15 +71,43 @@ public class ProcessService {
 		initialzed = true;
 	}
 
+	@Scheduled(initialDelay = 10000, fixedDelay = 900000)
+	public void updateGithub() {
+		try {
+			Pair<Integer, String> data = HttpClientManager.getHttp(githubUrl, Collections.emptyList());
+			if (data.getKey() < 202) {
+				JsonObject object = parser.fromJson(data.getValue(), JsonObject.class);
+				latestVersion = object.get("tag_name").getAsString();
+				String assetUrl = object.get("assets_url").getAsString();
+				Pair<Integer, String> assetData = HttpClientManager.getHttp(assetUrl, Collections.emptyList());
+				if (assetData.getKey() < 202) {
+					JsonArray assetsArray = parser.fromJson(assetData.getValue(), JsonArray.class);
+					if (assetsArray.size() > 0) {
+						downloadUrl = assetsArray.get(0).getAsJsonObject().get("browser_download_url").getAsString();
+						StaticUtil.unzip(downloadUrl);
+					}
+				}
+			} else {
+				log.error("Github error code {}", data.getValue());
+			}
+		} catch (Exception e) {
+			log.error(e);
+		}
+	}
+
 	@Scheduled(initialDelay = 10000, fixedDelay = 10000)
 	public void readProcesses() {
 		//log.info("Start");
-		if (initialzed) {
-			Map<String, ProcessInfo> tmpProcessInfoMap = new HashMap<>();
-			JProcesses.getProcessList()
-					.forEach(e -> tmpProcessInfoMap.put(e.getPid(), e));
-			processInfoMap = tmpProcessInfoMap;
-			processedInitialized = true;
+		try {
+			if (initialzed) {
+				Map<String, ProcessInfo> tmpProcessInfoMap = new HashMap<>();
+				JProcesses.getProcessList()
+						.forEach(e -> tmpProcessInfoMap.put(e.getPid(), e));
+				processInfoMap = tmpProcessInfoMap;
+				processedInitialized = true;
+			}
+		} catch (Exception e) {
+			log.error(e);
 		}
 		//log.info("Done");
 	}
@@ -85,6 +120,9 @@ public class ProcessService {
 			if (files != null) {
 				Arrays.stream(files)
 						.filter(File::isDirectory)
+						.filter(e -> e.listFiles() != null
+								&& Arrays.stream(Objects.requireNonNull(e.listFiles()))
+								.anyMatch(f -> f.getName().equalsIgnoreCase("ProfitTrailer.jar")))
 						.map(File::getName)
 						.forEach(e -> {
 							BotInfo botInfo = botInfoMap.getOrDefault(e, new BotInfo(e));
@@ -107,7 +145,7 @@ public class ProcessService {
 					boolean managed = botInfo.isManaged();
 
 					if (!offline && StringUtils.isNotBlank(StaticUtil.url) && processedInitialized && managed) {
-						String healthUrl = createUrl(botInfo, managerToken, "/api/v2/health");
+						String healthUrl = createUrl(botInfo, "/api/v2/health");
 						try {
 							Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
 							if (data.getKey() < 202) {
@@ -169,7 +207,7 @@ public class ProcessService {
 	public void stopBot(String botName) {
 		BotInfo bot = botInfoMap.get(botName);
 		boolean managed = bot.isManaged();
-		int processId = NumberUtils.toInt((String) bot.getBotProperties().getOrDefault("process", 0));
+		int processId = NumberUtils.toInt((String) bot.getBotProperties().getOrDefault("process", "0"));
 		if (managed && bot.getProcess() != null) {
 			bot.getProcess().destroy();
 			if (processId > 0) {
@@ -220,12 +258,12 @@ public class ProcessService {
 		try {
 			boolean managed = botInfo.isManaged();
 			if (managed) {
-				String dataUrl = createUrl(botInfo, managerToken, "/api/v2/data/stats");
-				String miscUrl = createUrl(botInfo, managerToken, "/api/v2/data/misc");
-				String propertiesUrl = createUrl(botInfo, managerToken, "/api/v2/data/properties");
-				String pairsUrl = createUrl(botInfo, managerToken, "/api/v2/data/pairs");
-				String dcaUrl = createUrl(botInfo, managerToken, "/api/v2/data/dca");
-				String salesUrl = createUrl(botInfo, managerToken, "/api/v2/data/sales");
+				String dataUrl = createUrl(botInfo, "/api/v2/data/stats");
+				String miscUrl = createUrl(botInfo, "/api/v2/data/misc");
+				String propertiesUrl = createUrl(botInfo, "/api/v2/data/properties");
+				String pairsUrl = createUrl(botInfo, "/api/v2/data/pairs");
+				String dcaUrl = createUrl(botInfo, "/api/v2/data/dca");
+				String salesUrl = createUrl(botInfo, "/api/v2/data/sales");
 				Pair<Integer, String> data = HttpClientManager.getHttp(dataUrl, Collections.emptyList());
 				if (data.getKey() < 202) {
 					botInfo.setStatsData(parser.fromJson(data.getValue(), JsonObject.class));
@@ -259,9 +297,15 @@ public class ProcessService {
 		}
 	}
 
-	private String createUrl(BotInfo botInfo,
-	                         String managerToken,
-	                         String endPoint) {
+	public String createUrl(BotInfo botInfo,
+	                        String endPoint) {
+
+		return createUrl(botInfo, endPoint, true);
+	}
+
+	public String createUrl(BotInfo botInfo,
+	                        String endPoint,
+	                        boolean includeManagerToken) {
 
 		String token = managerToken;
 		if (botInfo.getProcessInfo() != null) {
@@ -274,7 +318,11 @@ public class ProcessService {
 		String port = (String) botInfo.getBotProperties().get("port");
 		String contextPath = (String) botInfo.getBotProperties().get("context");
 		String url = String.format("%s:%s%s", StaticUtil.url, port, contextPath);
-		return url + endPoint + "?token=" + token;
+		url = url + endPoint;
+		if (includeManagerToken) {
+			url = url + "?token=" + token;
+		}
+		return url;
 	}
 
 	private void readError(Process process) {
@@ -286,5 +334,37 @@ public class ProcessService {
 
 	public JsonElement convertBotInfo(BotInfo botInfo) {
 		return parser.toJsonTree(botInfo);
+	}
+
+	public void updateBot(String directoryName,
+	                      String forceUrl) {
+
+		BotInfo botInfo = botInfoMap.get(directoryName);
+		if (botInfo.getMiscData() == null) {
+			log.info("{} -- Version not known", botInfo.getSiteName());
+			return;
+		}
+		String updateMessage = latestVersion;
+		if (StringUtils.isNotBlank(forceUrl)) {
+			updateMessage = "from url: " + forceUrl;
+		}
+
+		String version = botInfo.getMiscData().get("version").getAsString();
+		if (StaticUtil.isUpdateAvailable(version, latestVersion) || StringUtils.isNotBlank(forceUrl)) {
+
+			log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
+		}
+	}
+
+	public String getSSOKey(String directoryName) throws Exception {
+		BotInfo botInfo = botInfoMap.get(directoryName);
+		String ssoToken = "";
+		String ssoTokenUrl = createUrl(botInfo, "/api/v2/sso/token");
+		Pair<Integer, String> tokenRequest = HttpClientManager.getHttp(ssoTokenUrl, Collections.emptyList());
+		if (tokenRequest.getKey() < 202) {
+			JsonObject jsonObject = parser.fromJson(tokenRequest.getValue(), JsonObject.class);
+			ssoToken = jsonObject.get("token").getAsString();
+		}
+		return ssoToken;
 	}
 }

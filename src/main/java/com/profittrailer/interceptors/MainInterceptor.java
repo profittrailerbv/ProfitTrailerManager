@@ -20,7 +20,7 @@ public class MainInterceptor extends HandlerInterceptorAdapter {
 
 		SessionType sessionType = (SessionType) request.getSession().getAttribute("sessionType");
 		if (!SessionType.ADMIN.equals(sessionType)) {
-			//response.sendRedirect(StaticUtil.redirectUrl(request, "/login"));
+			response.sendRedirect(StaticUtil.redirectUrl(request, "/login"));
 		}
 		StaticUtil.url = StaticUtil.getBaseUrl(request);
 		return true;
