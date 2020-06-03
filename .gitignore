@@ -11,4 +11,5 @@ application.properties
 yarn-error.log
 package-lock.json
 
-/src/main/resources/static/*
+/src/main/resources/static/app.css
+/src/main/resources/static/app.js
