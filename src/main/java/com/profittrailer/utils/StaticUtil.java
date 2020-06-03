@@ -2,6 +2,7 @@ package com.profittrailer.utils;
 
 import lombok.extern.log4j.Log4j2;
 import net.lingala.zip4j.ZipFile;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpRequest;
@@ -31,7 +32,7 @@ public class StaticUtil {
 			if (StringUtils.isBlank(Util.loadPasswordHash())) {
 				randomSystemId = RandomStringUtils.randomAlphanumeric(25);
 			}
-		} catch (IOException e) {
+		} catch (IOException ignore) {
 		}
 	}
 
@@ -110,13 +111,14 @@ public class StaticUtil {
 		return false;
 	}
 
-	public static void unzip(String sourceUrl) {
+	public static String unzip(String sourceUrl) {
 		String[] sourceSplitted = sourceUrl.split("/");
 		String fileName = sourceSplitted[sourceSplitted.length - 1];
 		String destination = "data/tmp" + File.separator + "update";
 		File zipFileName = new File(destination + File.separator + fileName);
 		File extractedDir = new File(destination + File.separator + fileName.replace(".zip", ""));
 		File destinationDir = new File(destination);
+		String updateFolder = null;
 		try {
 
 			if (!zipFileName.exists()) {
@@ -139,8 +141,18 @@ public class StaticUtil {
 				ZipFile zipFile = new ZipFile(zipFileName);
 				zipFile.extractAll(destination);
 			}
+			updateFolder = fileName.replace(".zip", "");
 		} catch (Exception e) {
 			log.error(e);
 		}
+
+		return updateFolder;
+	}
+
+	public static void copyJar(String fileName, String botLocation) throws IOException {
+		String destination = "data/tmp" + File.separator + "update";
+		File updateFile = new File(destination + File.separator + fileName + File.separator + "ProfitTrailer.jar");
+		File botDir = new File(botLocation);
+		FileUtils.copyFileToDirectory(updateFile, botDir);
 	}
 }

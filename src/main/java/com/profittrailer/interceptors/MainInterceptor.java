@@ -1,5 +1,6 @@
 package com.profittrailer.interceptors;
 
+import com.profittrailer.services.ProcessService;
 import com.profittrailer.utils.StaticUtil;
 import com.profittrailer.utils.Util;
 import com.profittrailer.utils.constants.SessionType;
@@ -10,15 +11,24 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.MalformedURLException;
 
 @Component
 public class MainInterceptor extends HandlerInterceptorAdapter {
+
+	private final ProcessService processService;
+
+	public MainInterceptor(ProcessService processService) {
+		this.processService = processService;
+	}
 
 	@Override
 	public boolean preHandle(HttpServletRequest request,
 	                         HttpServletResponse response,
 	                         Object handler) throws IOException {
+
+		if (processService.isDemoServer()) {
+			return true;
+		}
 
 		if (StringUtils.isBlank(Util.loadPasswordHash())) {
 			response.sendRedirect(StaticUtil.redirectUrl(request, "/resetPassword"));

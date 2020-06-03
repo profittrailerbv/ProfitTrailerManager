@@ -11,11 +11,13 @@ import com.profittrailer.utils.BotInfoSerializer;
 import com.profittrailer.utils.StaticUtil;
 import com.profittrailer.utils.Util;
 import com.profittrailer.utils.constants.SessionType;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
@@ -26,6 +28,7 @@ import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 
+@Log4j2
 @RestController
 @RequestMapping("/api/v1")
 public class ApiController {
@@ -113,16 +116,27 @@ public class ApiController {
 
 		JsonObject object = new JsonObject();
 		object.addProperty("latestVersion", processService.getLatestVersion());
+		object.addProperty("downloadUrl", processService.getDownloadUrl());
+		object.addProperty("demoServer", processService.isDemoServer());
 
 		return object.toString();
 	}
 
-	@PostMapping("/updateBot")
-	public void updateBot(String directoryName,
-	                      String forceUrl) {
-
-		processService.updateBot(directoryName, forceUrl);
-		//startBot(directoryName);
+	@PostMapping("/updateBots")
+	public void updateBots(String forceUrl,
+	                       @RequestParam(defaultValue = "false") boolean forceUpdate) {
+		if (processService.isDemoServer()) {
+			return;
+		}
+		new Thread(() -> {
+			for (String dir : processService.getBotInfoMap().keySet()) {
+				try {
+					processService.updateBot(dir, forceUrl, forceUpdate);
+				} catch (IOException | InterruptedException e) {
+					log.error(e);
+				}
+			}
+		}).start();
 	}
 
 	@GetMapping("/linkout")
@@ -182,7 +196,6 @@ public class ApiController {
 			response.sendError(HttpStatus.UNAUTHORIZED.value(), "Passwords do not match");
 			return;
 		}
-
 
 		if (Util.createPassword(password)) {
 			request.getSession(true).setAttribute("sessionType", SessionType.ADMIN);

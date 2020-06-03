@@ -1,5 +1,21 @@
 // Internal Imports
 import Vue from 'vue'
+import {library} from '@fortawesome/fontawesome-svg-core'
+import {
+    faCircle,
+    faExternalLinkAlt,
+    faFileAlt,
+    faLevelUpAlt,
+    faPowerOff,
+    faRedoAlt,
+    faSignInAlt,
+    faToggleOff,
+    faToggleOn
+} from '@fortawesome/free-solid-svg-icons'
+
+import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome'
+import VueSweetalert2 from 'vue-sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 try {
     window.Popper = require('popper.js').default;
@@ -10,12 +26,9 @@ try {
 
 }
 
-import { library } from '@fortawesome/fontawesome-svg-core'
-import {faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff, faExternalLinkAlt, faFileAlt, faSignInAlt} from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-
-library.add(faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff, faExternalLinkAlt, faFileAlt, faSignInAlt)
+library.add(faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff, faExternalLinkAlt, faFileAlt, faSignInAlt, faLevelUpAlt)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
+Vue.use(VueSweetalert2);
 
 
 window.axios = require('axios');

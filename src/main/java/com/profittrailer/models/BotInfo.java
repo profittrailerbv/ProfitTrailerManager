@@ -26,6 +26,7 @@ public class BotInfo {
 	private JsonArray dcaData;
 	private JsonArray salesData;
 	private transient LocalDateTime startDate;
+	private transient LocalDateTime updateDate;
 	private transient double profitToday;
 
 	public BotInfo() {
@@ -42,6 +43,10 @@ public class BotInfo {
 
 		if (startDate != null && startDate.plusSeconds(30).isAfter(Util.getDateTime())) {
 			return "STARTING";
+		}
+
+		if (updateDate != null && updateDate.plusSeconds(30).isAfter(Util.getDateTime())) {
+			return "UPDATING";
 		}
 
 		return (process == null && processInfo == null)

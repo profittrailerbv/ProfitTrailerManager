@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileReader;
-import java.time.LocalDateTime;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -92,7 +92,7 @@ public class ProcessService {
 				log.error("Github error code {}", data.getValue());
 			}
 		} catch (Exception e) {
-			log.error(e);
+			log.error("Error updating github ", e);
 		}
 	}
 
@@ -108,7 +108,7 @@ public class ProcessService {
 				processedInitialized = true;
 			}
 		} catch (Exception e) {
-			log.error(e);
+			log.error("Error reading process ", e);
 		}
 		//log.info("Done");
 	}
@@ -143,9 +143,9 @@ public class ProcessService {
 			if (autoStartManagedBots && processedInitialized) {
 				for (BotInfo botInfo : botInfoMap.values()) {
 					boolean offline = botInfo.getStatus().equals("OFFLINE");
+					boolean startingUpdating = botInfo.getStatus().equals("STARTING") || botInfo.getStatus().equals("UPDATING");
 					boolean managed = botInfo.isManaged();
-
-					if (!offline && StringUtils.isNotBlank(StaticUtil.url) && processedInitialized && managed) {
+					if (!offline && !startingUpdating && StringUtils.isNotBlank(StaticUtil.url) && processedInitialized && managed) {
 						String healthUrl = createUrl(botInfo, "/api/v2/health");
 						try {
 							Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
@@ -165,7 +165,7 @@ public class ProcessService {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error auto starting bots? ", e);
 		}
 	}
 
@@ -200,8 +200,7 @@ public class ProcessService {
 				readError(process);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			log.error(e);
+			log.error("Error starting bot", e);
 		}
 	}
 
@@ -231,8 +230,7 @@ public class ProcessService {
 				return properties;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			log.error(e);
+			log.error("Error getting bot properties ", e);
 		}
 		return new Properties();
 	}
@@ -258,7 +256,9 @@ public class ProcessService {
 		}
 		try {
 			boolean managed = botInfo.isManaged();
-			if (managed) {
+			boolean online = botInfo.getStatus().equals("ONLINE");
+
+			if (managed && online) {
 				String dataUrl = createUrl(botInfo, "/api/v2/data/stats");
 				String miscUrl = createUrl(botInfo, "/api/v2/data/misc");
 				String propertiesUrl = createUrl(botInfo, "/api/v2/data/properties");
@@ -294,7 +294,7 @@ public class ProcessService {
 				}
 			}
 		} catch (Exception e) {
-			log.error(e);
+			log.error("Error getting bot data ", e);
 		}
 	}
 
@@ -338,22 +338,46 @@ public class ProcessService {
 	}
 
 	public void updateBot(String directoryName,
-	                      String forceUrl) {
+	                      String forceUrl,
+	                      boolean forceUpdate) throws IOException, InterruptedException {
+
+		if (forceUrl.trim().equalsIgnoreCase(downloadUrl)) {
+			forceUrl = null;
+		}
 
 		BotInfo botInfo = botInfoMap.get(directoryName);
-		if (botInfo.getMiscData() == null) {
-			log.info("{} -- Version not known", botInfo.getSiteName());
+		if (!botInfo.isManaged()) {
+			log.info("{} is not a managed bot, skipping", botInfo.getSiteName());
 			return;
 		}
-		String updateMessage = latestVersion;
-		if (StringUtils.isNotBlank(forceUrl)) {
-			updateMessage = "from url: " + forceUrl;
+
+		String version = "0.0.0";
+		if (botInfo.getMiscData() == null && !forceUpdate) {
+			log.info("{} -- Version not known, skipping", botInfo.getSiteName());
+			return;
+		} else if (botInfo.getMiscData() != null) {
+			version = botInfo.getMiscData().get("version").getAsString();
 		}
 
-		String version = botInfo.getMiscData().get("version").getAsString();
-		if (StaticUtil.isUpdateAvailable(version, latestVersion) || StringUtils.isNotBlank(forceUrl)) {
+		String updateMessage = latestVersion;
+		String updateUrl = downloadUrl;
+		if (StringUtils.isNotBlank(forceUrl)) {
+			updateMessage = "from url: " + forceUrl;
+			updateUrl = forceUrl;
+		}
 
-			log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
+		if (StaticUtil.isUpdateAvailable(version, latestVersion) || StringUtils.isNotBlank(forceUrl) || forceUpdate) {
+			String updateFolder = StaticUtil.unzip(updateUrl);
+			if (updateFolder != null) {
+				botInfo.setUpdateDate(Util.getDateTime());
+				stopBot(directoryName);
+				Thread.sleep(2000);
+				log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
+				StaticUtil.copyJar(updateFolder, botsLocation + "/" + directoryName);
+				startBot(directoryName);
+			}
+		} else {
+			log.info("{} is using a newer version, try forcing an update", botInfo.getSiteName());
 		}
 	}
 
