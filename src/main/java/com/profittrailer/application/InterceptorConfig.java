@@ -18,7 +18,8 @@ public class InterceptorConfig implements WebMvcConfigurer {
 	public void addInterceptors(InterceptorRegistry registry) {
 
 		registry.addInterceptor(mainInterceptor)
-				.addPathPatterns("/", "/status", "/api/**");
+				.addPathPatterns("/", "/status", "/api/**")
+				.excludePathPatterns("/api/*/login/**", "/api/*/resetPassword/**");
 	}
 
 }

@@ -2,6 +2,7 @@ package com.profittrailer.models;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.profittrailer.utils.Util;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.jutils.jprocesses.model.ProcessInfo;
@@ -39,7 +40,7 @@ public class BotInfo {
 			return "INITIALIZING";
 		}
 
-		if (startDate != null && startDate.plusSeconds(30).isAfter(LocalDateTime.now())) {
+		if (startDate != null && startDate.plusSeconds(30).isAfter(Util.getDateTime())) {
 			return "STARTING";
 		}
 

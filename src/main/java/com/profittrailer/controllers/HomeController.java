@@ -29,6 +29,11 @@ public class HomeController {
 		return "login";
 	}
 
+	@GetMapping("/resetPassword")
+	public String resetPassword() {
+		return "reset";
+	}
+
 	@GetMapping("/status")
 	public String checkStatus(HttpServletRequest request,
 	                          @RequestParam(defaultValue = "") String directoryName,

@@ -2,7 +2,6 @@ package com.profittrailer.utils;
 
 import lombok.extern.log4j.Log4j2;
 import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpRequest;
@@ -13,7 +12,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -26,11 +24,15 @@ import java.nio.file.Files;
 public class StaticUtil {
 
 	public static String url = null;
-	public static String defaultPassword;
+	public static String randomSystemId;
 
 	static {
-		defaultPassword = RandomStringUtils.randomAlphanumeric(25);
-		//If password file exists, load the password
+		try {
+			if (StringUtils.isBlank(Util.loadPasswordHash())) {
+				randomSystemId = RandomStringUtils.randomAlphanumeric(25);
+			}
+		} catch (IOException e) {
+		}
 	}
 
 	public static String getBaseUrl(HttpServletRequest request) throws MalformedURLException {
@@ -111,7 +113,7 @@ public class StaticUtil {
 	public static void unzip(String sourceUrl) {
 		String[] sourceSplitted = sourceUrl.split("/");
 		String fileName = sourceSplitted[sourceSplitted.length - 1];
-		String destination = "tmp" + File.separator + "update";
+		String destination = "data/tmp" + File.separator + "update";
 		File zipFileName = new File(destination + File.separator + fileName);
 		File extractedDir = new File(destination + File.separator + fileName.replace(".zip", ""));
 		File destinationDir = new File(destination);

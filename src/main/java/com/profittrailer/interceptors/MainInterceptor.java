@@ -1,7 +1,9 @@
 package com.profittrailer.interceptors;
 
 import com.profittrailer.utils.StaticUtil;
+import com.profittrailer.utils.Util;
 import com.profittrailer.utils.constants.SessionType;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -18,9 +20,15 @@ public class MainInterceptor extends HandlerInterceptorAdapter {
 	                         HttpServletResponse response,
 	                         Object handler) throws IOException {
 
+		if (StringUtils.isBlank(Util.loadPasswordHash())) {
+			response.sendRedirect(StaticUtil.redirectUrl(request, "/resetPassword"));
+			return false;
+		}
+
 		SessionType sessionType = (SessionType) request.getSession().getAttribute("sessionType");
 		if (!SessionType.ADMIN.equals(sessionType)) {
 			response.sendRedirect(StaticUtil.redirectUrl(request, "/login"));
+			return false;
 		}
 		StaticUtil.url = StaticUtil.getBaseUrl(request);
 		return true;

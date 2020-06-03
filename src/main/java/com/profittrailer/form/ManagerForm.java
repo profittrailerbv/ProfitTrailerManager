@@ -7,9 +7,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 @Log4j2
 public class ManagerForm extends JFrame {
@@ -45,6 +47,10 @@ public class ManagerForm extends JFrame {
 			fldPassword.setText(defaultPassword);
 			fldPassword.setVisible(true);
 		}
+		File path = new File("src/main/resources/static/images/Logo.png");
+		ImageIcon img = new ImageIcon(path.getAbsolutePath());
+		setIconImage(img.getImage());
+		setLocationRelativeTo(null);
 	}
 
 	private void lblUrlSetupListener() {

@@ -2,7 +2,7 @@
 .idea/
 target/
 logs/
-tmp/
+data/*
 
 /node_modules
 
@@ -11,5 +11,4 @@ application.properties
 yarn-error.log
 package-lock.json
 
-yarn-error.log
 /src/main/resources/static/*

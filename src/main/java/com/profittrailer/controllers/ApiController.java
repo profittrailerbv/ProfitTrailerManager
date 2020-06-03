@@ -1,5 +1,7 @@
 package com.profittrailer.controllers;
 
+import static com.profittrailer.utils.Util.getDateTime;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -7,7 +9,10 @@ import com.profittrailer.models.BotInfo;
 import com.profittrailer.services.ProcessService;
 import com.profittrailer.utils.BotInfoSerializer;
 import com.profittrailer.utils.StaticUtil;
+import com.profittrailer.utils.Util;
+import com.profittrailer.utils.constants.SessionType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -26,6 +34,9 @@ public class ApiController {
 	private ProcessService processService;
 	private Gson parser;
 	private boolean onlyManaged = true;
+
+	private static int failedAttempts;
+	private static LocalDateTime timeout = getDateTime();
 
 	@PostConstruct
 	public void init() {
@@ -124,5 +135,60 @@ public class ApiController {
 		String token = processService.getSSOKey(directoryName);
 		String redirectUrl = processService.createUrl(botInfo, "?sso=" + token, false);
 		response.sendRedirect(redirectUrl);
+	}
+
+	@PostMapping("/login")
+	public void updateBot(String password,
+	                      HttpServletRequest request,
+	                      HttpServletResponse response) throws IOException, NoSuchAlgorithmException {
+
+		if (timeout.isAfter(getDateTime())) {
+			String formattedTime = timeout.format(Util.getDateFormatter());
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), String.format("Locked out until %s", formattedTime));
+			return;
+		}
+
+		String hashedPassword = Util.simpleHash(password);
+
+		String currentPassword = Util.loadPasswordHash();
+
+		if (hashedPassword.equals(currentPassword)) {
+			request.getSession(true).setAttribute("sessionType", SessionType.ADMIN);
+			return;
+		}
+
+		failedAttempts++;
+		if (failedAttempts % 3 == 0) {
+			timeout = getDateTime().plusMinutes((failedAttempts / 3) * 5);
+		}
+
+		response.sendError(HttpStatus.UNAUTHORIZED.value(), "Incorrect password");
+
+	}
+
+	@PostMapping("/resetPassword")
+	public void updateBot(String randomSystemId,
+	                      String password,
+	                      String passwordConfirm,
+	                      HttpServletResponse response,
+	                      HttpServletRequest request) throws IOException, NoSuchAlgorithmException {
+
+		if (!randomSystemId.equals(StaticUtil.randomSystemId)) {
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid system Id");
+			return;
+		}
+
+		if (!password.equals(passwordConfirm)) {
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), "Passwords do not match");
+			return;
+		}
+
+
+		if (Util.createPassword(password)) {
+			request.getSession(true).setAttribute("sessionType", SessionType.ADMIN);
+			return;
+		}
+
+		response.sendError(HttpStatus.UNAUTHORIZED.value(), "something went wrong creating your password. Try again");
 	}
 }

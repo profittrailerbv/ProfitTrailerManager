@@ -10,6 +10,7 @@ import com.profittrailer.models.StreamGobbler;
 import com.profittrailer.utils.BotInfoSerializer;
 import com.profittrailer.utils.HttpClientManager;
 import com.profittrailer.utils.StaticUtil;
+import com.profittrailer.utils.Util;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -47,7 +48,7 @@ public class ProcessService {
 	private static final String githubUrl = "https://api.github.com/repos/taniman/profit-trailer/releases/latest";
 
 	private String managerToken;
-	@Value("${server.bots.directory}")
+	@Value("${server.bots.directory:}")
 	private String botsLocation;
 	@Value("${server.bots.autostart:false}")
 	private boolean autoStartManagedBots;
@@ -193,7 +194,7 @@ public class ProcessService {
 				Process process = builder.start();
 				BotInfo botInfo = botInfoMap.getOrDefault(directoryName, new BotInfo(directoryName));
 				botInfo.setProcess(process);
-				botInfo.setStartDate(LocalDateTime.now());
+				botInfo.setStartDate(Util.getDateTime());
 				botInfoMap.put(directoryName, botInfo);
 				Thread.sleep(5000);
 				readError(process);
