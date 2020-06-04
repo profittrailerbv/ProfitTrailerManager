@@ -23,10 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 @Log4j2
 @RestController
@@ -131,7 +133,8 @@ public class ApiController {
 		new Thread(() -> {
 			for (String dir : processService.getBotInfoMap().keySet()) {
 				try {
-					processService.updateBot(dir, forceUrl, forceUpdate);
+					BotInfo botInfo = processService.getBotInfoMap().get(dir);
+					processService.updateBot(botInfo, forceUrl, forceUpdate, false);
 				} catch (IOException | InterruptedException e) {
 					log.error(e);
 				}
@@ -152,7 +155,7 @@ public class ApiController {
 	}
 
 	@PostMapping("/login")
-	public void updateBot(String password,
+	public void login(String password,
 	                      HttpServletRequest request,
 	                      HttpServletResponse response) throws IOException, NoSuchAlgorithmException {
 
@@ -181,11 +184,11 @@ public class ApiController {
 	}
 
 	@PostMapping("/resetPassword")
-	public void updateBot(String randomSystemId,
-	                      String password,
-	                      String passwordConfirm,
-	                      HttpServletResponse response,
-	                      HttpServletRequest request) throws IOException, NoSuchAlgorithmException {
+	public void resetPassword(String randomSystemId,
+	                          String password,
+	                          String passwordConfirm,
+	                          HttpServletResponse response,
+	                          HttpServletRequest request) throws IOException, NoSuchAlgorithmException {
 
 		if (!randomSystemId.equals(StaticUtil.randomSystemId)) {
 			response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid system Id");
@@ -203,5 +206,31 @@ public class ApiController {
 		}
 
 		response.sendError(HttpStatus.UNAUTHORIZED.value(), "something went wrong creating your password. Try again");
+	}
+
+	@PostMapping("/createNewBot")
+	public void createNewBot(String directoryName,
+	                         HttpServletResponse response) throws IOException {
+
+		if (processService.isDemoServer()) {
+			return;
+		}
+
+		File newBot = new File(processService.getBotsLocation() + File.separator + directoryName.toLowerCase(Locale.ROOT));
+		if (newBot.exists()) {
+			response.sendError(HttpStatus.BAD_REQUEST.value(), "Directory Already Exists");
+			return;
+		}
+
+		new Thread(() -> {
+			try {
+				if (newBot.mkdir()) {
+					BotInfo botInfo = new BotInfo(directoryName.toLowerCase(Locale.ROOT));
+					processService.updateBot(botInfo, null, true, true);
+				}
+			} catch (IOException | InterruptedException e) {
+				log.error(e);
+			}
+		}).start();
 	}
 }

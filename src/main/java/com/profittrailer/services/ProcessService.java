@@ -145,7 +145,12 @@ public class ProcessService {
 					boolean offline = botInfo.getStatus().equals("OFFLINE");
 					boolean startingUpdating = botInfo.getStatus().equals("STARTING") || botInfo.getStatus().equals("UPDATING");
 					boolean managed = botInfo.isManaged();
-					if (!offline && !startingUpdating && StringUtils.isNotBlank(StaticUtil.url) && processedInitialized && managed) {
+					String port = (String) botInfo.getBotProperties().get("port");
+					if (!offline
+							&& port != null
+							&& !startingUpdating
+							&& StringUtils.isNotBlank(StaticUtil.url)
+							&& processedInitialized && managed) {
 						String healthUrl = createUrl(botInfo, "/api/v2/health");
 						try {
 							Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
@@ -206,6 +211,10 @@ public class ProcessService {
 
 	public void stopBot(String botName) {
 		BotInfo bot = botInfoMap.get(botName);
+		if (bot == null) {
+			return;
+		}
+
 		boolean managed = bot.isManaged();
 		int processId = NumberUtils.toInt((String) bot.getBotProperties().getOrDefault("process", "0"));
 		if (managed && bot.getProcess() != null) {
@@ -254,6 +263,11 @@ public class ProcessService {
 		if (StringUtils.isBlank(StaticUtil.url)) {
 			return;
 		}
+		String port = (String) botInfo.getBotProperties().get("port");
+		if (port == null) {
+			return;
+		}
+
 		try {
 			boolean managed = botInfo.isManaged();
 			boolean online = botInfo.getStatus().equals("ONLINE");
@@ -294,7 +308,7 @@ public class ProcessService {
 				}
 			}
 		} catch (Exception e) {
-			log.error("Error getting bot data ", e);
+			log.error("Error getting bot data {}", e.getMessage());
 		}
 	}
 
@@ -337,16 +351,16 @@ public class ProcessService {
 		return parser.toJsonTree(botInfo);
 	}
 
-	public void updateBot(String directoryName,
+	public void updateBot(BotInfo botInfo,
 	                      String forceUrl,
-	                      boolean forceUpdate) throws IOException, InterruptedException {
+	                      boolean forceUpdate,
+	                      boolean newBot) throws IOException, InterruptedException {
 
-		if (forceUrl.trim().equalsIgnoreCase(downloadUrl)) {
+		if (forceUrl != null && forceUrl.trim().equalsIgnoreCase(downloadUrl)) {
 			forceUrl = null;
 		}
 
-		BotInfo botInfo = botInfoMap.get(directoryName);
-		if (!botInfo.isManaged()) {
+		if (!newBot && !botInfo.isManaged()) {
 			log.info("{} is not a managed bot, skipping", botInfo.getSiteName());
 			return;
 		}
@@ -370,11 +384,12 @@ public class ProcessService {
 			String updateFolder = StaticUtil.unzip(updateUrl);
 			if (updateFolder != null) {
 				botInfo.setUpdateDate(Util.getDateTime());
-				stopBot(directoryName);
+				stopBot(botInfo.getDirectory());
 				Thread.sleep(2000);
 				log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
-				StaticUtil.copyJar(updateFolder, botsLocation + "/" + directoryName);
-				startBot(directoryName);
+				StaticUtil.copyJar(updateFolder, botsLocation + "/" + botInfo.getDirectory());
+				startBot(botInfo.getDirectory());
+				Thread.sleep(35000);
 			}
 		} else {
 			log.info("{} is using a newer version, try forcing an update", botInfo.getSiteName());

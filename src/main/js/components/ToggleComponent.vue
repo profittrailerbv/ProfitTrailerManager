@@ -86,12 +86,12 @@
                             inputPlaceholder: "Check to force update"
                         }).then((result) => {
                             console.log(result.value);
-                            if (result.value) {
+                            if (typeof(result.value) !==  'undefined') {
                                 axios.post('/api/v1/updateBots?forceUrl=' + url + '&forceUpdate=' + result.value)
                                     .then(() => {
                                         this.$swal.fire('The update procedure has started...');
                                     }).catch((error) => {
-                                    this.$swal.fire('You encountered an error: ' + error.response.statusText);
+                                    this.$swal.fire('You encountered an error: ' + error.response.data.message);
                                 })
                             } else {
                                 this.$swal.fire('Cancelled')

@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -50,6 +51,8 @@ public class ProfitTrailerManager {
 		props.put("spring.resources.static-locations[1]", "classpath:/static/");
 		props.put("spring.resources.static-locations[2]", "file:src/main/js/");
 		props.put("spring.resources.static-locations[3]", "file:classpath:/js/");
+
+		System.setProperty("timezone", TimeZone.getDefault().getID());
 
 		new SpringApplicationBuilder()
 				.sources(ProfitTrailerManager.class)

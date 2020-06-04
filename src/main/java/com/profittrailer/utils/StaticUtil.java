@@ -132,6 +132,7 @@ public class StaticUtil {
 				URL github = new URL(sourceUrl);
 				ReadableByteChannel rbc = Channels.newChannel(github.openStream());
 
+				log.info("Downloading...");
 				try (FileOutputStream fos = new FileOutputStream(zipFileName)) {
 					fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 				}

@@ -6,6 +6,7 @@ import {
     faExternalLinkAlt,
     faFileAlt,
     faLevelUpAlt,
+    faPlusSquare,
     faPowerOff,
     faRedoAlt,
     faSignInAlt,
@@ -26,7 +27,9 @@ try {
 
 }
 
-library.add(faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff, faExternalLinkAlt, faFileAlt, faSignInAlt, faLevelUpAlt)
+library.add(faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff,
+    faExternalLinkAlt, faFileAlt, faSignInAlt, faLevelUpAlt, faPlusSquare)
+
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 Vue.use(VueSweetalert2);
 

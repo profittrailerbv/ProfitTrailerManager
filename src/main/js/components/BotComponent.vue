@@ -100,6 +100,15 @@
                 </div>
             </div>
         </div>
+
+        <div class="row text-info">
+            <div class="col text-left font-weight-bold pr-0 d-flex justify-content-center align-items-center">
+                <a v-if="!demoServer" href="#" @click.prevent="createNewBot()">
+                <font-awesome-icon class="display-1"
+                                   :icon="['fas','plus-square']"></font-awesome-icon>
+                </a>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -157,6 +166,30 @@
             },
             roundNumber(number, decimals) {
                 return number.toFixed(decimals);
+            },
+            createNewBot() {
+                this.$swal.fire({
+                    title: 'Create new bot',
+                    text: 'Enter the directory name for your new bot (No spaces)',
+                    showCancelButton: true,
+                    cancelButtonText: 'Exit',
+                    confirmButtonText: 'Create',
+                    reverseButtons: true,
+                    input: 'text',
+                    inputValue: false,
+                    inputPlaceholder: "binancebot"
+                }).then((result) => {
+                    if (result.value) {
+                        axios.post('/api/v1/createNewBot?directoryName=' + result.value)
+                            .then(() => {
+                                this.$swal.fire('Your bot will be created and started...');
+                            }).catch((error) => {
+                            this.$swal.fire(error.response.data.message);
+                        })
+                    } else {
+                        this.$swal.fire('Cancelled')
+                    }
+                })
             }
         },
         mounted() {

@@ -57,7 +57,9 @@ public class BotInfo {
 	}
 
 	public boolean isManaged() {
-		return Boolean.parseBoolean((String) botProperties.getOrDefault("managed", "false"));
+		return Boolean.parseBoolean((String) botProperties.getOrDefault("managed", "false"))
+				|| processInfo != null && StringUtils.containsIgnoreCase(processInfo.getName(), "java")
+				|| process != null && process.isAlive();
 	}
 
 	public String getSiteName() {
