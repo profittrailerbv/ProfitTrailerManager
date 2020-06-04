@@ -102,7 +102,7 @@
         </div>
 
         <div class="row text-info">
-            <div class="col text-left font-weight-bold pr-0 d-flex justify-content-center align-items-center">
+            <div class="col text-left font-weight-bold pr-0 d-flex justify-content-center align-items-center mb-5">
                 <a v-if="!demoServer" href="#" @click.prevent="createNewBot()">
                 <font-awesome-icon class="display-1"
                                    :icon="['fas','plus-square']"></font-awesome-icon>
