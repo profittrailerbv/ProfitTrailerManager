@@ -1,6 +1,9 @@
 package com.profittrailer.utils;
 
+import com.profittrailer.application.ProfitTrailerManager;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -11,10 +14,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
+@Log4j2
 public class Util {
 
 	private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
@@ -61,15 +64,33 @@ public class Util {
 		return hashedPassword;
 	}
 
-	public static boolean createPassword(String password) throws IOException, NoSuchAlgorithmException {
+	public static boolean createPassword(String password) throws NoSuchAlgorithmException {
 		File passwordFile = new File("data/passwd");
 
 		FileUtils.deleteQuietly(passwordFile);
-		if (passwordFile.createNewFile()) {
+
+		try {
 			FileUtils.writeStringToFile(passwordFile, simpleHash(password), StandardCharsets.UTF_8);
 			return true;
+		} catch (IOException e) {
+			log.error("Error creating password file {}", e.getMessage());
 		}
 
 		return false;
+	}
+
+	public static String cleanValue(String value) {
+		String cleanValue = RegExUtils.removeAll(String.valueOf(value), "[^ -~]");
+		cleanValue = StringUtils.trim(cleanValue);
+		cleanValue = cleanValue.replaceAll("[^a-zA-Z0-9\\.\\-]", "");
+		return cleanValue;
+	}
+
+	public static String getVersion() {
+		String version = ProfitTrailerManager.class.getPackage().getImplementationVersion();
+		if (version == null) {
+			version = "0.0.0";
+		}
+		return version;
 	}
 }

@@ -13,6 +13,7 @@ import com.profittrailer.utils.StaticUtil;
 import com.profittrailer.utils.Util;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -27,6 +28,7 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,6 +63,12 @@ public class ProcessService {
 	private Gson parser;
 	private String latestVersion = "0.0.0";
 	private String downloadUrl;
+	@Value("${server.caddy.enabled:false}")
+	private boolean caddyEnabled;
+	@Value("${server.caddy.import:}")
+	private String caddyImport;
+	@Value("${server.port:10000}")
+	private int port;
 
 	@PostConstruct
 	public void init() {
@@ -158,7 +166,7 @@ public class ProcessService {
 								offline = !StringUtils.equalsIgnoreCase(data.getValue(), "true");
 							}
 						} catch (Exception e) {
-							log.error("Error pinging health: " + e.getMessage());
+							log.error("Error pinging health {}: {}", healthUrl, e.getMessage());
 						}
 					}
 					if (offline && managed) {
@@ -171,6 +179,72 @@ public class ProcessService {
 			}
 		} catch (Exception e) {
 			log.error("Error auto starting bots? ", e);
+		}
+
+		generateCaddyFile();
+	}
+
+	private void generateCaddyFile() {
+		if (!processedInitialized) {
+			return;
+		}
+		if (StringUtils.isBlank(StaticUtil.url)) {
+			return;
+		}
+
+		if (!caddyEnabled) {
+			return;
+		}
+
+		List<String> reverseBots = new ArrayList<>();
+		reverseBots.add(String.format("\treverse_proxy\t%s\t%s", "/", "localhost:" + port));
+		for (BotInfo botInfo : botInfoMap.values()) {
+			String port = (String) botInfo.getBotProperties().get("port");
+			String contextPath = (String) botInfo.getBotProperties().get("context");
+
+			if (port == null) {
+				continue;
+			}
+
+			if (StringUtils.isBlank(contextPath) || contextPath.equals("/")) {
+				continue;
+			}
+
+			String localUrl = createCaddyLocalUrl(botInfo);
+			reverseBots.add(String.format("\treverse_proxy\t%s*\t%s", contextPath, localUrl));
+		}
+
+		if (reverseBots.size() == 0) {
+			return;
+		}
+
+		String caddyString = "";
+		if (StringUtils.isNotBlank(caddyImport)) {
+			caddyString = caddyString + "import " + caddyImport + "\r\n\r\n";
+		}
+		caddyString = caddyString + StaticUtil.url.replace("http://", "") + " {\r\n";
+		caddyString = caddyString + String.join("\r\n", reverseBots) + "\r\n}";
+
+		File caddyFile = new File("data/Caddyfile");
+		try {
+			String oldCaddyString = "";
+			if (caddyFile.exists()) {
+				oldCaddyString = FileUtils.readFileToString(caddyFile, StandardCharsets.UTF_8);
+			}
+			if (!oldCaddyString.equalsIgnoreCase(caddyString)) {
+				FileUtils.writeStringToFile(caddyFile, caddyString, StandardCharsets.UTF_8);
+				List<String> commands = new ArrayList<>();
+				commands.add("caddy");
+				commands.add("reload");
+
+				ProcessBuilder builder = new ProcessBuilder(commands);
+				builder.directory(new File("data"));
+				builder.redirectErrorStream(true);
+				Process process = builder.start();
+				readError(process);
+			}
+		} catch (IOException e) {
+			log.error("Error writing caddy file {}", e.getMessage());
 		}
 	}
 
@@ -187,6 +261,9 @@ public class ProcessService {
 		commands.add("-jar");
 		commands.add("ProfitTrailer.jar");
 		commands.add("--server.port.forcenew");
+		if (caddyEnabled) {
+			commands.add("--server.manager.context=/" + Util.cleanValue(directoryName));
+		}
 		commands.add("--server.manager.token=" + managerToken);
 
 		ProcessBuilder builder = new ProcessBuilder(commands);
@@ -268,12 +345,13 @@ public class ProcessService {
 			return;
 		}
 
+		String dataUrl = "";
 		try {
 			boolean managed = botInfo.isManaged();
 			boolean online = botInfo.getStatus().equals("ONLINE");
 
 			if (managed && online) {
-				String dataUrl = createUrl(botInfo, "/api/v2/data/stats");
+				dataUrl = createUrl(botInfo, "/api/v2/data/stats");
 				String miscUrl = createUrl(botInfo, "/api/v2/data/misc");
 				String propertiesUrl = createUrl(botInfo, "/api/v2/data/properties");
 				String pairsUrl = createUrl(botInfo, "/api/v2/data/pairs");
@@ -308,7 +386,7 @@ public class ProcessService {
 				}
 			}
 		} catch (Exception e) {
-			log.error("Error getting bot data {}", e.getMessage());
+			log.error("Error getting bot data {} - {}", dataUrl, e.getMessage());
 		}
 	}
 
@@ -330,14 +408,35 @@ public class ProcessService {
 				token = finalSplitted[0].trim();
 			}
 		}
-		String port = (String) botInfo.getBotProperties().get("port");
+		String sslEnabledValue = (String) botInfo.getBotProperties().get("sslEnabled");
+		boolean sslEnabled = Boolean.parseBoolean(sslEnabledValue);
+
+		String port = "";
+		if (!caddyEnabled || (sslEnabledValue != null && sslEnabled)) {
+			port = ":" + botInfo.getBotProperties().get("port");
+		}
 		String contextPath = (String) botInfo.getBotProperties().get("context");
-		String url = String.format("%s:%s%s", StaticUtil.url, port, contextPath);
+		String url = String.format("%s%s%s", StaticUtil.url, port, contextPath);
 		url = url + endPoint;
 		if (includeManagerToken) {
 			url = url + "?token=" + token;
 		}
+
+		if (!caddyEnabled && sslEnabledValue != null) {
+			url = url.replace("https:", "http:");
+			if (sslEnabled) {
+				url = url.replace("http:", "https:");
+			}
+		}
+		if (caddyEnabled && !url.contains("https:")) {
+			url = url.replace("http:", "https:");
+		}
 		return url;
+	}
+
+	public String createCaddyLocalUrl(BotInfo botInfo) {
+		String port = (String) botInfo.getBotProperties().get("port");
+		return String.format("localhost:%s", port);
 	}
 
 	private void readError(Process process) {
@@ -390,6 +489,7 @@ public class ProcessService {
 				StaticUtil.copyJar(updateFolder, botsLocation + "/" + botInfo.getDirectory());
 				startBot(botInfo.getDirectory());
 				Thread.sleep(35000);
+				log.info("{} update complete, bot is starting", botInfo.getSiteName());
 			}
 		} else {
 			log.info("{} is using a newer version, try forcing an update", botInfo.getSiteName());

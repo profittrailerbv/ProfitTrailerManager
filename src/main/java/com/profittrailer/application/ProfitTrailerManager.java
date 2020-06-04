@@ -2,6 +2,7 @@ package com.profittrailer.application;
 
 import com.profittrailer.form.ManagerForm;
 import com.profittrailer.utils.StaticUtil;
+import com.profittrailer.utils.Util;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +76,7 @@ public class ProfitTrailerManager {
 			});
 		}
 
-		log.info("ProfitTrailer Manager is started");
+		log.info("ProfitTrailer Manager version: {} started", Util.getVersion());
 		if (StringUtils.isNotBlank(StaticUtil.randomSystemId)) {
 			System.out.println("Random System Id " + StaticUtil.randomSystemId);
 		}

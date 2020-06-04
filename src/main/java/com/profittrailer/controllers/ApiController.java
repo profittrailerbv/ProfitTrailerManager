@@ -216,16 +216,18 @@ public class ApiController {
 			return;
 		}
 
-		File newBot = new File(processService.getBotsLocation() + File.separator + directoryName.toLowerCase(Locale.ROOT));
+		directoryName = Util.cleanValue(directoryName).toLowerCase(Locale.ROOT);
+		File newBot = new File(processService.getBotsLocation() + File.separator + directoryName);
 		if (newBot.exists()) {
 			response.sendError(HttpStatus.BAD_REQUEST.value(), "Directory Already Exists");
 			return;
 		}
 
+		String finalDirectoryName = directoryName;
 		new Thread(() -> {
 			try {
 				if (newBot.mkdir()) {
-					BotInfo botInfo = new BotInfo(directoryName.toLowerCase(Locale.ROOT));
+					BotInfo botInfo = new BotInfo(finalDirectoryName);
 					processService.updateBot(botInfo, null, true, true);
 				}
 			} catch (IOException | InterruptedException e) {
