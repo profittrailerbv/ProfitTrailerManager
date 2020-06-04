@@ -26,6 +26,7 @@ public class MainInterceptor extends HandlerInterceptorAdapter {
 	                         HttpServletResponse response,
 	                         Object handler) throws IOException {
 
+		StaticUtil.url = StaticUtil.getBaseUrl(request);
 		if (processService.isDemoServer()) {
 			return true;
 		}
@@ -40,7 +41,6 @@ public class MainInterceptor extends HandlerInterceptorAdapter {
 			response.sendRedirect(StaticUtil.redirectUrl(request, "/login"));
 			return false;
 		}
-		StaticUtil.url = StaticUtil.getBaseUrl(request);
 		return true;
 	}
 }

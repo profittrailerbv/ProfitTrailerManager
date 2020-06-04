@@ -2,16 +2,18 @@ package com.profittrailer.form;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.ResourceLoader;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 
 @Log4j2
 public class ManagerForm extends JFrame {
@@ -22,8 +24,10 @@ public class ManagerForm extends JFrame {
 	private JTextField fldPassword;
 	private String managerUrl = "http://localhost:";
 	private String defaultPassword = "";
+	private ResourceLoader resourceLoader;
 
-	public ManagerForm(String port, String defaultPassword) {
+	public ManagerForm(ResourceLoader resourceLoader, String port, String defaultPassword) {
+		this.resourceLoader = resourceLoader;
 		managerUrl = managerUrl + port;
 		this.defaultPassword = defaultPassword;
 		initUI();
@@ -47,9 +51,14 @@ public class ManagerForm extends JFrame {
 			fldPassword.setText(defaultPassword);
 			fldPassword.setVisible(true);
 		}
-		File path = new File("src/main/resources/static/images/Logo.png");
-		ImageIcon img = new ImageIcon(path.getAbsolutePath());
-		setIconImage(img.getImage());
+		try {
+			ClassPathResource classPathResource = new ClassPathResource("/static/images/Logo.png");
+			InputStream inputStream = classPathResource.getInputStream();
+			ImageIcon img = new ImageIcon(ImageIO.read(inputStream));
+			setIconImage(img.getImage());
+		} catch (IOException e) {
+			log.error(e);
+		}
 		setLocationRelativeTo(null);
 	}
 

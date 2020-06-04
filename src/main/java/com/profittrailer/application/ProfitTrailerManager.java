@@ -4,9 +4,11 @@ import com.profittrailer.form.ManagerForm;
 import com.profittrailer.utils.StaticUtil;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
@@ -25,6 +27,8 @@ public class ProfitTrailerManager {
 
 	@Value("${server.port:10000}")
 	private String port;
+	@Autowired
+	private ResourceLoader resourceLoader;
 
 	public static void main(String[] args) {
 		Map<String, Object> props = new TreeMap<>();
@@ -61,16 +65,17 @@ public class ProfitTrailerManager {
 		File dataDir = new File("data");
 		Files.createDirectories(dataDir.toPath());
 
-		EventQueue.invokeLater(() -> {
-			if (hasGui()) {
-				ManagerForm ex = new ManagerForm(port, StaticUtil.randomSystemId);
+		if (hasGui()) {
+			EventQueue.invokeLater(() -> {
+				ManagerForm ex = new ManagerForm(resourceLoader, port, StaticUtil.randomSystemId);
 				ex.setVisible(true);
-			}
-			log.info("ProfitTrailer Manager is started");
-			if (StringUtils.isNotBlank(StaticUtil.randomSystemId)) {
-				System.out.println("Random System Id " + StaticUtil.randomSystemId);
-			}
-		});
+			});
+		}
+
+		log.info("ProfitTrailer Manager is started");
+		if (StringUtils.isNotBlank(StaticUtil.randomSystemId)) {
+			System.out.println("Random System Id " + StaticUtil.randomSystemId);
+		}
 	}
 
 	private static boolean hasGui() {
