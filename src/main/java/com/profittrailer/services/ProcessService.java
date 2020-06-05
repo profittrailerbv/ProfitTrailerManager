@@ -196,8 +196,8 @@ public class ProcessService {
 			return;
 		}
 
-		List<String> reverseBots = new ArrayList<>();
-		reverseBots.add(String.format("\treverse_proxy\t%s\t%s", "/", "localhost:" + port));
+		Map<String, String> reverseBots = new HashMap<>();
+		reverseBots.put("/*", String.format("\treverse_proxy\t%s\t%s", "", "localhost:" + port));
 		for (BotInfo botInfo : botInfoMap.values()) {
 			String port = (String) botInfo.getBotProperties().get("port");
 			String contextPath = (String) botInfo.getBotProperties().get("context");
@@ -211,19 +211,27 @@ public class ProcessService {
 			}
 
 			String localUrl = createCaddyLocalUrl(botInfo);
-			reverseBots.add(String.format("\treverse_proxy\t%s*\t%s", contextPath, localUrl));
+			reverseBots.put(contextPath+ "*", String.format("\treverse_proxy\t%s", localUrl));
 		}
 
 		if (reverseBots.size() == 0) {
 			return;
 		}
 
-		String caddyString = "";
+		StringBuilder caddyString = new StringBuilder();
 		if (StringUtils.isNotBlank(caddyImport)) {
-			caddyString = caddyString + "import " + caddyImport + "\r\n\r\n";
+			caddyString.append("import ").append(caddyImport).append("\r\n\r\n");
 		}
-		caddyString = caddyString + StaticUtil.url.replace("http://", "") + " {\r\n";
-		caddyString = caddyString + String.join("\r\n", reverseBots) + "\r\n}";
+
+		String httpsUrl = StaticUtil.url.replace("http://", "").replace("https://", "");
+//		if (!httpsUrl.contains("https:")) {
+//			httpsUrl = httpsUrl.replace("http:", "https:");
+//		}
+		for (Map.Entry<String,String>entry : reverseBots.entrySet()) {
+			caddyString.append(httpsUrl).append(entry.getKey()).append(" {\r\n");
+			caddyString.append(entry.getValue());
+			caddyString.append("\r\n}\r\n\r\n");
+		}
 
 		File caddyFile = new File("data/Caddyfile");
 		try {
@@ -231,8 +239,8 @@ public class ProcessService {
 			if (caddyFile.exists()) {
 				oldCaddyString = FileUtils.readFileToString(caddyFile, StandardCharsets.UTF_8);
 			}
-			if (!oldCaddyString.equalsIgnoreCase(caddyString)) {
-				FileUtils.writeStringToFile(caddyFile, caddyString, StandardCharsets.UTF_8);
+			if (!oldCaddyString.equalsIgnoreCase(caddyString.toString())) {
+				FileUtils.writeStringToFile(caddyFile, caddyString.toString(), StandardCharsets.UTF_8);
 				List<String> commands = new ArrayList<>();
 				commands.add("caddy");
 				commands.add("reload");
@@ -326,6 +334,7 @@ public class ProcessService {
 		return botInfoMap.values()
 				.stream()
 				.sorted(Comparator.comparing(BotInfo::isManaged, Comparator.reverseOrder())
+						.thenComparing(BotInfo::getSiteName)
 						.thenComparing(BotInfo::getProfitToday, Comparator.reverseOrder()))
 				.filter(e -> {
 					if (!onlyManaged) {
