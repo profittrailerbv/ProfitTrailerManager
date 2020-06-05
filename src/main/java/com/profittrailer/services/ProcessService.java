@@ -78,6 +78,11 @@ public class ProcessService {
 		managerToken = RandomStringUtils.randomAlphanumeric(30);
 		refreshBotData();
 		initialzed = true;
+		try {
+			reloadCaddy();
+		} catch (IOException e) {
+			log.error(e);
+		}
 	}
 
 	@Scheduled(initialDelay = 10000, fixedDelay = 900000)
@@ -211,7 +216,7 @@ public class ProcessService {
 			}
 
 			String localUrl = createCaddyLocalUrl(botInfo);
-			reverseBots.put(contextPath+ "*", String.format("\treverse_proxy\t%s", localUrl));
+			reverseBots.put(contextPath + "*", String.format("\treverse_proxy\t%s", localUrl));
 		}
 
 		if (reverseBots.size() == 0) {
@@ -227,7 +232,7 @@ public class ProcessService {
 //		if (!httpsUrl.contains("https:")) {
 //			httpsUrl = httpsUrl.replace("http:", "https:");
 //		}
-		for (Map.Entry<String,String>entry : reverseBots.entrySet()) {
+		for (Map.Entry<String, String> entry : reverseBots.entrySet()) {
 			caddyString.append(httpsUrl).append(entry.getKey()).append(" {\r\n");
 			caddyString.append(entry.getValue());
 			caddyString.append("\r\n}\r\n\r\n");
@@ -241,19 +246,27 @@ public class ProcessService {
 			}
 			if (!oldCaddyString.equalsIgnoreCase(caddyString.toString())) {
 				FileUtils.writeStringToFile(caddyFile, caddyString.toString(), StandardCharsets.UTF_8);
-				List<String> commands = new ArrayList<>();
-				commands.add("caddy");
-				commands.add("reload");
-
-				ProcessBuilder builder = new ProcessBuilder(commands);
-				builder.directory(new File("data"));
-				builder.redirectErrorStream(true);
-				Process process = builder.start();
-				readError(process);
+				reloadCaddy();
 			}
 		} catch (IOException e) {
 			log.error("Error writing caddy file {}", e.getMessage());
 		}
+	}
+
+	private void reloadCaddy() throws IOException {
+		if (!caddyEnabled) {
+			return;
+		}
+
+		List<String> commands = new ArrayList<>();
+		commands.add("caddy");
+		commands.add("reload");
+
+		ProcessBuilder builder = new ProcessBuilder(commands);
+		builder.directory(new File("data"));
+		builder.redirectErrorStream(true);
+		Process process = builder.start();
+		readError(process);
 	}
 
 	public void startBot(String directoryName) {
@@ -334,7 +347,7 @@ public class ProcessService {
 		return botInfoMap.values()
 				.stream()
 				.sorted(Comparator.comparing(BotInfo::isManaged, Comparator.reverseOrder())
-						.thenComparing(BotInfo::getSiteName)
+						.thenComparing(e-> e.getSiteName().substring(0,1))
 						.thenComparing(BotInfo::getProfitToday, Comparator.reverseOrder()))
 				.filter(e -> {
 					if (!onlyManaged) {
