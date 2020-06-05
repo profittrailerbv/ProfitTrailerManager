@@ -126,15 +126,28 @@ public class ApiController {
 
 	@PostMapping("/updateBots")
 	public void updateBots(String forceUrl,
-	                       @RequestParam(defaultValue = "false") boolean forceUpdate) {
+	                       @RequestParam(defaultValue = "false") boolean forceUpdate,
+	                       String directoryName) {
+
 		if (processService.isDemoServer()) {
 			return;
 		}
+
+		if (directoryName != null) {
+			forceUpdate = true;
+		}
+
+		boolean finalForceUpdate = forceUpdate;
+
 		new Thread(() -> {
 			for (String dir : processService.getBotInfoMap().keySet()) {
+				if (directoryName != null && !directoryName.equalsIgnoreCase(dir)) {
+					continue;
+				}
+
 				try {
 					BotInfo botInfo = processService.getBotInfoMap().get(dir);
-					processService.updateBot(botInfo, forceUrl, forceUpdate, false);
+					processService.updateBot(botInfo, forceUrl, finalForceUpdate, false);
 				} catch (IOException | InterruptedException e) {
 					log.error(e);
 				}

@@ -98,7 +98,6 @@ public class ProcessService {
 					JsonArray assetsArray = parser.fromJson(assetData.getValue(), JsonArray.class);
 					if (assetsArray.size() > 0) {
 						downloadUrl = assetsArray.get(0).getAsJsonObject().get("browser_download_url").getAsString();
-						StaticUtil.unzip(downloadUrl);
 					}
 				}
 			} else {
@@ -347,7 +346,7 @@ public class ProcessService {
 		return botInfoMap.values()
 				.stream()
 				.sorted(Comparator.comparing(BotInfo::isManaged, Comparator.reverseOrder())
-						.thenComparing(e-> e.getSiteName().substring(0,1))
+						.thenComparing(e -> e.getSiteName().substring(0, 1))
 						.thenComparing(BotInfo::getProfitToday, Comparator.reverseOrder()))
 				.filter(e -> {
 					if (!onlyManaged) {

@@ -93,8 +93,6 @@
                                     }).catch((error) => {
                                     this.$swal.fire('You encountered an error: ' + error.response.data.message);
                                 })
-                            } else {
-                                this.$swal.fire('Cancelled')
                             }
                         })
                     }

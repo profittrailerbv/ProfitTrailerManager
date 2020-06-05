@@ -5,7 +5,7 @@
                 <div class="card-body bg-light">
                     <div class="row text-muted">
                         <div class="col-10 text-left font-weight-bold pr-0">
-                            <font-awesome-icon :class="getStatusClass(bot.status)"
+                            <font-awesome-icon :class="getStatusClass(bot.status, bot.initialSetup)"
                                                :icon="['fas','circle']"></font-awesome-icon>
                             {{ bot.siteName }}
                             <span class="small"><sup>({{bot.data.exchange}})</sup></span>
@@ -92,8 +92,18 @@
                          :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
                         <div class="col-12">
                             <span v-if="bot.botProperties.managed && containsKey(bot.data, 'version')" class="smaller"> V{{bot.data.version}}</span>
-                            <a v-if="!demoServer" href="#" @click.prevent="restartBot(bot.directory)">
+                            <a v-if="!demoServer && bot.botProperties.managed" href="#"
+                               @click.prevent="restartBot(bot.directory, bot.siteName)">
                                 <font-awesome-icon :icon="['fas','redo-alt']" class="text-dark"></font-awesome-icon>
+                            </a>
+                            <a v-if="!demoServer && !bot.botProperties.managed" href="#"
+                               @click.prevent="manageBot(bot.directory, bot.siteName)">
+                                <button type="button" class="btn btn-primary small">Manage</button>
+                            </a>
+                            <a v-if="!demoServer" href="#" @click.prevent="updateVersion(bot.directory, bot.siteName)"
+                               class="text-left ml-1">
+                                <font-awesome-icon class="text-danger"
+                                                   :icon="['fas','level-up-alt']"></font-awesome-icon>
                             </a>
                         </div>
                     </div>
@@ -104,8 +114,8 @@
         <div class="row text-info">
             <div class="col text-left font-weight-bold pr-0 d-flex justify-content-center align-items-center mb-5">
                 <a v-if="!demoServer" href="#" @click.prevent="createNewBot()">
-                <font-awesome-icon class="display-1"
-                                   :icon="['fas','plus-square']"></font-awesome-icon>
+                    <font-awesome-icon class="display-1"
+                                       :icon="['fas','plus-square']"></font-awesome-icon>
                 </a>
             </div>
         </div>
@@ -136,30 +146,60 @@
                     }
                 })
             },
-            stopBot(name) {
-                axios.post('/api/v1/stopBot?directoryName=' + name).then((response) => {
-                }).catch((error) => {
-                    console.log(error)
+            restartBot(name, siteName) {
+                this.$swal.fire({
+                    title: 'Confirm restart',
+                    text: 'Do you really want to restart ' + siteName + '?',
+                    showCancelButton: true,
+                    cancelButtonText: 'Exit',
+                    confirmButtonText: 'Restart',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (typeof (result.value) !== 'undefined') {
+                        axios.post('/api/v1/restartBot?directoryName=' + name).then(() => {
+                            this.$swal.fire('The restart command has been sent...');
+                            this.getBotStatus(name);
+                        }).catch((error) => {
+                            this.$swal.fire(error.response.data.message);
+                        })
+                    }
                 })
-
-                this.getBotStatus(name)
             },
-            restartBot(name) {
-                axios.post('/api/v1/restartBot?directoryName=' + name).then((response) => {
-                }).catch((error) => {
-                    console.log(error)
+            manageBot(name, siteName) {
+                this.$swal.fire({
+                    title: 'Confirm manage',
+                    text: 'Manage this bot ' + siteName + '? It will be restarted.',
+                    showCancelButton: true,
+                    cancelButtonText: 'Exit',
+                    confirmButtonText: 'Manage',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (typeof (result.value) !== 'undefined') {
+                        axios.post('/api/v1/restartBot?directoryName=' + name).then(() => {
+                            this.$swal.fire('The manage command has been sent...');
+                            this.getBotStatus(name);
+                        }).catch((error) => {
+                            this.$swal.fire(error.response.data.message);
+                        })
+                    }
                 })
-
                 this.getBotStatus(name)
             },
             getBotStatus(name) {
-                axios.get('/api/v1/status?directoryName=' + name).then((response) => {
+                axios.get('/api/v1/status?directoryName=' + name).then(() => {
                 }).catch((error) => {
                     console.log(error)
                 })
             },
-            getStatusClass(status) {
-                return status === 'ONLINE' ? 'text-soft-success' : status === 'INITIALIZING' ? 'text-warning' : 'text-soft-danger';
+            getStatusClass(status, initialSetup) {
+                if (initialSetup) {
+                    return 'text-info';
+                }
+                return status === 'ONLINE'
+                    ? 'text-soft-success'
+                    : status === 'INITIALIZING' || status === 'RESTARTING' || status === 'UPDATING'
+                        ? 'text-warning'
+                        : 'text-soft-danger';
             },
             containsKey(obj, key) {
                 return Object.keys(obj).includes(key);
@@ -186,8 +226,28 @@
                             }).catch((error) => {
                             this.$swal.fire(error.response.data.message);
                         })
-                    } else {
-                        this.$swal.fire('Cancelled')
+                    }
+                })
+            },
+            updateVersion(name, siteName) {
+                this.$swal.fire({
+                    title: 'Update ' + siteName + '?',
+                    showCancelButton: true,
+                    cancelButtonText: 'Exit',
+                    confirmButtonText: 'Update',
+                    reverseButtons: true,
+                    input: 'text',
+                    inputValue: this.downloadUrl
+                }).then((result) => {
+                    console.log(result.value);
+                    if (result.value) {
+                        let url = result.value;
+                        axios.post('/api/v1/updateBots?forceUrl=' + url + '&directoryName=' + name)
+                            .then(() => {
+                                this.$swal.fire('The update procedure has started...');
+                            }).catch((error) => {
+                            this.$swal.fire('You encountered an error: ' + error.response.data.message);
+                        })
                     }
                 })
             }

@@ -62,11 +62,17 @@ public class BotInfo {
 				|| process != null && process.isAlive();
 	}
 
+	public boolean isInitialSetup() {
+		return Boolean.parseBoolean((String) botProperties.getOrDefault("initialSetup", "false"));
+	}
+
 	public String getSiteName() {
 		String siteName = (String) botProperties.getOrDefault("siteName", "");
 
 		return StringUtils.isNotBlank(siteName)
-				? siteName
+				? siteName.equals("PTBOT")
+				? siteName + "(" + directory + ")"
+				: siteName
 				: directory + " (Dir)";
 	}
 

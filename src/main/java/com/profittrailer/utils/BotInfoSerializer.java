@@ -20,18 +20,14 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 	public JsonElement serialize(BotInfo botInfo, Type type, JsonSerializationContext context) {
 		JsonObject root = new JsonObject();
 		root.addProperty("directory", botInfo.getDirectory());
-		String siteName = (String) botInfo.getBotProperties().getOrDefault("siteName", "");
-
-		siteName = StringUtils.isNotBlank(siteName)
-				? siteName
-				: botInfo.getDirectory() + " (Dir)";
 
 		String port = (String) botInfo.getBotProperties().get("port");
 		String contextPath = (String) botInfo.getBotProperties().get("context");
 		String url = String.format("%s:%s%s", StaticUtil.url, port, contextPath);
 
-		root.addProperty("siteName", siteName);
+		root.addProperty("siteName", botInfo.getSiteName());
 		root.addProperty("status", botInfo.getStatus());
+		root.addProperty("initialSetup", botInfo.isInitialSetup());
 		root.addProperty("url", url);
 		root.add("botProperties", new Gson().toJsonTree(botInfo.getBotProperties()));
 
