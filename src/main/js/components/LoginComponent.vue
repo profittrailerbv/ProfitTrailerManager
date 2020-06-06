@@ -3,12 +3,12 @@
         <div class="col d-flex justify-content-center font-weight-bold align-items-center">
             <div class="card">
                 <div class="card-body bg-light">
-                    <div class="row px-5 pt-3">
+                    <div class="row pt-3 px-5 px-xs-0 px-md-5">
                         <div class="col align-self-center">
                             ProfitTrailer Manager
                         </div>
                     </div>
-                    <div class="row mt-3 px-5">
+                    <div class="row mt-3 px-5 px-xs-0 px-md-5">
                         <div class="col">
                             <input name="password" type="password" v-model="input.password" placeholder="Password" class="mr-2">
                             <a href="#" @click.prevent="login()">
@@ -16,14 +16,14 @@
                             </a>
                         </div>
                     </div>
-                    <div class="row mt-3 px-5">
+                    <div class="row mt-3 px-5 px-xs-0 px-md-5">
                         <div class="col">
                             <a href="/resetPassword">
                                 Forgot your password?
                             </a>
                         </div>
                     </div>
-                    <div class="row px-5 pt-2 pb-5">
+                    <div class="row pt-2 pb-5 px-5 px-xs-0 px-md-5">
                         <div class="col">
                             <span v-if="error" class="text-soft-danger">{{error}}</span>
                         </div>

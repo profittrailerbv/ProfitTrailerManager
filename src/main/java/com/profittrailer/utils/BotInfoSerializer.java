@@ -86,7 +86,7 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 				}
 			}
 			if (date > 0) {
-				long minutes = StaticUtil.minutesLeft(date, Util.getDateTime().toEpochSecond(ZoneOffset.UTC));
+				long minutes = StaticUtil.minutesLeft(date, Util.getUTCDateTime().toEpochSecond(ZoneOffset.UTC));
 				data.addProperty("lastSaleMinutes", minutes);
 				data.addProperty("lastSaleProfit", profit);
 			}

@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
@@ -26,13 +27,15 @@ public class Util {
 		return dateFormatter;
 	}
 
+	public static LocalDateTime getUTCDateTime() {
+		return LocalDateTime.now(ZoneId.of(ZoneOffset.UTC.getId()));
+	}
+
 	public static LocalDateTime getDateTime() {
-//		return LocalDateTime.now(ZoneId.of(ZoneOffset.UTC.getId()));
 		return LocalDateTime.now();
 	}
 
 	public static Long getDateTimeSeconds() {
-//		return getDateTime().toEpochSecond(ZoneOffset.UTC);
 		return getDateTime().toEpochSecond(ZoneOffset.of(ZoneOffset.systemDefault().getId()));
 	}
 
