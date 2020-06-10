@@ -36,14 +36,17 @@ public class StaticUtil {
 		}
 	}
 
+	public static String getHost(HttpServletRequest request) throws MalformedURLException {
+		URL requestURL = new URL(request.getRequestURL().toString());
+		return requestURL.getHost();
+	}
+
 	public static String getBaseUrl(HttpServletRequest request) throws MalformedURLException {
 
 		HttpRequest httpRequest = new ServletServerHttpRequest(request);
 		UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(httpRequest).build();
-
 		String scheme = uriComponents.getScheme();
-		URL requestURL = new URL(request.getRequestURL().toString());
-		return scheme + "://" + requestURL.getHost();
+		return scheme + "://" + getHost(request);
 	}
 
 	public static String getBaseUrlWithPort(HttpServletRequest request) throws MalformedURLException {
@@ -155,5 +158,32 @@ public class StaticUtil {
 		File updateFile = new File(destination + File.separator + fileName + File.separator + "ProfitTrailer.jar");
 		File botDir = new File(botLocation);
 		FileUtils.copyFileToDirectory(updateFile, botDir);
+	}
+
+	public static boolean validIP(String ip) {
+		try {
+			if (ip == null || ip.isEmpty()) {
+				return false;
+			}
+
+			String[] parts = ip.split("\\.");
+			if (parts.length != 4) {
+				return false;
+			}
+
+			for (String s : parts) {
+				int i = Integer.parseInt(s);
+				if ((i < 0) || (i > 255)) {
+					return false;
+				}
+			}
+			if (ip.endsWith(".")) {
+				return false;
+			}
+
+			return true;
+		} catch (NumberFormatException nfe) {
+			return false;
+		}
 	}
 }

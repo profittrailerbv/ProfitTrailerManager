@@ -26,7 +26,13 @@ public class MainInterceptor extends HandlerInterceptorAdapter {
 	                         HttpServletResponse response,
 	                         Object handler) throws IOException {
 
+		// if caddy is enabled we only accept domain name access not ip
+		if (processService.isCaddyEnabled() && StaticUtil.validIP(StaticUtil.getHost(request))) {
+			return false;
+		}
+
 		StaticUtil.url = StaticUtil.getBaseUrl(request);
+
 		if (processService.isDemoServer()) {
 			return true;
 		}

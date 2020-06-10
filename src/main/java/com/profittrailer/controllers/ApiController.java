@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Locale;
@@ -57,6 +58,7 @@ public class ApiController {
 		object.add("bots", parser.toJsonTree(processService.getBotList(onlyManaged)));
 		object.addProperty("baseUrl", StaticUtil.getBaseUrl(request));
 		object.addProperty("demoServer", processService.isDemoServer());
+		object.addProperty("downloadUrl", processService.getDownloadUrl());
 
 		return object.toString();
 	}
@@ -169,8 +171,8 @@ public class ApiController {
 
 	@PostMapping("/login")
 	public void login(String password,
-	                      HttpServletRequest request,
-	                      HttpServletResponse response) throws IOException, NoSuchAlgorithmException {
+	                  HttpServletRequest request,
+	                  HttpServletResponse response) throws IOException, NoSuchAlgorithmException {
 
 		if (timeout.isAfter(getDateTime())) {
 			String formattedTime = timeout.format(Util.getDateFormatter());
@@ -239,10 +241,9 @@ public class ApiController {
 		String finalDirectoryName = directoryName;
 		new Thread(() -> {
 			try {
-				if (newBot.mkdir()) {
-					BotInfo botInfo = new BotInfo(finalDirectoryName);
-					processService.updateBot(botInfo, null, true, true);
-				}
+				Files.createDirectories(newBot.toPath());
+				BotInfo botInfo = new BotInfo(finalDirectoryName);
+				processService.updateBot(botInfo, null, true, true);
 			} catch (IOException | InterruptedException e) {
 				log.error(e);
 			}

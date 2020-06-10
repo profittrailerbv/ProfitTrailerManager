@@ -7,11 +7,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.profittrailer.models.BotInfo;
-import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 public class BotInfoSerializer implements JsonSerializer<BotInfo> {
@@ -28,6 +25,7 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 		root.addProperty("siteName", botInfo.getSiteName());
 		root.addProperty("status", botInfo.getStatus());
 		root.addProperty("initialSetup", botInfo.isInitialSetup());
+		root.addProperty("managed", botInfo.isManaged());
 		root.addProperty("url", url);
 		root.add("botProperties", new Gson().toJsonTree(botInfo.getBotProperties()));
 
@@ -94,7 +92,9 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 
 		double totalDown = 0;
 		for (JsonElement element : jsonArray) {
-			totalDown += (element.getAsJsonObject().get("currentValue").getAsDouble() - element.getAsJsonObject().get("totalCost").getAsDouble());
+			double fee = element.getAsJsonObject().get("fee").getAsDouble();
+			double currentValue = element.getAsJsonObject().get("currentValue").getAsDouble() * (1 - fee / 100);
+			totalDown += (currentValue - element.getAsJsonObject().get("totalCost").getAsDouble());
 		}
 
 		data.addProperty("diff", totalDown);

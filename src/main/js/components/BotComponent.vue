@@ -24,8 +24,8 @@
                         </div>
                         <div class="col-6 text-left font-weight-bold"
                              :class="bot.data.totalProfitToday > 0 ? 'text-soft-success' : bot.data.totalProfitToday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitToday')"> {{roundNumber(bot.data.totalProfitToday, 3)}}</span>
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercToday')"
+                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitToday')"> {{roundNumber(bot.data.totalProfitToday, 3)}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercToday')"
                                   class="small"> ({{bot.data.totalProfitPercToday}}%)</span>
                         </div>
                     </div>
@@ -35,8 +35,8 @@
                         </div>
                         <div class="col-6 text-left font-weight-bold"
                              :class="bot.data.totalProfitYesterday > 0 ? 'text-soft-success' : bot.data.totalProfitYesterday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitYesterday')"> {{roundNumber(bot.data.totalProfitYesterday, 3)}}</span>
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercYesterday')"
+                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitYesterday')"> {{roundNumber(bot.data.totalProfitYesterday, 3)}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercYesterday')"
                                   class="small"> ({{bot.data.totalProfitPercYesterday}}%)</span>
                         </div>
                     </div>
@@ -46,14 +46,14 @@
                         </div>
                         <div class="col-6 text-left font-weight-bold pl-6"
                              :class="bot.data.diff > 0 ? 'text-soft-success' : bot.data.diff < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')"> {{roundNumber(bot.data.diff, 4)}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'pairsTotal')"> {{roundNumber(bot.data.diff, 4)}}</span>
                             <span>{{bot.data.market}}</span>
                         </div>
                     </div>
                     <div class="row text-soft-dark mt-3">
                         <div class="col-12 text-left">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'lastSaleMinutes')"> Last sale {{bot.data.lastSaleMinutes}} minutes ago ({{bot.data.lastSaleProfit}}%) </span>
-                            <span v-if="!bot.botProperties.managed || !containsKey(bot.data, 'lastSaleMinutes')">&nbsp;</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'lastSaleMinutes')"> Last sale {{bot.data.lastSaleMinutes}} minutes ago ({{bot.data.lastSaleProfit}}%) </span>
+                            <span v-if="!bot.managed || !containsKey(bot.data, 'lastSaleMinutes')">&nbsp;</span>
                         </div>
                     </div>
                 </div>
@@ -65,42 +65,43 @@
                         </div>
                         <div class="col-6 text-right font-weight-bold pl-6"
                              :class="bot.data.totalProfitAllTime > 0 ? 'text-soft-success' : bot.data.totalProfitAllTime < 0 ? 'text-soft-danger' : 'text-secondary'">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitAllTime')"> {{roundNumber(bot.data.totalProfitAllTime, 3)}}</span>
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'totalProfitPercAllTime')"
+                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitAllTime')"> {{roundNumber(bot.data.totalProfitAllTime, 3)}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercAllTime')"
                                   class="small"> ({{bot.data.totalProfitPercAllTime}}%)</span>
                         </div>
                     </div>
                     <div class="row mt-3 small"
                          :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
                         <div class="col-4 text-left">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'pairsTotal')"> PAIRS: {{bot.data.pairsTotal}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'pairsTotal')"> PAIRS: {{bot.data.pairsTotal}}</span>
                         </div>
                         <div class="col-8 text-right">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'balance')"> BAL: {{roundNumber(bot.data.balance, 6)}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'balance')"> BAL: {{roundNumber(bot.data.balance, 6)}}</span>
                         </div>
                     </div>
                     <div class="row small" :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
                         <div class="col-4 text-left">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'dcaTotal')"> DCA: {{bot.data.dcaTotal}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'dcaTotal')"> DCA: {{bot.data.dcaTotal}}</span>
                         </div>
                         <div class="col-8 text-right">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'tcv')"> TCV: {{roundNumber(bot.data.tcv, 6)}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'tcv')"> TCV: {{roundNumber(bot.data.tcv, 6)}}</span>
                         </div>
                     </div>
 
                     <div class="row text-right small mt-2"
                          :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
                         <div class="col-12">
-                            <span v-if="bot.botProperties.managed && containsKey(bot.data, 'version')" class="smaller"> V{{bot.data.version}}</span>
-                            <a v-if="!demoServer && bot.botProperties.managed" href="#"
+                            <span v-if="bot.managed && containsKey(bot.data, 'version')" class="smaller"> V{{bot.data.version}}</span>
+                            <a v-if="!demoServer && bot.managed" href="#"
                                @click.prevent="restartBot(bot.directory, bot.siteName)">
                                 <font-awesome-icon :icon="['fas','redo-alt']" class="text-dark"></font-awesome-icon>
                             </a>
-                            <a v-if="!demoServer && !bot.botProperties.managed" href="#"
+                            <a v-if="!demoServer && !bot.managed" href="#"
                                @click.prevent="manageBot(bot.directory, bot.siteName)">
                                 <button type="button" class="btn btn-primary small">Manage</button>
                             </a>
-                            <a v-if="!demoServer" href="#" @click.prevent="updateVersion(bot.directory, bot.siteName)"
+                            <a v-if="!demoServer && bot.managed" href="#"
+                               @click.prevent="updateVersion(bot.directory, bot.siteName)"
                                class="text-left ml-1">
                                 <font-awesome-icon class="text-danger"
                                                    :icon="['fas','level-up-alt']"></font-awesome-icon>
@@ -129,7 +130,8 @@
                 bots: [],
                 loading: true,
                 timer: '',
-                demoServer: false
+                demoServer: false,
+                downloadUrl: ''
             }
         },
         created() {
@@ -140,6 +142,7 @@
                 axios.get('/api/v1/data').then((response) => {
                     this.bots = response.data.bots
                     this.demoServer = response.data.demoServer
+                    this.downloadUrl = response.data.downloadUrl
                 }).catch((error) => {
                     if (!error.response) {
                         window.location.href = '/';
