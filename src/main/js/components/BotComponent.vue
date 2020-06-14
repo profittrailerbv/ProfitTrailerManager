@@ -144,7 +144,7 @@
                     this.demoServer = response.data.demoServer
                     this.downloadUrl = response.data.downloadUrl
                 }).catch((error) => {
-                    if (!error.response) {
+                    if (!error.response || error.response.status === 502) {
                         window.location.href = '/';
                     }
                 })

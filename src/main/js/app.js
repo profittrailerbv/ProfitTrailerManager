@@ -43,6 +43,7 @@ Vue.component('navigation-component', require('./components/NavigationComponent'
 Vue.component('bot-component', require('./components/BotComponent').default);
 Vue.component('login-component', require('./components/LoginComponent').default);
 Vue.component('reset-component', require('./components/ResetPasswordComponent').default);
+Vue.component('settings-component', require('./components/SettingsComponent').default);
 
 // Instantiate
 const app = new Vue({

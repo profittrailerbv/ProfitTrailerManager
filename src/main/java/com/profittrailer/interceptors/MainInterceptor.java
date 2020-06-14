@@ -31,7 +31,9 @@ public class MainInterceptor extends HandlerInterceptorAdapter {
 			return false;
 		}
 
-		StaticUtil.url = StaticUtil.getBaseUrl(request);
+		if (StringUtils.isBlank(processService.getCaddyDomain())) {
+			StaticUtil.url = StaticUtil.getBaseUrl(request);
+		}
 
 		if (processService.isDemoServer()) {
 			return true;

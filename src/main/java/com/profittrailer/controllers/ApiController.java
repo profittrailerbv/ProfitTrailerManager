@@ -4,6 +4,7 @@ import static com.profittrailer.utils.Util.getDateTime;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.profittrailer.models.BotInfo;
 import com.profittrailer.services.ProcessService;
@@ -12,6 +13,7 @@ import com.profittrailer.utils.StaticUtil;
 import com.profittrailer.utils.Util;
 import com.profittrailer.utils.constants.SessionType;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,12 +26,16 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.Properties;
 
 @Log4j2
 @RestController
@@ -248,5 +254,88 @@ public class ApiController {
 				log.error(e);
 			}
 		}).start();
+	}
+
+	@GetMapping("/globalSettings")
+	public String getGlobalSettings() {
+		JsonObject object = new JsonObject();
+		object.addProperty("demoServer", processService.isDemoServer());
+
+		JsonArray timezones = new JsonArray();
+		StaticUtil.timeZones.forEach((x,y) -> {
+			JsonObject jsonObject = new JsonObject();
+			jsonObject.addProperty("id", x);
+			jsonObject.addProperty("value", y);
+			timezones.add(jsonObject);
+		});
+		object.add("timezones", timezones);
+
+		try {
+			File file = new File("application.properties");
+			if (file.exists()) {
+				FileReader reader = new FileReader(file);
+				Properties properties = new Properties();
+				properties.load(reader);
+
+				String timeZone = (String) properties.getOrDefault("server.settings.timezone", "Test");
+				String currency = (String) properties.getOrDefault("server.settings.currency", "");
+				String discordToken = (String) properties.getOrDefault("server.settings.discord.token", "");
+
+				object.addProperty("timezone", timeZone);
+				object.addProperty("currency", currency);
+				object.addProperty("token", discordToken);
+			}
+		} catch (Exception e) {
+			log.error("Error getting global properties ", e);
+		}
+
+		return object.toString();
+	}
+
+	@PostMapping("/globalSettings")
+	public void saveGlobalSettings(String timezone,
+	                               String currency,
+	                               String token,
+	                               HttpServletResponse response) throws IOException {
+		try {
+			JsonObject object = new JsonObject();
+
+			File file = new File("application.properties");
+			if (file.exists()) {
+				FileReader reader = new FileReader(file);
+				Properties properties = new Properties();
+				properties.load(reader);
+
+				if (StringUtils.isNotBlank(timezone)) {
+					properties.put("server.settings.timezone", timezone);
+				}
+				if (StringUtils.isNotBlank(currency)) {
+					properties.put("server.settings.currency", currency);
+				}
+				if (StringUtils.isNotBlank(token)) {
+					properties.put("server.settings.discord.token", token);
+				}
+
+				//send to bots...?
+				if (properties.containsKey("server.settings.timezone")) {
+					object.addProperty("TIMEZONE", (String) properties.get("server.settings.timezone"));
+				}
+				if (properties.containsKey("server.settings.currency")) {
+					object.addProperty("CURRENCY", (String) properties.get("server.settings.currency"));
+				}
+				if (properties.containsKey("server.settings.discord.token")) {
+					object.addProperty("DISCORD_TOKEN_1", (String) properties.get("server.settings.discord.token"));
+				}
+				processService.pushGlobalSettings(object);
+
+				//save file
+				try (OutputStream outputStream = new FileOutputStream("application.properties")) {
+					properties.store(outputStream, null);
+				}
+			}
+		} catch (Exception e) {
+			response.sendError(HttpStatus.NOT_MODIFIED.value(), e.getMessage());
+			log.error("Error saving global properties ", e);
+		}
 	}
 }

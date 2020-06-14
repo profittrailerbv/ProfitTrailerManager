@@ -9,10 +9,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
-import java.net.MalformedURLException;
-import java.util.Collections;
-
 @Controller
 public class HomeController {
 
@@ -29,15 +25,19 @@ public class HomeController {
 		return "login";
 	}
 
+	@GetMapping("/settings")
+	public String settings() {
+		return "settings";
+	}
+
 	@GetMapping("/resetPassword")
 	public String resetPassword() {
 		return "reset";
 	}
 
 	@GetMapping("/status")
-	public String checkStatus(HttpServletRequest request,
-	                          @RequestParam(defaultValue = "") String directoryName,
-	                          Model model) throws MalformedURLException {
+	public String checkStatus(@RequestParam(defaultValue = "") String directoryName,
+	                          Model model) {
 
 		BotInfo botInfo = processService.getBotInfoMap().get(directoryName);
 		String port = (String) botInfo.getBotProperties().get("port");

@@ -23,7 +23,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Log4j2
@@ -77,7 +76,7 @@ public class HttpClientManager {
 		return new ResponseHolder(post, getHttpClientInstance().execute(post));
 	}
 
-	public static String postHttpJson(String url, JsonObject postParams, List<NameValuePair> headers) throws IOException {
+	public static Pair<Integer, String> postHttpJson(String url, JsonObject postParams, List<NameValuePair> headers) throws IOException {
 		String result = null;
 		ResponseHolder holder = postHttpWithResponseJson(url, postParams, headers);
 		HttpResponse response = holder.getResponse();
@@ -87,7 +86,7 @@ public class HttpClientManager {
 		}
 
 		holder.getRequest().releaseConnection();
-		return result;
+		return ImmutablePair.of(response.getStatusLine().getStatusCode(), result);
 	}
 
 	public static ResponseHolder postHttpWithResponseJson(String url, JsonObject postParams, List<NameValuePair> headers) throws IOException {

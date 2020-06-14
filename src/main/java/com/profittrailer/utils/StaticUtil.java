@@ -20,12 +20,17 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 @Log4j2
 public class StaticUtil {
 
 	public static String url = null;
 	public static String randomSystemId;
+	public static Map<String, String> timeZones = new LinkedHashMap<>();
 
 	static {
 		try {
@@ -33,6 +38,11 @@ public class StaticUtil {
 				randomSystemId = RandomStringUtils.randomAlphanumeric(25);
 			}
 		} catch (IOException ignore) {
+		}
+
+		String[] ids = TimeZone.getAvailableIDs();
+		for (String id : ids) {
+			StaticUtil.timeZones.put(TimeZone.getTimeZone(id).getID(), displayTimeZone(TimeZone.getTimeZone(id)));
 		}
 	}
 
@@ -177,13 +187,30 @@ public class StaticUtil {
 					return false;
 				}
 			}
-			if (ip.endsWith(".")) {
-				return false;
-			}
-
-			return true;
+			return !ip.endsWith(".");
 		} catch (NumberFormatException nfe) {
 			return false;
 		}
+	}
+
+	private static String displayTimeZone(TimeZone tz) {
+
+		long hours = TimeUnit.MILLISECONDS.toHours(tz.getRawOffset());
+		long minutes = TimeUnit.MILLISECONDS.toMinutes(tz.getRawOffset())
+				- TimeUnit.HOURS.toMinutes(hours);
+		// avoid -4:-30 issue
+		minutes = Math.abs(minutes);
+
+		String result;
+		if (hours > 0) {
+			result = String.format("%s (GMT+%d:%02d) ", tz.getID(), hours, minutes);
+		} else if (hours < 0) {
+			result = String.format("%s (GMT%d:%02d)", tz.getID(), hours, minutes);
+		} else {
+			result = String.format("%s (GMT)", tz.getID());
+		}
+
+		return result;
+
 	}
 }

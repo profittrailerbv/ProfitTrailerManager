@@ -65,6 +65,8 @@ public class ProcessService {
 	private String downloadUrl;
 	@Value("${server.caddy.enabled:false}")
 	private boolean caddyEnabled;
+	@Value("${server.caddy.domain:}")
+	private String caddyDomain;
 	@Value("${server.caddy.import:}")
 	private String caddyImport;
 	@Value("${server.port:10000}")
@@ -82,6 +84,10 @@ public class ProcessService {
 			reloadCaddy();
 		} catch (IOException e) {
 			log.error(e);
+		}
+
+		if (StringUtils.isNotBlank(caddyDomain)) {
+			StaticUtil.url = "https://" + caddyDomain;
 		}
 	}
 
@@ -189,6 +195,7 @@ public class ProcessService {
 	}
 
 	private void generateCaddyFile() {
+		//log.info("1. {} -- 2.{} -- 3.{}", processedInitialized, StaticUtil.url, caddyEnabled);
 		if (!processedInitialized) {
 			return;
 		}
@@ -228,9 +235,10 @@ public class ProcessService {
 		}
 
 		String httpsUrl = StaticUtil.url.replace("http://", "").replace("https://", "");
-//		if (!httpsUrl.contains("https:")) {
-//			httpsUrl = httpsUrl.replace("http:", "https:");
-//		}
+		if (!StringUtils.isNotBlank(caddyDomain)) {
+			httpsUrl = "https://" + caddyDomain;
+		}
+
 		for (Map.Entry<String, String> entry : reverseBots.entrySet()) {
 			caddyString.append(httpsUrl).append(entry.getKey()).append(" {\r\n");
 			caddyString.append(entry.getValue());
@@ -527,5 +535,19 @@ public class ProcessService {
 			ssoToken = jsonObject.get("token").getAsString();
 		}
 		return ssoToken;
+	}
+
+	public void pushGlobalSettings (JsonObject jsonObject) {
+		for (BotInfo botInfo : botInfoMap.values()) {
+			if (!botInfo.isManaged()) {
+				continue;
+			}
+			String settingsUrl = createUrl(botInfo, "/api/v2/account/settings");
+			try {
+				HttpClientManager.postHttpJson(settingsUrl, jsonObject, Collections.emptyList());
+			} catch (Exception e) {
+				log.error("Error pushing settings {}: {}", settingsUrl, e.getMessage());
+			}
+		}
 	}
 }
