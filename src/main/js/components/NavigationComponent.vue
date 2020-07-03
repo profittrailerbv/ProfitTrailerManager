@@ -12,21 +12,10 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="#">Overview</a>
+                        <a class="nav-link" href="/">Overview</a>
                     </li>
                     <li class="nav-item active">
                         <a class="nav-link" href="settings">Settings</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Bots
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" v-for="bot in bots" :href="'/status?directoryName=' + bot.directory">
-                               <span>{{bot.siteName}}</span>
-                               </a>
-                        </div>
                     </li>
                     <li class="nav-item active">
                         <a class="nav-link" href="#" @click.prevent="shutdownApp()">

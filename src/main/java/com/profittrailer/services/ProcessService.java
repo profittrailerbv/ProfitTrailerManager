@@ -23,6 +23,7 @@ import org.jutils.jprocesses.model.ProcessInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -160,6 +161,10 @@ public class ProcessService {
 
 			if (autoStartManagedBots && processedInitialized) {
 				for (BotInfo botInfo : botInfoMap.values()) {
+					if (new File(botsLocation + "/" + botInfo.getDirectory() + "/data/unlinked").exists()) {
+						return;
+					}
+
 					boolean offline = botInfo.getStatus().equals("OFFLINE");
 					boolean startingUpdating = botInfo.getStatus().equals("STARTING") || botInfo.getStatus().equals("UPDATING");
 					boolean managed = botInfo.isManaged();
@@ -305,6 +310,10 @@ public class ProcessService {
 				BotInfo botInfo = botInfoMap.getOrDefault(directoryName, new BotInfo(directoryName));
 				botInfo.setProcess(process);
 				botInfo.setStartDate(Util.getDateTime());
+
+				File file = new File(botsLocation + "/" + directoryName + "/data/unlinked");
+				FileSystemUtils.deleteRecursively(file.toPath());
+
 				botInfoMap.put(directoryName, botInfo);
 				Thread.sleep(5000);
 				readError(process);
@@ -330,8 +339,32 @@ public class ProcessService {
 		} else if (bot.getProcessInfo() != null) {
 			JProcesses.killProcess(Integer.parseInt(bot.getProcessInfo().getPid()));
 		}
+
+		if (processId > 0) {
+			processInfoMap.remove("" + processId);
+		}
+
 		bot.setProcessInfo(null);
 		bot.setProcess(null);
+	}
+
+	public void unlinkBot(String botName) {
+		BotInfo bot = botInfoMap.get(botName);
+		if (bot == null) {
+			return;
+		}
+
+		bot.clearData();
+
+		try {
+			File file = new File(botsLocation + "/" + botName + "/data/unlinked");
+			if (!file.exists() && !file.createNewFile()) {
+				log.error("Error unlinking bot {}", bot.getSiteName());
+			}
+		} catch (Exception e) {
+			log.error("Error unlinking bot {} -- {}", bot.getSiteName(), e.getMessage());
+		}
+
 	}
 
 	public Properties getBotProperties(String botName) {
@@ -385,6 +418,7 @@ public class ProcessService {
 				String propertiesUrl = createUrl(botInfo, "/api/v2/data/properties");
 				String pairsUrl = createUrl(botInfo, "/api/v2/data/pairs");
 				String dcaUrl = createUrl(botInfo, "/api/v2/data/dca");
+				String pendingUrl = createUrl(botInfo, "/api/v2/data/pending");
 				String salesUrl = createUrl(botInfo, "/api/v2/data/sales");
 				Pair<Integer, String> data = HttpClientManager.getHttp(dataUrl, Collections.emptyList());
 				if (data.getKey() < 202) {
@@ -405,6 +439,10 @@ public class ProcessService {
 				Pair<Integer, String> dca = HttpClientManager.getHttp(dcaUrl, Collections.emptyList());
 				if (dca.getKey() < 202) {
 					botInfo.setDcaData(parser.fromJson(dca.getValue(), JsonArray.class));
+				}
+				Pair<Integer, String> pending = HttpClientManager.getHttp(pendingUrl, Collections.emptyList());
+				if (dca.getKey() < 202) {
+					botInfo.setPendingData(parser.fromJson(pending.getValue(), JsonArray.class));
 				}
 				Pair<Integer, String> sales = HttpClientManager.getHttp(salesUrl, Collections.emptyList());
 				if (sales.getKey() < 202) {
@@ -488,7 +526,7 @@ public class ProcessService {
 			forceUrl = null;
 		}
 
-		if (!newBot && !botInfo.isManaged()) {
+		if (!newBot && (!botInfo.isManaged() || botInfo.isUnlinked(botsLocation))) {
 			log.info("{} is not a managed bot, skipping", botInfo.getSiteName());
 			return;
 		}
@@ -517,7 +555,7 @@ public class ProcessService {
 				log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
 				StaticUtil.copyJar(updateFolder, botsLocation + "/" + botInfo.getDirectory());
 				startBot(botInfo.getDirectory());
-				Thread.sleep(35000);
+				Thread.sleep(20000);
 				log.info("{} update complete, bot is starting", botInfo.getSiteName());
 			}
 		} else {
@@ -537,7 +575,7 @@ public class ProcessService {
 		return ssoToken;
 	}
 
-	public void pushGlobalSettings (JsonObject jsonObject) {
+	public void pushGlobalSettings(JsonObject jsonObject) {
 		for (BotInfo botInfo : botInfoMap.values()) {
 			if (!botInfo.isManaged()) {
 				continue;

@@ -80,12 +80,13 @@ public class ApiController {
 
 	}
 
-	@PostMapping("/stopBot")
+	@PostMapping("/stopBotAndUnlink")
 	public void stopBot(String directoryName) {
 		if (processService.isDemoServer()) {
 			return;
 		}
 		processService.stopBot(directoryName);
+		processService.unlinkBot(directoryName);
 	}
 
 	@GetMapping("/status")

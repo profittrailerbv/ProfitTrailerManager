@@ -7,6 +7,7 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.jutils.jprocesses.model.ProcessInfo;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.Properties;
 
@@ -24,6 +25,7 @@ public class BotInfo {
 	private JsonObject propertiesData;
 	private JsonArray pairsData;
 	private JsonArray dcaData;
+	private JsonArray pendingData;
 	private JsonArray salesData;
 	private transient LocalDateTime startDate;
 	private transient LocalDateTime updateDate;
@@ -62,6 +64,10 @@ public class BotInfo {
 				|| process != null && process.isAlive();
 	}
 
+	public boolean isUnlinked(String botsLocation) {
+		return new File(botsLocation + "/" + directory + "/data/unlinked").exists();
+	}
+
 	public boolean isInitialSetup() {
 		return Boolean.parseBoolean((String) botProperties.getOrDefault("initialSetup", "false"));
 	}
@@ -81,5 +87,15 @@ public class BotInfo {
 		if (statsData != null) {
 			profitToday = statsData.getAsJsonObject("basic").get("totalProfitToday").getAsDouble();
 		}
+	}
+
+	public void clearData() {
+		miscData = null;
+		statsData = null;
+		propertiesData = null;
+		pairsData = null;
+		dcaData = null;
+		pendingData = null;
+		salesData = null;
 	}
 }

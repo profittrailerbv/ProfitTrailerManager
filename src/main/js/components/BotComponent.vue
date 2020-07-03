@@ -52,7 +52,7 @@
                     </div>
                     <div class="row text-soft-dark mt-3">
                         <div class="col-12 text-left">
-                            <span v-if="bot.managed && containsKey(bot.data, 'lastSaleMinutes')"> Last sale {{bot.data.lastSaleMinutes}} minutes ago ({{bot.data.lastSaleProfit}}%) </span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'lastSaleMinutes')"> Last sale {{bot.data.lastSaleMinutes}} minutes ago ({{roundNumber(bot.data.lastSaleProfit, 2)}}%) </span>
                             <span v-if="!bot.managed || !containsKey(bot.data, 'lastSaleMinutes')">&nbsp;</span>
                         </div>
                     </div>
@@ -87,15 +87,30 @@
                             <span v-if="bot.managed && containsKey(bot.data, 'tcv')"> TCV: {{roundNumber(bot.data.tcv, 6)}}</span>
                         </div>
                     </div>
+                    <div class="row small" :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
+                        <div class="col-4 text-left">
+                            <span v-if="bot.managed && containsKey(bot.data, 'dcaTotal')"> Pending: {{bot.data.pendingTotal}}</span>
+                        </div>
+                        <div class="col-8 text-right">
+                        </div>
+                    </div>
 
-                    <div class="row text-right small mt-2"
+                    <div class="row small mt-2"
                          :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
-                        <div class="col-12">
+                        <div class="col-6 text-left smaller">
+                            {{bot.data.config}}
+                        </div>
+                        <div class="col-6 text-right">
                             <span v-if="bot.managed && containsKey(bot.data, 'version')" class="smaller"> V{{bot.data.version}}</span>
                             <a v-if="!demoServer && bot.managed" href="#"
                                @click.prevent="restartBot(bot.directory, bot.siteName)">
                                 <font-awesome-icon :icon="['fas','redo-alt']" class="text-dark"></font-awesome-icon>
                             </a>
+                            <a v-if="!demoServer && bot.managed" href="#"
+                               @click.prevent="stopBot(bot.directory, bot.siteName)">
+                                <font-awesome-icon :icon="['fas','stop-circle']" class="text-dark"></font-awesome-icon>
+                            </a>
+                            <span class="border-right mx-1"></span>
                             <a v-if="!demoServer && !bot.managed" href="#"
                                @click.prevent="manageBot(bot.directory, bot.siteName)">
                                 <button type="button" class="btn btn-primary small">Manage</button>
@@ -160,6 +175,25 @@
                 }).then((result) => {
                     if (typeof (result.value) !== 'undefined') {
                         axios.post('/api/v1/restartBot?directoryName=' + name).then(() => {
+                            this.$swal.fire('The restart command has been sent...');
+                            this.getBotStatus(name);
+                        }).catch((error) => {
+                            this.$swal.fire(error.response.data.message);
+                        })
+                    }
+                })
+            },
+            stopBot(name, siteName) {
+                this.$swal.fire({
+                    title: 'Confirm stop',
+                    text: 'Do you really want to stop ' + siteName + '?',
+                    showCancelButton: true,
+                    cancelButtonText: 'Exit',
+                    confirmButtonText: 'Stop',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (typeof (result.value) !== 'undefined') {
+                        axios.post('/api/v1/stopBotAndUnlink?directoryName=' + name).then(() => {
                             this.$swal.fire('The restart command has been sent...');
                             this.getBotStatus(name);
                         }).catch((error) => {

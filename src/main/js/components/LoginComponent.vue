@@ -10,11 +10,15 @@
                     </div>
                     <div class="row mt-3">
                         <div class="col-10">
-                            <input class="form-control" name="password" type="password" v-model="input.password" placeholder="Password">
+                            <form v-on:submit.prevent="login()">
+                                <input class="form-control" name="password" type="password" v-model="input.password"
+                                       placeholder="Password">
+                            </form>
                         </div>
                         <div class="col-1 pt-2">
                             <a href="#" @click.prevent="login()">
-                                <font-awesome-icon :icon="['fas','sign-in-alt']" class="text-dark big"></font-awesome-icon>
+                                <font-awesome-icon :icon="['fas','sign-in-alt']"
+                                                   class="text-dark big"></font-awesome-icon>
                             </a>
                         </div>
                     </div>
@@ -42,7 +46,7 @@
         },
         methods: {
             login() {
-                if(this.input.password !== "") {
+                if (this.input.password !== "") {
                     axios.post('/api/v1/login?password=' + this.input.password).then(() => {
                         window.location.href = '/';
                     }).catch((error) => {

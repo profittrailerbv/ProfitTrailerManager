@@ -61,6 +61,7 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 		}
 		if (botInfo.getPropertiesData() != null) {
 			data.addProperty("paper", botInfo.getPropertiesData().get("testMode").getAsBoolean());
+			data.addProperty("config", botInfo.getPropertiesData().get("activeConfig").getAsString());
 		}
 
 		JsonArray jsonArray = new JsonArray();
@@ -72,6 +73,11 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 		if (botInfo.getDcaData() != null) {
 			data.addProperty("dcaTotal", botInfo.getDcaData().size());
 			jsonArray.addAll(botInfo.getDcaData());
+		}
+
+		if (botInfo.getPendingData() != null) {
+			data.addProperty("pendingTotal", botInfo.getPendingData().size());
+			jsonArray.addAll(botInfo.getPendingData());
 		}
 
 		if (botInfo.getSalesData() != null) {

@@ -9,7 +9,7 @@ import {
     faPlusSquare,
     faPowerOff,
     faRedoAlt,
-    faSignInAlt,
+    faSignInAlt, faStopCircle,
     faToggleOff,
     faToggleOn
 } from '@fortawesome/free-solid-svg-icons'
@@ -28,7 +28,7 @@ try {
 }
 
 library.add(faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff,
-    faExternalLinkAlt, faFileAlt, faSignInAlt, faLevelUpAlt, faPlusSquare)
+    faExternalLinkAlt, faFileAlt, faSignInAlt, faLevelUpAlt, faPlusSquare, faStopCircle)
 
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 Vue.use(VueSweetalert2);
