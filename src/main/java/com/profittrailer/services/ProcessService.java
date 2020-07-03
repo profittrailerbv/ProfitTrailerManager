@@ -161,7 +161,7 @@ public class ProcessService {
 
 			if (autoStartManagedBots && processedInitialized) {
 				for (BotInfo botInfo : botInfoMap.values()) {
-					if (new File(botsLocation + "/" + botInfo.getDirectory() + "/data/unlinked").exists()) {
+					if (botInfo.isUnlinked(botsLocation)) {
 						return;
 					}
 

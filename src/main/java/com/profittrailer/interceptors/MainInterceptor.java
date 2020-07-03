@@ -35,6 +35,8 @@ public class MainInterceptor extends HandlerInterceptorAdapter {
 			StaticUtil.url = StaticUtil.getBaseUrl(request);
 		}
 
+		request.setAttribute("randomNumber", StaticUtil.randomNumber);
+
 		if (processService.isDemoServer()) {
 			return true;
 		}

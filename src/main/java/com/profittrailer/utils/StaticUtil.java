@@ -31,6 +31,7 @@ public class StaticUtil {
 	public static String url = null;
 	public static String randomSystemId;
 	public static Map<String, String> timeZones = new LinkedHashMap<>();
+	public static long randomNumber = 0;
 
 	static {
 		try {

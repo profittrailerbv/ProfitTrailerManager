@@ -6,7 +6,7 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>ProfitTrailer Manager</title>
-    <link rel="stylesheet" th:href="@{/app.css}"/>
+    <link rel="stylesheet" th:href="@{/app.css?} + ${randomNumber}"/>
 </head>
 <body class="bg-dark">
 <div id="app">
@@ -15,6 +15,6 @@
     </div>
 </div>
 
-<script th:src="@{/app.js}"></script>
+<script th:src="@{/app.js?} + ${randomNumber}"></script>
 </body>
 </html>

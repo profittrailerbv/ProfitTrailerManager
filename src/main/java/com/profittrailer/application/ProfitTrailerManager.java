@@ -17,6 +17,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.TreeMap;
@@ -54,6 +55,8 @@ public class ProfitTrailerManager {
 		props.put("spring.resources.static-locations[3]", "file:classpath:/js/");
 
 		System.setProperty("timezone", TimeZone.getDefault().getID());
+		StaticUtil.randomNumber = Util.getDateTime().toEpochSecond(ZoneOffset.UTC);
+
 
 		new SpringApplicationBuilder()
 				.sources(ProfitTrailerManager.class)
