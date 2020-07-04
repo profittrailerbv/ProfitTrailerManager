@@ -97,10 +97,10 @@
 
                     <div class="row small mt-2"
                          :class="bot.data.totalProfitAllTime == 0 ? 'text-muted' : 'text-soft-dark'">
-                        <div class="col-6 text-left smaller">
+                        <div class="col-5 text-left smaller">
                             {{bot.data.config}}
                         </div>
-                        <div class="col-6 text-right">
+                        <div class="col-7 text-right">
                             <span v-if="bot.managed && containsKey(bot.data, 'version')" class="smaller"> V{{bot.data.version}}</span>
                             <a v-if="!demoServer && bot.managed" href="#"
                                @click.prevent="restartBot(bot.directory, bot.siteName)">
@@ -110,7 +110,7 @@
                                @click.prevent="stopBot(bot.directory, bot.siteName)">
                                 <font-awesome-icon :icon="['fas','stop-circle']" class="text-dark"></font-awesome-icon>
                             </a>
-                            <span class="border-right mx-1"></span>
+                            <span class="border border-dark border-right mx-1"></span>
                             <a v-if="!demoServer && !bot.managed" href="#"
                                @click.prevent="manageBot(bot.directory, bot.siteName)">
                                 <button type="button" class="btn btn-primary small">Manage</button>

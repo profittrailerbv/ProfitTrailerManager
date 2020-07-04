@@ -10,13 +10,13 @@
                             <font-awesome-icon v-if="!onlyManaged" class="text-danger"
                                                :icon="['fas','toggle-off']"></font-awesome-icon>
                         </a>
-                        <span v-if="onlyManaged">Displaying Only Managed Bots</span>
-                        <span v-if="!onlyManaged">Displaying All Bots</span>
+                        <span v-if="onlyManaged" class="d-none d-sm-inline">Showing Only Managed Bots</span>
+                        <span v-if="!onlyManaged" class="d-none d-sm-inline">Showing All Bots</span>
                     </h5>
                 </div>
                 <div class="col-6 text-right">
                     <h5>
-                        <span v-if="latestVersion !== '0.0.0'">Github latest: {{latestVersion}}</span>
+                        <span v-if="latestVersion !== '0.0.0'" class="d-none d-sm-inline">Github latest: {{latestVersion}}</span>
                         <a v-if="!demoServer" href="#" @click.prevent="updateVersion()" class="text-left">
                             <font-awesome-icon class="text-danger" :icon="['fas','level-up-alt']"></font-awesome-icon>
                         </a>
