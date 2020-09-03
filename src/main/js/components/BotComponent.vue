@@ -24,7 +24,7 @@
                         </div>
                         <div class="col-6 text-left font-weight-bold"
                              :class="bot.data.totalProfitToday > 0 ? 'text-soft-success' : bot.data.totalProfitToday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitToday')"> {{roundNumber(bot.data.totalProfitToday, 3)}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitToday')"> {{roundNumber(bot.data.totalProfitToday, 5)}}</span>
                             <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercToday')"
                                   class="small"> ({{bot.data.totalProfitPercToday}}%)</span>
                         </div>
@@ -35,7 +35,7 @@
                         </div>
                         <div class="col-6 text-left font-weight-bold"
                              :class="bot.data.totalProfitYesterday > 0 ? 'text-soft-success' : bot.data.totalProfitYesterday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitYesterday')"> {{roundNumber(bot.data.totalProfitYesterday, 3)}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitYesterday')"> {{roundNumber(bot.data.totalProfitYesterday, 5)}}</span>
                             <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercYesterday')"
                                   class="small"> ({{bot.data.totalProfitPercYesterday}}%)</span>
                         </div>
@@ -46,7 +46,7 @@
                         </div>
                         <div class="col-6 text-left font-weight-bold pl-6"
                              :class="bot.data.diff > 0 ? 'text-soft-success' : bot.data.diff < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                            <span v-if="bot.managed && containsKey(bot.data, 'pairsTotal')"> {{roundNumber(bot.data.diff, 4)}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'pairsTotal')"> {{roundNumber(bot.data.diff, 5)}}</span>
                             <span>{{bot.data.market}}</span>
                         </div>
                     </div>
@@ -65,7 +65,7 @@
                         </div>
                         <div class="col-6 text-right font-weight-bold pl-6"
                              :class="bot.data.totalProfitAllTime > 0 ? 'text-soft-success' : bot.data.totalProfitAllTime < 0 ? 'text-soft-danger' : 'text-secondary'">
-                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitAllTime')"> {{roundNumber(bot.data.totalProfitAllTime, 3)}}</span>
+                            <span v-if="bot.managed && containsKey(bot.data, 'totalProfitAllTime')"> {{roundNumber(bot.data.totalProfitAllTime, 5)}}</span>
                             <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercAllTime')"
                                   class="small"> ({{bot.data.totalProfitPercAllTime}}%)</span>
                         </div>

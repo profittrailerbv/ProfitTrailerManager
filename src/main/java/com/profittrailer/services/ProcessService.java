@@ -20,7 +20,9 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jutils.jprocesses.JProcesses;
 import org.jutils.jprocesses.model.ProcessInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
@@ -72,6 +74,9 @@ public class ProcessService {
 	private String caddyImport;
 	@Value("${server.port:10000}")
 	private int port;
+
+	@Autowired
+	private Environment environment;
 
 	@PostConstruct
 	public void init() {
@@ -155,20 +160,24 @@ public class ProcessService {
 								getBotData(botInfo);
 								botInfo.setInitialized(initialzed);
 							}
+							botInfo.isUnlinked(botsLocation);
 							botInfoMap.put(e, botInfo);
 						});
 			}
 
 			if (autoStartManagedBots && processedInitialized) {
 				for (BotInfo botInfo : botInfoMap.values()) {
-					if (botInfo.isUnlinked(botsLocation)) {
-						return;
-					}
 
 					boolean offline = botInfo.getStatus().equals("OFFLINE");
 					boolean startingUpdating = botInfo.getStatus().equals("STARTING") || botInfo.getStatus().equals("UPDATING");
 					boolean managed = botInfo.isManaged();
+					boolean unlinked = botInfo.isUnlinked(botsLocation);
 					String port = (String) botInfo.getBotProperties().get("port");
+
+					if (unlinked) {
+						continue;
+					}
+
 					if (!offline
 							&& port != null
 							&& !startingUpdating
@@ -288,7 +297,7 @@ public class ProcessService {
 		commands.add("-XX:+UseSerialGC");
 		commands.add("-XX:+UseStringDeduplication");
 		commands.add("-Xms64m");
-		commands.add("-Xmx512m");
+		commands.add(String.format("-Xmx%s", environment.getProperty(directoryName+".startup.xmx","512m")));
 		commands.add("-XX:CompressedClassSpaceSize=300m");
 		commands.add("-XX:MaxMetaspaceSize=256m");
 		commands.add("-jar");
@@ -317,6 +326,8 @@ public class ProcessService {
 				botInfoMap.put(directoryName, botInfo);
 				Thread.sleep(5000);
 				readError(process);
+			} else {
+				log.info("Skipping bot start {} -- {}" , botInfoMap.containsKey(directoryName), botInfoMap.get(directoryName).getStatus());
 			}
 		} catch (Exception e) {
 			log.error("Error starting bot", e);

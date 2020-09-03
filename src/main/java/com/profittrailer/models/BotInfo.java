@@ -18,6 +18,7 @@ public class BotInfo {
 	private Properties botProperties = new Properties();
 	private String url;
 	private transient boolean initialized;
+	private transient boolean lastUnlinkedStatus;
 	private transient Process process;
 	private transient ProcessInfo processInfo;
 	private JsonObject statsData;
@@ -59,13 +60,18 @@ public class BotInfo {
 	}
 
 	public boolean isManaged() {
+		if (lastUnlinkedStatus) {
+			return false;
+		}
+
 		return Boolean.parseBoolean((String) botProperties.getOrDefault("managed", "false"))
 				|| processInfo != null && StringUtils.containsIgnoreCase(processInfo.getName(), "java")
 				|| process != null && process.isAlive();
 	}
 
 	public boolean isUnlinked(String botsLocation) {
-		return new File(botsLocation + "/" + directory + "/data/unlinked").exists();
+		lastUnlinkedStatus = new File(botsLocation + "/" + directory + "/data/unlinked").exists();
+		return lastUnlinkedStatus;
 	}
 
 	public boolean isInitialSetup() {
