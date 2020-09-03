@@ -20,6 +20,11 @@
             </div>
           </div>
           <div class="row small" :class="bot.data.totalProfitAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
+            <div class="col-12 text-left">
+              {{ bot.data.config }} <span class="smallest">({{ bot.data.exchange }})</span>
+            </div>
+          </div>
+          <div class="row small" :class="bot.data.totalProfitAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
             <div class="col-12 text-left smaller">
               {{ bot.data.config }} <span class="smallest">({{ bot.data.exchange }})</span>
             </div>
@@ -28,38 +33,38 @@
             <div class="col-6 text-left font-weight-bold">
               <span class="">Today ({{ bot.data.totalSalesToday }})</span><br/>
             </div>
-            <div class="col-6 text-left font-weight-bold"
+            <div class="col-6 text-right font-weight-bold"
                  :class="bot.data.totalProfitToday > 0 ? 'text-soft-success' : bot.data.totalProfitToday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
               <span
                   v-if="bot.managed && containsKey(bot.data, 'totalProfitToday')"> {{
-                  roundNumber(bot.data.totalProfitToday, 5)
+                  roundNumber(bot.data.totalProfitToday, bot.data.guiPrecision)
                 }}</span>
               <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercToday')"
-                    class="small"> ({{ bot.data.totalProfitPercToday }}%)</span>
+                    class="small"> ({{ roundNumber(bot.data.totalProfitPercToday , 2) }}%)</span>
             </div>
           </div>
           <div class="row text-soft-dark">
             <div class="col-6 text-left font-weight-bold">
               <span class="">Yesterday ({{ bot.data.totalSalesYesterday }})</span><br/>
             </div>
-            <div class="col-6 text-left font-weight-bold"
+            <div class="col-6 text-right font-weight-bold"
                  :class="bot.data.totalProfitYesterday > 0 ? 'text-soft-success' : bot.data.totalProfitYesterday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
               <span
                   v-if="bot.managed && containsKey(bot.data, 'totalProfitYesterday')"> {{
-                  roundNumber(bot.data.totalProfitYesterday, 5)
+                  roundNumber(bot.data.totalProfitYesterday, bot.data.guiPrecision)
                 }}</span>
               <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercYesterday')"
-                    class="small"> ({{ bot.data.totalProfitPercYesterday }}%)</span>
+                    class="small"> ({{ roundNumber(bot.data.totalProfitPercYesterday , 2) }}%)</span>
             </div>
           </div>
           <div class="row text-soft-dark">
             <div class="col-6 text-left font-weight-bold">
               <span class="">Current Diff</span><br/>
             </div>
-            <div class="col-6 text-left font-weight-bold pl-6"
+            <div class="col-6 text-right font-weight-bold pl-6"
                  :class="bot.data.diff > 0 ? 'text-soft-success' : bot.data.diff < 0 ? 'text-soft-danger' : 'text-soft-dark'">
               <span
-                  v-if="bot.managed && containsKey(bot.data, 'pairsTotal')"> {{ roundNumber(bot.data.diff, 5) }}</span>
+                  v-if="bot.managed && containsKey(bot.data, 'pairsTotal')"> {{ roundNumber(bot.data.diff, bot.data.guiPrecision) }}</span>
               <span>{{ bot.data.market }}</span>
             </div>
           </div>
@@ -83,7 +88,7 @@
                  :class="bot.data.totalProfitAllTime > 0 ? 'text-soft-success' : bot.data.totalProfitAllTime < 0 ? 'text-soft-danger' : 'text-secondary'">
               <span
                   v-if="bot.managed && containsKey(bot.data, 'totalProfitAllTime')"> {{
-                  roundNumber(bot.data.totalProfitAllTime, 5)
+                  roundNumber(bot.data.totalProfitAllTime, bot.data.guiPrecision)
                 }}</span>
               <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercAllTime')"
                     class="small"> ({{ bot.data.totalProfitPercAllTime }}%)</span>
@@ -97,7 +102,7 @@
             <div class="col-8 text-right">
               <span
                   v-if="bot.managed && containsKey(bot.data, 'balance')"> BAL: {{
-                  roundNumber(bot.data.balance, 6)
+                  roundNumber(bot.data.balance, bot.data.guiPrecision)
                 }}</span>
             </div>
           </div>
@@ -106,7 +111,7 @@
               <span v-if="bot.managed && containsKey(bot.data, 'dcaTotal')"> DCA: {{ bot.data.dcaTotal }}</span>
             </div>
             <div class="col-8 text-right">
-              <span v-if="bot.managed && containsKey(bot.data, 'tcv')"> TCV: {{ roundNumber(bot.data.tcv, 6) }}</span>
+              <span v-if="bot.managed && containsKey(bot.data, 'tcv')"> TCV: {{ roundNumber(bot.data.tcv, bot.data.guiPrecision) }}</span>
             </div>
           </div>
           <div class="row small" :class="bot.data.totalProfitAllTime === 0 ? 'text-muted' : 'text-soft-dark'">

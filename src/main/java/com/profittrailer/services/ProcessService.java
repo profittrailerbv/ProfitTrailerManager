@@ -429,6 +429,7 @@ public class ProcessService {
 				dataUrl = createUrl(botInfo, "/api/v2/data/stats");
 				String miscUrl = createUrl(botInfo, "/api/v2/data/misc");
 				String propertiesUrl = createUrl(botInfo, "/api/v2/data/properties");
+				String accountUrl = createUrl(botInfo, "/api/v2/account/settings");
 				String pairsUrl = createUrl(botInfo, "/api/v2/data/pairs");
 				String dcaUrl = createUrl(botInfo, "/api/v2/data/dca");
 				String pendingUrl = createUrl(botInfo, "/api/v2/data/pending");
@@ -444,6 +445,10 @@ public class ProcessService {
 				Pair<Integer, String> properties = HttpClientManager.getHttp(propertiesUrl, Collections.emptyList());
 				if (properties.getKey() < 202) {
 					botInfo.setPropertiesData(parser.fromJson(properties.getValue(), JsonObject.class));
+				}
+				Pair<Integer, String> accountSettings = HttpClientManager.getHttp(accountUrl, Collections.emptyList());
+				if (accountSettings.getKey() < 202) {
+					botInfo.setAccountData(parser.fromJson(accountSettings.getValue(), JsonObject.class));
 				}
 				Pair<Integer, String> pairs = HttpClientManager.getHttp(pairsUrl, Collections.emptyList());
 				if (pairs.getKey() < 202) {

@@ -65,6 +65,14 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 			data.addProperty("sellOnlyMode", botInfo.getPropertiesData().get("sellOnlyMode").getAsBoolean());
 		}
 
+		if (botInfo.getAccountData() != null) {
+			int guiPrecision = 5;
+			if (botInfo.getAccountData().has("GUI_PRECISION")) {
+				guiPrecision = Math.min (guiPrecision, botInfo.getAccountData().get("GUI_PRECISION").getAsInt());
+			}
+			data.addProperty("guiPrecision", guiPrecision);
+		}
+
 		JsonArray jsonArray = new JsonArray();
 		if (botInfo.getPairsData() != null) {
 			data.addProperty("pairsTotal", botInfo.getPairsData().size());

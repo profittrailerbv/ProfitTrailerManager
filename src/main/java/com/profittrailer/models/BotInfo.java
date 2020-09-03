@@ -24,6 +24,7 @@ public class BotInfo {
 	private JsonObject statsData;
 	private JsonObject miscData;
 	private JsonObject propertiesData;
+	private JsonObject accountData;
 	private JsonArray pairsData;
 	private JsonArray dcaData;
 	private JsonArray pendingData;
