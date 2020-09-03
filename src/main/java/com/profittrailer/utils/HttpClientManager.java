@@ -49,7 +49,7 @@ public class HttpClientManager {
 		return client;
 	}
 
-	public static String postHttp(String url, List<NameValuePair> params, List<NameValuePair> headers) throws IOException {
+	public static Pair<Integer, String> postHttp(String url, List<NameValuePair> params, List<NameValuePair> headers) throws IOException {
 		String result = null;
 		ResponseHolder holder = postHttpWithResponse(url, params, headers);
 		HttpResponse response = holder.getResponse();
@@ -59,7 +59,7 @@ public class HttpClientManager {
 		}
 
 		holder.getRequest().releaseConnection();
-		return result;
+		return ImmutablePair.of(response.getStatusLine().getStatusCode(), result);
 	}
 
 	public static ResponseHolder postHttpWithResponse(String url, List<NameValuePair> params, List<NameValuePair> headers) throws IOException {

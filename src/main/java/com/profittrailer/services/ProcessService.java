@@ -18,6 +18,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.jutils.jprocesses.JProcesses;
 import org.jutils.jprocesses.model.ProcessInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -584,6 +586,18 @@ public class ProcessService {
 			ssoToken = jsonObject.get("token").getAsString();
 		}
 		return ssoToken;
+	}
+
+	public String toggleSOM(String directoryName, boolean enabled) throws Exception {
+		BotInfo botInfo = botInfoMap.get(directoryName);
+		String somUrl = createUrl(botInfo, "/api/v2/globalSellOnlyMode");
+		List<NameValuePair> params = new ArrayList<>();
+		params.add(new BasicNameValuePair("enabled", String.valueOf(enabled)));
+		Pair<Integer, String> tokenRequest = HttpClientManager.postHttp(somUrl, params, Collections.emptyList());
+		if (tokenRequest.getKey() <= 204) {
+			return String.valueOf(true);
+		}
+		return String.valueOf(false);
 	}
 
 	public void pushGlobalSettings(JsonObject jsonObject) {

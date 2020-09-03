@@ -339,4 +339,12 @@ public class ApiController {
 			log.error("Error saving global properties ", e);
 		}
 	}
+
+	@PostMapping("/toggleSOM")
+	public void toggleSOM(String directoryName, boolean enabled) throws Exception {
+		if (processService.isDemoServer()) {
+			return;
+		}
+		processService.toggleSOM(directoryName, enabled);
+	}
 }
