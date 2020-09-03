@@ -24,11 +24,6 @@
               {{ bot.data.config }} <span class="smallest">({{ bot.data.exchange }})</span>
             </div>
           </div>
-          <div class="row small" :class="bot.data.totalProfitAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
-            <div class="col-12 text-left smaller">
-              {{ bot.data.config }} <span class="smallest">({{ bot.data.exchange }})</span>
-            </div>
-          </div>
           <div class="row text-soft-dark mt-3">
             <div class="col-6 text-left font-weight-bold">
               <span class="">Today ({{ bot.data.totalSalesToday }})</span><br/>
