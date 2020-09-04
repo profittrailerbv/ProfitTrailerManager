@@ -27,6 +27,8 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 		root.addProperty("initialSetup", botInfo.isInitialSetup());
 		root.addProperty("managed", botInfo.isManaged());
 		root.addProperty("url", url);
+		root.addProperty("cpu", botInfo.getProcessInfo() != null ? botInfo.getProcessInfo().getCpuUsage() : "0");
+		root.addProperty("ram", botInfo.getProcessInfo() != null ? botInfo.getProcessInfo().getPhysicalMemory() : "0");
 		root.add("botProperties", new Gson().toJsonTree(botInfo.getBotProperties()));
 
 		JsonObject data = new JsonObject();

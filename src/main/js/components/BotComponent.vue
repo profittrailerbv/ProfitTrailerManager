@@ -120,14 +120,16 @@
         <div style="border-width:1px" class="card-footer border-dark"
              :class="bot.data.totalProfitAllTime > 0 ? 'bg-soft-green' : bot.data.totalProfitAllTime < 0 ? 'bg-soft-red' : ''">
           <div class="row">
-            <div class="col-4 text-left">
+            <div class="col-6 text-left">
               <a v-if="!demoServer && bot.managed" href="#"
                  @click.prevent="toggleSOM(bot.directory, bot.siteName, !bot.data.sellOnlyMode)">
                 <font-awesome-icon :icon="['fas','money-check-alt']"
                                    :class="getSOMClass(bot.data.sellOnlyMode)"></font-awesome-icon>
               </a>
+              C: {{bot.cpu}}
+              R: {{roundNumber(bot.ram/1000,0)}}
             </div>
-            <div class="col-8 text-right">
+            <div class="col-6 text-right">
               <a v-if="!demoServer && bot.managed" href="#"
                  @click.prevent="restartBot(bot.directory, bot.siteName)">
                 <font-awesome-icon :icon="['fas','redo-alt']" class="text-dark"></font-awesome-icon>

@@ -69,6 +69,7 @@ public class ApiController {
 		object.addProperty("baseUrl", StaticUtil.getBaseUrl(request));
 		object.addProperty("demoServer", processService.isDemoServer());
 		object.addProperty("downloadUrl", processService.getDownloadUrl());
+		object.addProperty("version", Util.getVersion());
 
 		return object.toString();
 	}
