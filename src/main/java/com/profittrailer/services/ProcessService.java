@@ -55,8 +55,6 @@ public class ProcessService {
 	private static final String githubUrl = "https://api.github.com/repos/taniman/profit-trailer/releases/latest";
 
 	private String managerToken;
-	@Value("${server.bots.directory:}")
-	private String botsLocation;
 	@Value("${server.bots.autostart:false}")
 	private boolean autoStartManagedBots;
 	@Value("${server.demo:false}")
@@ -141,72 +139,80 @@ public class ProcessService {
 
 	@Scheduled(initialDelay = 10000, fixedDelay = 10000)
 	public void refreshBotData() {
-		try {
-			File botsDirectory = new File(botsLocation);
-			File[] files = botsDirectory.listFiles();
-			if (files != null) {
-				Arrays.stream(files)
-						.filter(File::isDirectory)
-						.filter(e -> e.listFiles() != null
-								&& Arrays.stream(Objects.requireNonNull(e.listFiles()))
-								.anyMatch(f -> f.getName().equalsIgnoreCase("ProfitTrailer.jar")))
-						.map(File::getName)
-						.forEach(e -> {
-							BotInfo botInfo = botInfoMap.getOrDefault(e, new BotInfo(e));
-							botInfo.setBotProperties(getBotProperties(e));
-							String pid = (String) botInfo.getBotProperties().get("process");
-							if (pid != null) {
-								botInfo.setProcessInfo(processInfoMap.get("" + pid));
-							}
-							if (processedInitialized) {
-								getBotData(botInfo);
-								botInfo.setInitialized(initialzed);
-							}
-							botInfo.isUnlinked(botsLocation);
-							botInfoMap.put(e, botInfo);
-						});
+		String[] botsLocations = environment.getProperty("server.bots.directory", "").split(",");
+
+		for (String location : botsLocations) {
+			if (StringUtils.isBlank(location)) {
+				continue;
 			}
 
-			if (autoStartManagedBots && processedInitialized) {
-				for (BotInfo botInfo : botInfoMap.values()) {
+			try {
+				File botsDirectory = new File(location);
+				File[] files = botsDirectory.listFiles();
+				if (files != null) {
+					Arrays.stream(files)
+							.filter(File::isDirectory)
+							.filter(e -> e.listFiles() != null
+									&& Arrays.stream(Objects.requireNonNull(e.listFiles()))
+									.anyMatch(f -> f.getName().equalsIgnoreCase("ProfitTrailer.jar")))
+							.forEach(directory -> {
+								String directoryName = directory.getName();
+								String path = directory.getPath();
+								BotInfo botInfo = botInfoMap.getOrDefault(directoryName, new BotInfo(path, directoryName));
+								botInfo.setBotProperties(getBotProperties(path));
+								String pid = (String) botInfo.getBotProperties().get("process");
+								if (pid != null) {
+									botInfo.setProcessInfo(processInfoMap.get("" + pid));
+								}
+								if (processedInitialized) {
+									getBotData(botInfo);
+									botInfo.setInitialized(initialzed);
+								}
+								botInfo.isUnlinked();
+								botInfoMap.put(directoryName, botInfo);
+							});
+				}
 
-					boolean offline = botInfo.getStatus().equals("OFFLINE");
-					boolean startingUpdating = botInfo.getStatus().equals("STARTING") || botInfo.getStatus().equals("UPDATING");
-					boolean managed = botInfo.isManaged();
-					boolean unlinked = botInfo.isUnlinked(botsLocation);
-					String port = (String) botInfo.getBotProperties().get("port");
+				if (autoStartManagedBots && processedInitialized) {
+					for (BotInfo botInfo : botInfoMap.values()) {
 
-					if (unlinked) {
-						continue;
-					}
+						boolean offline = botInfo.getStatus().equals("OFFLINE");
+						boolean startingUpdating = botInfo.getStatus().equals("STARTING") || botInfo.getStatus().equals("UPDATING");
+						boolean managed = botInfo.isManaged();
+						boolean unlinked = botInfo.isUnlinked();
+						String port = (String) botInfo.getBotProperties().get("port");
 
-					if (!offline
-							&& port != null
-							&& !startingUpdating
-							&& StringUtils.isNotBlank(StaticUtil.url)
-							&& processedInitialized && managed) {
-						String healthUrl = createUrl(botInfo, "/api/v2/health");
-						try {
-							Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
-							if (data.getKey() < 202) {
-								offline = !StringUtils.equalsIgnoreCase(data.getValue(), "true");
+						if (unlinked) {
+							continue;
+						}
+
+						if (!offline
+								&& port != null
+								&& !startingUpdating
+								&& StringUtils.isNotBlank(StaticUtil.url)
+								&& processedInitialized && managed) {
+							String healthUrl = createUrl(botInfo, "/api/v2/health");
+							try {
+								Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
+								if (data.getKey() < 202) {
+									offline = !StringUtils.equalsIgnoreCase(data.getValue(), "true");
+								}
+							} catch (Exception e) {
+								log.error("Error pinging health {}: {}", healthUrl, e.getMessage());
 							}
-						} catch (Exception e) {
-							log.error("Error pinging health {}: {}", healthUrl, e.getMessage());
+						}
+						if (offline && managed) {
+							stopBot(botInfo.getDirectory());
+							Thread.sleep(3000);
+							startBot(botInfo.getDirectory());
+							Thread.sleep(30000);
 						}
 					}
-					if (offline && managed) {
-						stopBot(botInfo.getDirectory());
-						Thread.sleep(3000);
-						startBot(botInfo.getDirectory());
-						Thread.sleep(30000);
-					}
 				}
+			} catch (Exception e) {
+				log.error("Error auto starting bots? ", e);
 			}
-		} catch (Exception e) {
-			log.error("Error auto starting bots? ", e);
 		}
-
 		generateCaddyFile();
 	}
 
@@ -299,7 +305,7 @@ public class ProcessService {
 		commands.add("-XX:+UseSerialGC");
 		commands.add("-XX:+UseStringDeduplication");
 		commands.add("-Xms64m");
-		commands.add(String.format("-Xmx%s", environment.getProperty(directoryName+".startup.xmx","512m")));
+		commands.add(String.format("-Xmx%s", environment.getProperty(directoryName + ".startup.xmx", "512m")));
 		commands.add("-XX:CompressedClassSpaceSize=300m");
 		commands.add("-XX:MaxMetaspaceSize=256m");
 		commands.add("-jar");
@@ -310,26 +316,28 @@ public class ProcessService {
 		}
 		commands.add("--server.manager.token=" + managerToken);
 
+		BotInfo originalBotInfo = botInfoMap.get(directoryName);
+		String path = originalBotInfo.getPath();
 		ProcessBuilder builder = new ProcessBuilder(commands);
-		builder.directory(new File(botsLocation + "/" + directoryName));
+		builder.directory(new File(originalBotInfo.getPath()));
 		builder.redirectErrorStream(true);
 
 		try {
 			if (!botInfoMap.containsKey(directoryName)
 					|| botInfoMap.get(directoryName).getStatus().equals("OFFLINE")) {
 				Process process = builder.start();
-				BotInfo botInfo = botInfoMap.getOrDefault(directoryName, new BotInfo(directoryName));
+				BotInfo botInfo = botInfoMap.getOrDefault(directoryName, new BotInfo(path, directoryName));
 				botInfo.setProcess(process);
 				botInfo.setStartDate(Util.getDateTime());
 
-				File file = new File(botsLocation + "/" + directoryName + "/data/unlinked");
+				File file = new File(botInfo.getPath() + "/data/unlinked");
 				FileSystemUtils.deleteRecursively(file.toPath());
 
 				botInfoMap.put(directoryName, botInfo);
 				Thread.sleep(5000);
 				readError(process);
 			} else {
-				log.info("Skipping bot start {} -- {}" , botInfoMap.containsKey(directoryName), botInfoMap.get(directoryName).getStatus());
+				log.info("Skipping bot start {} -- {}", botInfoMap.containsKey(directoryName), botInfoMap.get(directoryName).getStatus());
 			}
 		} catch (Exception e) {
 			log.error("Error starting bot", e);
@@ -370,7 +378,7 @@ public class ProcessService {
 		bot.clearData();
 
 		try {
-			File file = new File(botsLocation + "/" + botName + "/data/unlinked");
+			File file = new File(bot.getPath() + "/data/unlinked");
 			if (!file.exists() && !file.createNewFile()) {
 				log.error("Error unlinking bot {}", bot.getSiteName());
 			}
@@ -380,9 +388,9 @@ public class ProcessService {
 
 	}
 
-	public Properties getBotProperties(String botName) {
+	public Properties getBotProperties(String path) {
 		try {
-			File file = new File(botsLocation + "/" + botName + "/data/details");
+			File file = new File(path + "/data/details");
 			if (file.exists()) {
 				FileReader reader = new FileReader(file);
 				Properties properties = new Properties();
@@ -544,7 +552,7 @@ public class ProcessService {
 			forceUrl = null;
 		}
 
-		if (!newBot && (!botInfo.isManaged() || botInfo.isUnlinked(botsLocation))) {
+		if (!newBot && (!botInfo.isManaged() || botInfo.isUnlinked())) {
 			log.info("{} is not a managed bot, skipping", botInfo.getSiteName());
 			return;
 		}
@@ -571,7 +579,7 @@ public class ProcessService {
 				stopBot(botInfo.getDirectory());
 				Thread.sleep(2000);
 				log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
-				StaticUtil.copyJar(updateFolder, botsLocation + "/" + botInfo.getDirectory());
+				StaticUtil.copyJar(updateFolder, botInfo.getPath());
 				startBot(botInfo.getDirectory());
 				Thread.sleep(20000);
 				log.info("{} update complete, bot is starting", botInfo.getSiteName());

@@ -15,6 +15,7 @@ import com.profittrailer.utils.constants.SessionType;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,6 +50,9 @@ public class ApiController {
 
 	private static int failedAttempts;
 	private static LocalDateTime timeout = getDateTime();
+
+	@Autowired
+	private Environment environment;
 
 	@PostConstruct
 	public void init() {
@@ -234,12 +238,20 @@ public class ApiController {
 	public void createNewBot(String directoryName,
 	                         HttpServletResponse response) throws IOException {
 
+		String[] botsLocations = environment.getProperty("server.bots.directory", "").split(",");
+
 		if (processService.isDemoServer()) {
 			return;
 		}
 
+		if(botsLocations.length > 1) {
+			log.error("Creation of bot over multiple directories not yet support");
+			return;
+		}
+
 		directoryName = Util.cleanValue(directoryName).toLowerCase(Locale.ROOT);
-		File newBot = new File(processService.getBotsLocation() + File.separator + directoryName);
+		String path = botsLocations[0] + File.separator + directoryName;
+		File newBot = new File(path);
 		if (newBot.exists()) {
 			response.sendError(HttpStatus.BAD_REQUEST.value(), "Directory Already Exists");
 			return;
@@ -249,7 +261,7 @@ public class ApiController {
 		new Thread(() -> {
 			try {
 				Files.createDirectories(newBot.toPath());
-				BotInfo botInfo = new BotInfo(finalDirectoryName);
+				BotInfo botInfo = new BotInfo(path, finalDirectoryName);
 				processService.updateBot(botInfo, null, true, true);
 			} catch (IOException | InterruptedException e) {
 				log.error(e);

@@ -14,6 +14,7 @@ import java.util.Properties;
 @Data
 public class BotInfo {
 
+	private String path;
 	private String directory;
 	private Properties botProperties = new Properties();
 	private String url;
@@ -36,7 +37,8 @@ public class BotInfo {
 	public BotInfo() {
 	}
 
-	public BotInfo(String botName) {
+	public BotInfo(String path, String botName) {
+		this.path = path;
 		this.directory = botName;
 	}
 
@@ -70,8 +72,8 @@ public class BotInfo {
 				|| process != null && process.isAlive();
 	}
 
-	public boolean isUnlinked(String botsLocation) {
-		lastUnlinkedStatus = new File(botsLocation + "/" + directory + "/data/unlinked").exists();
+	public boolean isUnlinked() {
+		lastUnlinkedStatus = new File(path + "/data/unlinked").exists();
 		return lastUnlinkedStatus;
 	}
 
