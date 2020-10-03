@@ -626,4 +626,53 @@ public class ProcessService {
 			}
 		}
 	}
+
+	public JsonObject generateGlobalStats() {
+		double totalProfitTodayLive = 0;
+		double totalProfitTodayTest = 0;
+		double totalProfitLastMonthLive = 0;
+		double totalProfitLastMonthTest = 0;
+		double totalProfitThisMonthLive = 0;
+		double totalProfitThisMonthTest = 0;
+
+		try {
+			for (BotInfo botInfo : botInfoMap.values()) {
+				if (botInfo.getMiscData() == null || !botInfo.getMiscData().has("priceDataUSDConversionRate")) {
+					continue;
+				}
+				if (botInfo.getStatsData() == null) {
+					continue;
+				}
+				if (!botInfo.getStatsData().getAsJsonObject("basic").has("totalProfitLastMonth")) {
+					continue;
+				}
+				double cr = botInfo.getMiscData().get("priceDataUSDConversionRate").getAsDouble();
+				double profitToday = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitToday").getAsDouble() * cr;
+				double profitLastMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitLastMonth").getAsDouble() * cr;
+				double profitThisMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitThisMonth").getAsDouble() * cr;
+				if (botInfo.getPropertiesData().get("testMode").getAsBoolean()) {
+					totalProfitTodayTest += profitToday;
+					totalProfitLastMonthTest += profitLastMonth;
+					totalProfitThisMonthTest += profitThisMonth;
+				} else {
+					totalProfitTodayLive += profitToday;
+					totalProfitLastMonthLive += profitLastMonth;
+					totalProfitThisMonthLive += profitThisMonth;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error(e);
+		}
+
+		JsonObject jsonObject = new JsonObject();
+		jsonObject.addProperty("totalProfitTodayLive", totalProfitTodayLive);
+		jsonObject.addProperty("totalProfitTodayTest", totalProfitTodayTest);
+		jsonObject.addProperty("totalProfitLastMonthLive", totalProfitLastMonthLive);
+		jsonObject.addProperty("totalProfitLastMonthTest", totalProfitLastMonthTest);
+		jsonObject.addProperty("totalProfitThisMonthLive", totalProfitThisMonthLive);
+		jsonObject.addProperty("totalProfitThisMonthTest", totalProfitThisMonthTest);
+
+		return jsonObject;
+	}
 }

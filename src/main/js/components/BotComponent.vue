@@ -357,14 +357,6 @@ export default {
   background-color: #e3a09c;
 }
 
-.text-soft-danger {
-  color: #be584a;
-}
-
-.text-soft-success {
-  color: #61a242;
-}
-
 .smaller {
   font-size: 11px;
 }

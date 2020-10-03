@@ -60,6 +60,10 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 
 			data.addProperty("balance", realBalance);
 			data.addProperty("tcv", realBalance + tcv);
+			data.addProperty("conversionRate", 1);
+			if (botInfo.getMiscData().has("priceDataUSDConversionRate")) {
+				data.addProperty("conversionRate", botInfo.getMiscData().get("priceDataUSDConversionRate").getAsDouble());
+			}
 		}
 		if (botInfo.getPropertiesData() != null) {
 			data.addProperty("paper", botInfo.getPropertiesData().get("testMode").getAsBoolean());

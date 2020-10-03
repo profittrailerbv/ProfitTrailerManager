@@ -360,4 +360,9 @@ public class ApiController {
 		}
 		processService.toggleSOM(directoryName, enabled);
 	}
+
+	@GetMapping("/globalStats")
+	public String globalStats() {
+		return processService.generateGlobalStats().toString();
+	}
 }

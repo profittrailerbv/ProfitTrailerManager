@@ -6,6 +6,14 @@ body {
     color: #606060;
 }
 
+.text-soft-danger {
+  color: #be584a;
+}
+
+.text-soft-success {
+  color: #61a242;
+}
+
 $grid-breakpoints: (
   xxxs: 0,
   xxs: 320px,

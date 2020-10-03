@@ -1,109 +1,203 @@
 <template>
-    <div class="card mb-3">
-        <div class="card-body bg-light text-soft-dark">
-            <div class="row">
-                <div class="col-6">
-                    <h5>
-                        <a href="#" @click.prevent="toggleCards()">
-                            <font-awesome-icon v-if="onlyManaged" class="text-success"
-                                               :icon="['fas','toggle-on']"></font-awesome-icon>
-                            <font-awesome-icon v-if="!onlyManaged" class="text-danger"
-                                               :icon="['fas','toggle-off']"></font-awesome-icon>
-                        </a>
-                        <span v-if="onlyManaged" class="d-none d-sm-inline">Showing Only Managed Bots</span>
-                        <span v-if="!onlyManaged" class="d-none d-sm-inline">Showing All Bots</span>
-                    </h5>
-                </div>
-                <div class="col-6 text-right">
-                    <h5>
-                        <span v-if="latestVersion !== '0.0.0'" class="d-none d-sm-inline">Github latest: {{latestVersion}}</span>
-                        <a v-if="!demoServer" href="#" @click.prevent="updateVersion()" class="text-left">
-                            <font-awesome-icon class="text-danger" :icon="['fas','level-up-alt']"></font-awesome-icon>
-                        </a>
-                    </h5>
-                </div>
-            </div>
+  <div class="card mb-3">
+    <div class="card-body bg-light text-soft-dark">
+      <div class="row">
+        <div class="col-6">
+          <h5>
+            <a href="#" @click.prevent="toggleCards()">
+              <font-awesome-icon v-if="onlyManaged" class="text-success"
+                                 :icon="['fas','toggle-on']"></font-awesome-icon>
+              <font-awesome-icon v-if="!onlyManaged" class="text-danger"
+                                 :icon="['fas','toggle-off']"></font-awesome-icon>
+            </a>
+            <span v-if="onlyManaged" class="d-none d-sm-inline">Showing Only Managed Bots</span>
+            <span v-if="!onlyManaged" class="d-none d-sm-inline">Showing All Bots</span>
+          </h5>
         </div>
+        <div class="col-6 text-right">
+          <h5>
+            <span v-if="latestVersion !== '0.0.0'" class="d-none d-sm-inline">Github latest: {{ latestVersion }}</span>
+            <a v-if="!demoServer" href="#" @click.prevent="updateVersion()" class="text-left">
+              <font-awesome-icon class="text-danger" :icon="['fas','level-up-alt']"></font-awesome-icon>
+            </a>
+          </h5>
+        </div>
+      </div>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xxl-4 pl-3 pr-3">
+        <div class="card pl-1 mt-1 mr-1">
+          <div class="row text-soft-dark">
+            <div class="col-6 text-left font-weight-bold">
+              <span class="">Today(Live)</span><br/>
+            </div>
+            <div class="col-6 text-left font-weight-bold">
+              <span v-if="containsKey(globalStats, 'totalProfitTodayLive')"
+                    :class="globalStats.totalProfitTodayLive > 0 ? 'text-soft-success' : globalStats.totalProfitTodayLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundNumber(globalStats.totalProfitTodayLive, 2) }} USDT
+              </span>
+            </div>
+          </div>
+          <div class="row text-soft-dark">
+            <div class="col-6 text-left font-weight-bold">
+              <span class="">Today(Test)</span><br/>
+            </div>
+            <div class="col-6 text-left font-weight-bold">
+              <span v-if="containsKey(globalStats, 'totalProfitTodayTest')"
+                    :class="globalStats.totalProfitTodayTest > 0 ? 'text-soft-success' : globalStats.totalProfitTodayTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundNumber(globalStats.totalProfitTodayTest, 2) }} USDT
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="card pl-1 mt-1 mr-1">
+          <div class="row text-soft-dark">
+            <div class="col-6 text-left font-weight-bold">
+              <span class="">This Month(Live)</span><br/>
+            </div>
+            <div class="col-6 text-left font-weight-bold">
+              <span v-if="containsKey(globalStats, 'totalProfitThisMonthLive')"
+                    :class="globalStats.totalProfitThisMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundNumber(globalStats.totalProfitThisMonthLive, 2) }} USDT
+              </span>
+            </div>
+          </div>
+          <div class="row text-soft-dark">
+            <div class="col-6 text-left font-weight-bold">
+              <span class="">This Month(Test)</span><br/>
+            </div>
+            <div class="col-6 text-left font-weight-bold">
+              <span v-if="containsKey(globalStats, 'totalProfitThisMonthTest')"
+                    :class="globalStats.totalProfitThisMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundNumber(globalStats.totalProfitThisMonthTest, 2) }} USDT
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="card pl-1 mt-1 mr-1">
+          <div class="row text-soft-dark">
+            <div class="col-6 text-left font-weight-bold">
+              <span class="">Last Month(Live)</span><br/>
+            </div>
+            <div class="col-6 text-left font-weight-bold">
+              <span v-if="containsKey(globalStats, 'totalProfitLastMonthLive')"
+                    :class="globalStats.totalProfitLastMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundNumber(globalStats.totalProfitLastMonthLive, 2) }} USDT
+              </span>
+            </div>
+          </div>
+          <div class="row text-soft-dark">
+            <div class="col-6 text-left font-weight-bold">
+              <span class="">Last Month(Test)</span><br/>
+            </div>
+            <div class="col-6 text-left font-weight-bold">
+              <span v-if="containsKey(globalStats, 'totalProfitLastMonthTest')"
+                    :class="globalStats.totalProfitLastMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundNumber(globalStats.totalProfitLastMonthTest, 2) }} USDT
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
+  </div>
 </template>
 
 <script>
-    export default {
-        data() {
-            return {
-                onlyManaged: false,
-                demoServer: false,
-                latestVersion: '0.0.0',
-                downloadUrl: ''
-            }
-        },
-        methods: {
-            getToggle() {
-                axios.get('/api/v1/toggleCards').then((response) => {
-                    this.onlyManaged = response.data.onlyManaged
-                }).catch((error) => {
-                    console.log(error)
-                })
-            },
-            toggleCards() {
-                axios.post('/api/v1/toggleCards').then((response) => {
-                    this.onlyManaged = response.data.onlyManaged
-                }).catch((error) => {
-                    console.log(error)
-                })
-            },
-            getToggleData() {
-                axios.get('/api/v1/toggleData').then((response) => {
-                    this.latestVersion = response.data.latestVersion
-                    this.downloadUrl = response.data.downloadUrl
-                    this.demoServer = response.data.demoServer
-                }).catch((error) => {
-                    console.log(error)
-                })
-            },
-            updateVersion() {
-                this.$swal.fire({
-                    title: 'Do you really want to update your bots?',
-                    showCancelButton: true,
-                    cancelButtonText: 'Exit',
-                    confirmButtonText: 'Update',
-                    reverseButtons: true,
-                    input: 'text',
-                    inputValue: this.downloadUrl
-                }).then((result) => {
-                    console.log(result.value);
-                    if (result.value) {
-                        let url = result.value;
-                        this.$swal.fire({
-                            title: 'Confirm update',
-                            text: 'Updating from: ' + url,
-                            showCancelButton: true,
-                            cancelButtonText: 'Exit',
-                            confirmButtonText: 'Update',
-                            reverseButtons: true,
-                            input: 'checkbox',
-                            inputValue: false,
-                            inputPlaceholder: "Check to force update"
-                        }).then((result) => {
-                            console.log(result.value);
-                            if (typeof(result.value) !==  'undefined') {
-                                axios.post('/api/v1/updateBots?forceUrl=' + url + '&forceUpdate=' + result.value)
-                                    .then(() => {
-                                        this.$swal.fire('The update procedure has started...');
-                                    }).catch((error) => {
-                                    this.$swal.fire('You encountered an error: ' + error.response.data.message);
-                                })
-                            }
-                        })
-                    }
-                })
-            },
-        },
-        mounted() {
-            this.getToggle();
-            this.getToggleData();
-        }
+export default {
+  data() {
+    return {
+      timer: '',
+      onlyManaged: false,
+      demoServer: false,
+      latestVersion: '0.0.0',
+      downloadUrl: '',
+      globalStats: {}
     }
+  },
+  created() {
+    this.timer = setInterval(this.getGlobalStats, 5000)
+  },
+  methods: {
+    getGlobalStats() {
+      axios.get('/api/v1/globalStats').then((response) => {
+        this.globalStats = response.data
+      }).catch((error) => {
+        console.log(error)
+      })
+    },
+    getToggle() {
+      axios.get('/api/v1/toggleCards').then((response) => {
+        this.onlyManaged = response.data.onlyManaged
+      }).catch((error) => {
+        console.log(error)
+      })
+    },
+    toggleCards() {
+      axios.post('/api/v1/toggleCards').then((response) => {
+        this.onlyManaged = response.data.onlyManaged
+      }).catch((error) => {
+        console.log(error)
+      })
+    },
+    getToggleData() {
+      axios.get('/api/v1/toggleData').then((response) => {
+        this.latestVersion = response.data.latestVersion
+        this.downloadUrl = response.data.downloadUrl
+        this.demoServer = response.data.demoServer
+      }).catch((error) => {
+        console.log(error)
+      })
+    },
+    updateVersion() {
+      this.$swal.fire({
+        title: 'Do you really want to update your bots?',
+        showCancelButton: true,
+        cancelButtonText: 'Exit',
+        confirmButtonText: 'Update',
+        reverseButtons: true,
+        input: 'text',
+        inputValue: this.downloadUrl
+      }).then((result) => {
+        console.log(result.value);
+        if (result.value) {
+          let url = result.value;
+          this.$swal.fire({
+            title: 'Confirm update',
+            text: 'Updating from: ' + url,
+            showCancelButton: true,
+            cancelButtonText: 'Exit',
+            confirmButtonText: 'Update',
+            reverseButtons: true,
+            input: 'checkbox',
+            inputValue: false,
+            inputPlaceholder: "Check to force update"
+          }).then((result) => {
+            console.log(result.value);
+            if (typeof (result.value) !== 'undefined') {
+              axios.post('/api/v1/updateBots?forceUrl=' + url + '&forceUpdate=' + result.value)
+                  .then(() => {
+                    this.$swal.fire('The update procedure has started...');
+                  }).catch((error) => {
+                this.$swal.fire('You encountered an error: ' + error.response.data.message);
+              })
+            }
+          })
+        }
+      })
+    },
+    containsKey(obj, key) {
+      return Object.keys(obj).includes(key);
+    },
+    roundNumber(number, decimals) {
+      return number.toFixed(decimals);
+    },
+  },
+  mounted() {
+    this.getGlobalStats();
+    this.getToggle();
+    this.getToggleData();
+  }
+}
 </script>
 
 <style scoped>
