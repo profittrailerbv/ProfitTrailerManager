@@ -45,21 +45,14 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 		}
 		if (botInfo.getMiscData() != null) {
 			double realBalance = botInfo.getMiscData().get("realBalance").getAsDouble();
-			double tcv = botInfo.getMiscData().get("totalPairsCurrentValue").getAsDouble()
-					+ botInfo.getMiscData().get("totalDCACurrentValue").getAsDouble()
-					+ botInfo.getMiscData().get("totalPendingCurrentValue").getAsDouble()
-					+ botInfo.getMiscData().get("totalDustCurrentValue").getAsDouble();
-			double exchangeTcv = botInfo.getMiscData().get("totalExchangeCurrentValue").getAsDouble();
-			if (exchangeTcv > 0) {
-				tcv = exchangeTcv;
-			}
+			double tcv = StaticUtil.extractTCV(botInfo.getMiscData());
 
 			data.addProperty("exchange", botInfo.getMiscData().get("exchange").getAsString());
 			data.addProperty("version", botInfo.getMiscData().get("version").getAsString());
 			data.addProperty("market", botInfo.getMiscData().get("market").getAsString());
 
 			data.addProperty("balance", realBalance);
-			data.addProperty("tcv", realBalance + tcv);
+			data.addProperty("tcv", tcv);
 			data.addProperty("conversionRate", 1);
 			if (botInfo.getMiscData().has("priceDataUSDConversionRate")) {
 				data.addProperty("conversionRate", botInfo.getMiscData().get("priceDataUSDConversionRate").getAsDouble());

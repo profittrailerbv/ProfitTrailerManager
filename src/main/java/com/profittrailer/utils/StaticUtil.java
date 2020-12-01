@@ -1,5 +1,6 @@
 package com.profittrailer.utils;
 
+import com.google.gson.JsonObject;
 import lombok.extern.log4j.Log4j2;
 import net.lingala.zip4j.ZipFile;
 import org.apache.commons.io.FileUtils;
@@ -213,5 +214,19 @@ public class StaticUtil {
 
 		return result;
 
+	}
+
+	public static double extractTCV(JsonObject miscData){
+		double realBalance = miscData.get("realBalance").getAsDouble();
+		double tcv = miscData.get("totalPairsCurrentValue").getAsDouble()
+				+ miscData.get("totalDCACurrentValue").getAsDouble()
+				+ miscData.get("totalPendingCurrentValue").getAsDouble()
+				+ miscData.get("totalDustCurrentValue").getAsDouble();
+		double exchangeTcv = miscData.get("totalExchangeCurrentValue").getAsDouble();
+		if (exchangeTcv > 0) {
+			tcv = exchangeTcv;
+		}
+
+		return realBalance + tcv;
 	}
 }

@@ -126,8 +126,8 @@
                 <font-awesome-icon :icon="['fas','money-check-alt']"
                                    :class="getSOMClass(bot.data.sellOnlyMode)"></font-awesome-icon>
               </a>
-              C: {{bot.cpu}}
-              R: {{roundNumber(bot.ram/1000,0)}}
+<!--              C: {{bot.cpu}}-->
+<!--              R: {{roundNumber(bot.ram/1000,0)}}-->
             </div>
             <div class="col-6 text-right">
               <a v-if="!demoServer && bot.managed" href="#"

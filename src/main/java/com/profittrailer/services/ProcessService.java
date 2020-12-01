@@ -634,6 +634,8 @@ public class ProcessService {
 		double totalProfitLastMonthTest = 0;
 		double totalProfitThisMonthLive = 0;
 		double totalProfitThisMonthTest = 0;
+		double totalTCVLive = 0;
+		double totalTCVTest = 0;
 
 		try {
 			for (BotInfo botInfo : botInfoMap.values()) {
@@ -646,18 +648,24 @@ public class ProcessService {
 				if (!botInfo.getStatsData().getAsJsonObject("basic").has("totalProfitLastMonth")) {
 					continue;
 				}
+
+
 				double cr = botInfo.getMiscData().get("priceDataUSDConversionRate").getAsDouble();
 				double profitToday = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitToday").getAsDouble() * cr;
 				double profitLastMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitLastMonth").getAsDouble() * cr;
 				double profitThisMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitThisMonth").getAsDouble() * cr;
-				if (botInfo.getPropertiesData().get("testMode").getAsBoolean()) {
+				double tcv = StaticUtil.extractTCV(botInfo.getMiscData()) * cr;
+
+				if (botInfo.getPropertiesData().get("testMode").getAsBoolean() || botInfo.getPropertiesData().get("testnet").getAsBoolean()) {
 					totalProfitTodayTest += profitToday;
 					totalProfitLastMonthTest += profitLastMonth;
 					totalProfitThisMonthTest += profitThisMonth;
+					totalTCVTest += tcv;
 				} else {
 					totalProfitTodayLive += profitToday;
 					totalProfitLastMonthLive += profitLastMonth;
 					totalProfitThisMonthLive += profitThisMonth;
+					totalTCVLive += tcv;
 				}
 			}
 		} catch (Exception e) {
@@ -672,6 +680,8 @@ public class ProcessService {
 		jsonObject.addProperty("totalProfitLastMonthTest", totalProfitLastMonthTest);
 		jsonObject.addProperty("totalProfitThisMonthLive", totalProfitThisMonthLive);
 		jsonObject.addProperty("totalProfitThisMonthTest", totalProfitThisMonthTest);
+		jsonObject.addProperty("totalTCVLive", totalTCVLive);
+		jsonObject.addProperty("totalTCVTest", totalTCVTest);
 
 		return jsonObject;
 	}
