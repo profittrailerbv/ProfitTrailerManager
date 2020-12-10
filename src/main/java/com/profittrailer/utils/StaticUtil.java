@@ -223,7 +223,7 @@ public class StaticUtil {
 				+ miscData.get("totalPendingCurrentValue").getAsDouble()
 				+ miscData.get("totalDustCurrentValue").getAsDouble();
 		double exchangeTcv = miscData.get("totalExchangeCurrentValue").getAsDouble();
-		if (exchangeTcv > 0) {
+		if (exchangeTcv != 0) {
 			tcv = exchangeTcv;
 		}
 
