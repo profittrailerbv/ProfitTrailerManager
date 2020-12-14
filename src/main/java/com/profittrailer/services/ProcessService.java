@@ -139,7 +139,9 @@ public class ProcessService {
 
 	@Scheduled(initialDelay = 10000, fixedDelay = 10000)
 	public void refreshBotData() {
-		String[] botsLocations = environment.getProperty("server.bots.directory", "").split(",");
+		String[] botsLocations = environment.getProperty("server.bots.directory", "")
+				.replace("\\", "/")
+				.split(",");
 
 		for (String location : botsLocations) {
 			if (StringUtils.isBlank(location)) {

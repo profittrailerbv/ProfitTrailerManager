@@ -239,7 +239,9 @@ public class ApiController {
 	public void createNewBot(String directoryName,
 	                         HttpServletResponse response) throws IOException {
 
-		String[] botsLocations = environment.getProperty("server.bots.directory", "").split(",");
+		String[] botsLocations = environment.getProperty("server.bots.directory", "")
+				.replace("\\", "/")
+				.split(",");
 
 		if (processService.isDemoServer()) {
 			return;
