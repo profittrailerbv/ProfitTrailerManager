@@ -157,7 +157,7 @@
 
     <div class="row text-info">
       <div class="col text-left font-weight-bold pr-0 d-flex justify-content-center align-items-center mb-5">
-        <a v-if="!demoServer" href="#" @click.prevent="createNewBot()">
+        <a v-if="!demoServer && !maxBotsReached" href="#" @click.prevent="createNewBot()">
           <font-awesome-icon class="display-1"
                              :icon="['fas','plus-square']"></font-awesome-icon>
         </a>
@@ -174,7 +174,8 @@ export default {
       loading: true,
       timer: '',
       demoServer: false,
-      downloadUrl: ''
+      downloadUrl: '',
+      maxBotsReached: false
     }
   },
   created() {
@@ -186,6 +187,7 @@ export default {
         this.bots = response.data.bots
         this.demoServer = response.data.demoServer
         this.downloadUrl = response.data.downloadUrl
+        this.maxBotsReached = response.data.maxBotsReached
       }).catch((error) => {
         if (!error.response || error.response.status === 502) {
           window.location.href = '/';

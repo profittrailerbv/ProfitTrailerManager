@@ -35,6 +35,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Properties;
 
@@ -64,12 +65,15 @@ public class ApiController {
 	@GetMapping("/data")
 	public String data(HttpServletRequest request) throws MalformedURLException {
 
+		Collection<BotInfo> bots = processService.getBotList(onlyManaged);
+		Collection<BotInfo> allBots = processService.getBotList(false);
 		JsonObject object = new JsonObject();
-		object.add("bots", parser.toJsonTree(processService.getBotList(onlyManaged)));
+		object.add("bots", parser.toJsonTree(bots));
 		object.addProperty("baseUrl", StaticUtil.getBaseUrl(request));
 		object.addProperty("demoServer", processService.isDemoServer());
 		object.addProperty("downloadUrl", processService.getDownloadUrl());
 		object.addProperty("version", Util.getVersion());
+		object.addProperty("maxBotsReached", allBots.size() >= processService.getMaxBots());
 
 		return object.toString();
 	}
@@ -244,6 +248,12 @@ public class ApiController {
 				.split(",");
 
 		if (processService.isDemoServer()) {
+			return;
+		}
+
+		Collection<BotInfo> allBots = processService.getBotList(false);
+		if (allBots.size() >= processService.getMaxBots()) {
+			log.error("You have reached max bots limit");
 			return;
 		}
 
