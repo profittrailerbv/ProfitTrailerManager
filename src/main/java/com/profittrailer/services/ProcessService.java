@@ -40,10 +40,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -630,6 +632,7 @@ public class ProcessService {
 	}
 
 	public JsonObject generateGlobalStats() {
+		Set<String> accountIds = new HashSet<>();
 		double totalProfitTodayLive = 0;
 		double totalProfitTodayTest = 0;
 		double totalProfitLastMonthLive = 0;
@@ -651,8 +654,16 @@ public class ProcessService {
 					continue;
 				}
 
-
 				double cr = botInfo.getMiscData().get("priceDataUSDConversionRate").getAsDouble();
+				String accountId = "";
+				String market = "";
+				if (botInfo.getMiscData().has("market")) {
+					market = botInfo.getMiscData().get("market").getAsString();
+				}
+				if (botInfo.getMiscData().has("accountId")) {
+					accountId = botInfo.getMiscData().get("accountId").getAsString();
+				}
+
 				double profitToday = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitToday").getAsDouble() * cr;
 				double profitLastMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitLastMonth").getAsDouble() * cr;
 				double profitThisMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitThisMonth").getAsDouble() * cr;
@@ -667,7 +678,13 @@ public class ProcessService {
 					totalProfitTodayLive += profitToday;
 					totalProfitLastMonthLive += profitLastMonth;
 					totalProfitThisMonthLive += profitThisMonth;
-					totalTCVLive += tcv;
+					if (StringUtils.isBlank(accountId) || !accountIds.contains(market + accountId)) {
+						totalTCVLive += tcv;
+
+						if (StringUtils.isNotBlank(accountId)) {
+							accountIds.add(market + accountId);
+						}
+					}
 				}
 			}
 		} catch (Exception e) {
