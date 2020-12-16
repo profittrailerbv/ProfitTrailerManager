@@ -59,7 +59,7 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 			}
 		}
 		if (botInfo.getPropertiesData() != null) {
-			data.addProperty("paper", botInfo.getPropertiesData().get("testMode").getAsBoolean());
+			data.addProperty("paper", botInfo.getPropertiesData().get("testMode").getAsBoolean() || botInfo.getPropertiesData().get("testnet").getAsBoolean());
 			data.addProperty("config", botInfo.getPropertiesData().get("activeConfig").getAsString());
 			data.addProperty("sellOnlyMode", botInfo.getPropertiesData().get("sellOnlyMode").getAsBoolean());
 		}

@@ -414,8 +414,7 @@ public class ProcessService {
 		return botInfoMap.values()
 				.stream()
 				.sorted(Comparator.comparing(BotInfo::isManaged, Comparator.reverseOrder())
-						.thenComparing(e -> e.getSiteName().substring(0, 1))
-						.thenComparing(BotInfo::getProfitToday, Comparator.reverseOrder()))
+						.thenComparing(BotInfo::getSiteName))
 				.filter(e -> {
 					if (!onlyManaged) {
 						return true;
