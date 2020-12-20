@@ -85,7 +85,7 @@ public class ApiController {
 		}
 		processService.stopBot(directoryName);
 		Thread.sleep(5000);
-		processService.startBot(directoryName);
+		processService.startBot(processService.getBotInfoMap().get(directoryName));
 
 	}
 

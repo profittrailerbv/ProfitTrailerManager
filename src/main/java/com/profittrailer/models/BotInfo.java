@@ -67,9 +67,7 @@ public class BotInfo {
 			return false;
 		}
 
-		return Boolean.parseBoolean((String) botProperties.getOrDefault("managed", "false"))
-				|| processInfo != null && StringUtils.containsIgnoreCase(processInfo.getName(), "java")
-				|| process != null && process.isAlive();
+		return Boolean.parseBoolean((String) botProperties.getOrDefault("managed", "false"));
 	}
 
 	public boolean isUnlinked() {

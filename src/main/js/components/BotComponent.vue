@@ -66,10 +66,9 @@
           <div class="row text-soft-dark mt-3">
             <div class="col-12 text-left">
               <span
-                  v-if="bot.managed && containsKey(bot.data, 'lastSaleMinutes')"> Last sale {{
-                  bot.data.lastSaleMinutes
-                }} minutes ago ({{ roundNumber(bot.data.lastSaleProfit, 2) }}%) </span>
-              <span v-if="!bot.managed || !containsKey(bot.data, 'lastSaleMinutes')">&nbsp;</span>
+                  v-if="bot.managed && containsKey(bot.data, 'lastSaleMinutesString')"> Last sale {{
+                  bot.data.lastSaleMinutesString}} ({{ roundNumber(bot.data.lastSaleProfit, 2) }}%) </span>
+              <span v-if="!bot.managed || !containsKey(bot.data, 'lastSaleMinutesString')">&nbsp;</span>
             </div>
           </div>
         </div>

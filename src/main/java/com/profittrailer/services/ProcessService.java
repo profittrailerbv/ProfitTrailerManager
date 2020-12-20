@@ -210,7 +210,7 @@ public class ProcessService {
 						if (offline && managed) {
 							stopBot(botInfo.getDirectory());
 							Thread.sleep(3000);
-							startBot(botInfo.getDirectory());
+							startBot(botInfo);
 							Thread.sleep(30000);
 						}
 					}
@@ -304,7 +304,13 @@ public class ProcessService {
 		readError(process);
 	}
 
-	public void startBot(String directoryName) {
+	public void startBot(BotInfo originalBotInfo) {
+		if (originalBotInfo == null) {
+			return;
+		}
+
+		String directoryName = originalBotInfo.getDirectory();
+
 		List<String> commands = new ArrayList<>();
 		commands.add("java");
 		commands.add("-Djava.net.preferIPv4Stack=true");
@@ -322,7 +328,6 @@ public class ProcessService {
 		}
 		commands.add("--server.manager.token=" + managerToken);
 
-		BotInfo originalBotInfo = botInfoMap.get(directoryName);
 		String path = originalBotInfo.getPath();
 		ProcessBuilder builder = new ProcessBuilder(commands);
 		builder.directory(new File(originalBotInfo.getPath()));
@@ -585,7 +590,7 @@ public class ProcessService {
 				Thread.sleep(2000);
 				log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
 				StaticUtil.copyJar(updateFolder, botInfo.getPath());
-				startBot(botInfo.getDirectory());
+				startBot(botInfo);
 				Thread.sleep(20000);
 				log.info("{} update complete, bot is starting", botInfo.getSiteName());
 			}

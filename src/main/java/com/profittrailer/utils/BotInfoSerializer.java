@@ -67,7 +67,7 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 		if (botInfo.getAccountData() != null) {
 			int guiPrecision = 5;
 			if (botInfo.getAccountData().has("GUI_PRECISION")) {
-				guiPrecision = Math.min (guiPrecision, botInfo.getAccountData().get("GUI_PRECISION").getAsInt());
+				guiPrecision = Math.min(guiPrecision, botInfo.getAccountData().get("GUI_PRECISION").getAsInt());
 			}
 			data.addProperty("guiPrecision", guiPrecision);
 		}
@@ -99,7 +99,7 @@ public class BotInfoSerializer implements JsonSerializer<BotInfo> {
 			}
 			if (date > 0) {
 				long minutes = StaticUtil.minutesLeft(date, Util.getUTCDateTime().toEpochSecond(ZoneOffset.UTC));
-				data.addProperty("lastSaleMinutes", minutes);
+				data.addProperty("lastSaleMinutesString", Util.minutesToHoursAndDays(minutes));
 				data.addProperty("lastSaleProfit", profit);
 			}
 		}

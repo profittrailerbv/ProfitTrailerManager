@@ -96,4 +96,15 @@ public class Util {
 		}
 		return version;
 	}
+
+	public static String minutesToHoursAndDays(long minutes) {
+		if (minutes > 525600) {
+			return Math.round(minutes / 525600.0) + " years ago";
+		} else if (minutes > 1440) {
+			return Math.round(minutes / 1440.0) + " days ago";
+		} else if (minutes > 60) {
+			return Math.round(minutes / 60.0) + " hours ago";
+		}
+		return minutes + " minutes ago";
+	}
 }
