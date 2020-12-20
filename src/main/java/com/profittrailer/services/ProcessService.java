@@ -645,6 +645,8 @@ public class ProcessService {
 		double totalProfitLastMonthTest = 0;
 		double totalProfitThisMonthLive = 0;
 		double totalProfitThisMonthTest = 0;
+		double totalProfitAllTimeLive = 0;
+		double totalProfitAllTimeTest = 0;
 		double totalTCVLive = 0;
 		double totalTCVTest = 0;
 
@@ -673,17 +675,20 @@ public class ProcessService {
 				double profitToday = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitToday").getAsDouble() * cr;
 				double profitLastMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitLastMonth").getAsDouble() * cr;
 				double profitThisMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitThisMonth").getAsDouble() * cr;
+				double profitAllTime = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfit").getAsDouble() * cr;
 				double tcv = StaticUtil.extractTCV(botInfo.getMiscData()) * cr;
 
 				if (botInfo.getPropertiesData().get("testMode").getAsBoolean() || botInfo.getPropertiesData().get("testnet").getAsBoolean()) {
 					totalProfitTodayTest += profitToday;
 					totalProfitLastMonthTest += profitLastMonth;
 					totalProfitThisMonthTest += profitThisMonth;
+					totalProfitAllTimeTest += profitAllTime;
 					totalTCVTest += tcv;
 				} else {
 					totalProfitTodayLive += profitToday;
 					totalProfitLastMonthLive += profitLastMonth;
 					totalProfitThisMonthLive += profitThisMonth;
+					totalProfitAllTimeLive += profitAllTime;
 					if (StringUtils.isBlank(accountId) || !accountIds.contains(market + accountId)) {
 						totalTCVLive += tcv;
 
@@ -705,6 +710,8 @@ public class ProcessService {
 		jsonObject.addProperty("totalProfitLastMonthTest", totalProfitLastMonthTest);
 		jsonObject.addProperty("totalProfitThisMonthLive", totalProfitThisMonthLive);
 		jsonObject.addProperty("totalProfitThisMonthTest", totalProfitThisMonthTest);
+		jsonObject.addProperty("totalProfitAllTimeLive", totalProfitAllTimeLive);
+		jsonObject.addProperty("totalProfitAllTimeTest", totalProfitAllTimeTest);
 		jsonObject.addProperty("totalTCVLive", totalTCVLive);
 		jsonObject.addProperty("totalTCVTest", totalTCVTest);
 
