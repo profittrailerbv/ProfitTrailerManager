@@ -308,7 +308,6 @@ export default {
         input: 'text',
         inputValue: this.downloadUrl
       }).then((result) => {
-        console.log(result.value);
         if (result.value) {
           let url = result.value;
           axios.post('/api/v1/updateBots?forceUrl=' + url + '&directoryName=' + name)

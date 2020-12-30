@@ -42,6 +42,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -79,6 +80,11 @@ public class ProcessService {
 	@Value("${server.port:10000}")
 	private int port;
 
+	private double coinGeckoExchangeRate = 1;
+	private List<String> coinGeckoSupportedCurrencies = new ArrayList<>();
+	private String coinGeckoSupportedUrl = "https://api.coingecko.com/api/v3/simple/supported_vs_currencies";
+	private String coinGeckoPriceUrl = "https://api.coingecko.com/api/v3/simple/price?";
+
 	@Autowired
 	private Environment environment;
 
@@ -99,6 +105,20 @@ public class ProcessService {
 		if (StringUtils.isNotBlank(caddyDomain)) {
 			StaticUtil.url = "https://" + caddyDomain;
 		}
+
+		try {
+			Pair<Integer, String> data = HttpClientManager.getHttp(coinGeckoSupportedUrl, Collections.emptyList());
+			if (data.getKey() < 202) {
+				JsonArray jsonArray = parser.fromJson(data.getValue(), JsonArray.class);
+				coinGeckoSupportedCurrencies.add("");
+				for (JsonElement element : jsonArray) {
+					coinGeckoSupportedCurrencies.add(element.getAsString().toUpperCase(Locale.ROOT));
+				}
+			}
+		} catch (Exception e) {
+			log.error("There was an error getting our list from coin gecko");
+		}
+
 	}
 
 	@Scheduled(initialDelay = 10000, fixedDelay = 900000)
@@ -122,6 +142,45 @@ public class ProcessService {
 		} catch (Exception e) {
 			log.error("Error updating github ", e);
 		}
+	}
+
+	@Scheduled(initialDelay = 10000, fixedDelay = 30000)
+	public void updateCurrency() {
+		try {
+			String currency = getStoredCurrency();
+
+			if (!currency.equals("USDT")) {
+				String url = coinGeckoPriceUrl + "ids=TETHER" + "&vs_currencies=" + currency;
+				Pair<Integer, String> data = HttpClientManager.getHttp(url, Collections.emptyList());
+				if (data.getKey() < 202) {
+					JsonObject jsonObject = parser.fromJson(data.getValue(), JsonObject.class);
+					coinGeckoExchangeRate = jsonObject.get("tether").getAsJsonObject()
+							.get(currency.toLowerCase(Locale.ROOT)).getAsDouble();
+				}
+			} else {
+				coinGeckoExchangeRate = 1;
+			}
+		} catch (Exception e) {
+			log.error("Error updating currency ", e);
+		}
+	}
+
+	private String getStoredCurrency() {
+		String currency = "USDT";
+		try {
+			File file = new File("application.properties");
+			if (file.exists()) {
+				FileReader reader = new FileReader(file);
+				Properties properties = new Properties();
+				properties.load(reader);
+
+				currency = (String) properties.getOrDefault("server.settings.currency", "USDT");
+			}
+		} catch (Exception e) {
+			log.error("Unable to read properties file..");
+		}
+
+		return currency;
 	}
 
 	@Scheduled(initialDelay = 10000, fixedDelay = 10000)
@@ -555,7 +614,6 @@ public class ProcessService {
 
 	public void updateBot(BotInfo botInfo,
 	                      String forceUrl,
-	                      boolean forceUpdate,
 	                      boolean newBot) throws IOException, InterruptedException {
 
 		if (forceUrl != null && forceUrl.trim().equalsIgnoreCase(downloadUrl)) {
@@ -567,14 +625,6 @@ public class ProcessService {
 			return;
 		}
 
-		String version = "0.0.0";
-		if (botInfo.getMiscData() == null && !forceUpdate) {
-			log.info("{} -- Version not known, skipping", botInfo.getSiteName());
-			return;
-		} else if (botInfo.getMiscData() != null) {
-			version = botInfo.getMiscData().get("version").getAsString();
-		}
-
 		String updateMessage = latestVersion;
 		String updateUrl = downloadUrl;
 		if (StringUtils.isNotBlank(forceUrl)) {
@@ -582,21 +632,18 @@ public class ProcessService {
 			updateUrl = forceUrl;
 		}
 
-		if (StaticUtil.isUpdateAvailable(version, latestVersion) || StringUtils.isNotBlank(forceUrl) || forceUpdate) {
-			String updateFolder = StaticUtil.unzip(updateUrl);
-			if (updateFolder != null) {
-				botInfo.setUpdateDate(Util.getDateTime());
-				stopBot(botInfo.getDirectory());
-				Thread.sleep(2000);
-				log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
-				StaticUtil.copyJar(updateFolder, botInfo.getPath());
-				startBot(botInfo);
-				Thread.sleep(20000);
-				log.info("{} update complete, bot is starting", botInfo.getSiteName());
-			}
-		} else {
-			log.info("{} is using a newer version, try forcing an update", botInfo.getSiteName());
+		String updateFolder = StaticUtil.unzip(updateUrl);
+		if (updateFolder != null) {
+			botInfo.setUpdateDate(Util.getDateTime());
+			stopBot(botInfo.getDirectory());
+			Thread.sleep(2000);
+			log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
+			StaticUtil.copyJar(updateFolder, botInfo.getPath());
+			startBot(botInfo);
+			Thread.sleep(20000);
+			log.info("{} update complete, bot is starting", botInfo.getSiteName());
 		}
+
 	}
 
 	public String getSSOKey(String directoryName) throws Exception {
@@ -649,6 +696,7 @@ public class ProcessService {
 		double totalProfitAllTimeTest = 0;
 		double totalTCVLive = 0;
 		double totalTCVTest = 0;
+		String currency = getStoredCurrency();
 
 		try {
 			for (BotInfo botInfo : botInfoMap.values()) {
@@ -672,11 +720,11 @@ public class ProcessService {
 					accountId = botInfo.getMiscData().get("accountId").getAsString();
 				}
 
-				double profitToday = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitToday").getAsDouble() * cr;
-				double profitLastMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitLastMonth").getAsDouble() * cr;
-				double profitThisMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitThisMonth").getAsDouble() * cr;
-				double profitAllTime = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfit").getAsDouble() * cr;
-				double tcv = StaticUtil.extractTCV(botInfo.getMiscData()) * cr;
+				double profitToday = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitToday").getAsDouble() * cr * coinGeckoExchangeRate;
+				double profitLastMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitLastMonth").getAsDouble() * cr * coinGeckoExchangeRate;
+				double profitThisMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitThisMonth").getAsDouble() * cr * coinGeckoExchangeRate;
+				double profitAllTime = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfit").getAsDouble() * cr * coinGeckoExchangeRate;
+				double tcv = StaticUtil.extractTCV(botInfo.getMiscData()) * cr * coinGeckoExchangeRate;
 
 				if (botInfo.getPropertiesData().get("testMode").getAsBoolean() || botInfo.getPropertiesData().get("testnet").getAsBoolean()) {
 					totalProfitTodayTest += profitToday;
@@ -714,6 +762,7 @@ public class ProcessService {
 		jsonObject.addProperty("totalProfitAllTimeTest", totalProfitAllTimeTest);
 		jsonObject.addProperty("totalTCVLive", totalTCVLive);
 		jsonObject.addProperty("totalTCVTest", totalTCVTest);
+		jsonObject.addProperty("currency", currency);
 
 		return jsonObject;
 	}

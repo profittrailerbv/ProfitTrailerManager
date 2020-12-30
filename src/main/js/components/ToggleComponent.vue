@@ -25,130 +25,138 @@
       </div>
       <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xxl-4 pl-3 pr-3">
         <div class="card pl-1 mt-1">
-          <div class="row text-soft-dark">
-            <div class="col-5 text-left font-weight-bold">
-              <span class="">Today (Live)</span><br/>
-            </div>
-            <div class="col-7 text-left font-weight-bold">
+          <div class="col-12 text-left font-weight-bold">
+            <div class="row text-soft-dark mb-xxs-2 mb-sm-0">
+              <div class="col-xs-12 col-md-4 pl-0 text-left font-weight-bold">
+                <span class="">Today (L)</span><br/>
+              </div>
+              <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
               <span v-if="containsKey(globalStats, 'totalProfitTodayLive')"
                     :class="globalStats.totalProfitTodayLive > 0 ? 'text-soft-success' : globalStats.totalProfitTodayLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundNumber(globalStats.totalProfitTodayLive, 2) }} USDT
+                {{ roundNumber(globalStats.totalProfitTodayLive, 2) }} {{ globalStats.currency }}
               </span>
-              <span v-if="containsKey(globalStats, 'totalProfitTodayLive') && globalStats.totalTCVLive > 0"
-                    :class="globalStats.totalProfitTodayLive > 0 ? 'text-soft-success' : globalStats.totalProfitTodayLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                <span v-if="containsKey(globalStats, 'totalProfitTodayLive') && globalStats.totalTCVLive > 0"
+                      :class="globalStats.totalProfitTodayLive > 0 ? 'text-soft-success' : globalStats.totalProfitTodayLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                 ({{ roundNumber(globalStats.totalProfitTodayLive / globalStats.totalTCVLive * 100, 2) }}%)
               </span>
+              </div>
             </div>
-          </div>
-          <div class="row text-soft-dark">
-            <div class="col-5 text-left font-weight-bold">
-              <span class="">Today (Test)</span><br/>
-            </div>
-            <div class="col-7 text-left font-weight-bold">
+            <div class="row text-soft-dark">
+              <div class="col-xs-12 col-md-4 pl-0 text-left font-weight-bold">
+                <span class="">Today (T)</span><br/>
+              </div>
+              <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
               <span v-if="containsKey(globalStats, 'totalProfitTodayTest')"
                     :class="globalStats.totalProfitTodayTest > 0 ? 'text-soft-success' : globalStats.totalProfitTodayTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundNumber(globalStats.totalProfitTodayTest, 2) }} USDT
+                {{ roundNumber(globalStats.totalProfitTodayTest, 2) }} {{ globalStats.currency }}
               </span>
-              <span v-if="containsKey(globalStats, 'totalProfitTodayTest') && globalStats.totalTCVTest > 0"
-                    :class="globalStats.totalProfitTodayTest > 0 ? 'text-soft-success' : globalStats.totalProfitTodayTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                <span v-if="containsKey(globalStats, 'totalProfitTodayTest') && globalStats.totalTCVTest > 0"
+                      :class="globalStats.totalProfitTodayTest > 0 ? 'text-soft-success' : globalStats.totalProfitTodayTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                 ({{ roundNumber(globalStats.totalProfitTodayTest / globalStats.totalTCVTest * 100, 2) }}%)
               </span>
+              </div>
             </div>
           </div>
         </div>
         <div class="card pl-1 mt-1">
-          <div class="row text-soft-dark">
-            <div class="col-5 text-left font-weight-bold">
-              <span class="">Month (Live)</span><br/>
-            </div>
-            <div class="col-7 text-left font-weight-bold">
+          <div class="col-12 text-left font-weight-bold">
+            <div class="row text-soft-dark mb-xxs-2 mb-sm-0">
+              <div class="col-xs-12 col-md-4 pl-0 text-left font-weight-bold">
+                <span class="">Month (L)</span><br/>
+              </div>
+              <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
               <span v-if="containsKey(globalStats, 'totalProfitThisMonthLive')"
                     :class="globalStats.totalProfitThisMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundNumber(globalStats.totalProfitThisMonthLive, 2) }} USDT
+                {{ roundNumber(globalStats.totalProfitThisMonthLive, 2) }} {{ globalStats.currency }}
               </span>
-              <span v-if="containsKey(globalStats, 'totalProfitThisMonthLive') && globalStats.totalTCVLive > 0"
-                    :class="globalStats.totalProfitThisMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                <span v-if="containsKey(globalStats, 'totalProfitThisMonthLive') && globalStats.totalTCVLive > 0"
+                      :class="globalStats.totalProfitThisMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                 ({{ roundNumber(globalStats.totalProfitThisMonthLive / globalStats.totalTCVLive * 100, 2) }}%)
               </span>
+              </div>
             </div>
-          </div>
-          <div class="row text-soft-dark">
-            <div class="col-5 text-left font-weight-bold">
-              <span class="">Month (Test)</span><br/>
-            </div>
-            <div class="col-7 text-left font-weight-bold">
+            <div class="row text-soft-dark">
+              <div class="col-xs-12 col-md-4 pl-0 text-left font-weight-bold">
+                <span class="">Month (T)</span><br/>
+              </div>
+              <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
               <span v-if="containsKey(globalStats, 'totalProfitThisMonthTest')"
                     :class="globalStats.totalProfitThisMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundNumber(globalStats.totalProfitThisMonthTest, 2) }} USDT
+                {{ roundNumber(globalStats.totalProfitThisMonthTest, 2) }} {{ globalStats.currency }}
               </span>
-              <span v-if="containsKey(globalStats, 'totalProfitThisMonthTest') && globalStats.totalTCVTest > 0"
-                    :class="globalStats.totalProfitThisMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                <span v-if="containsKey(globalStats, 'totalProfitThisMonthTest') && globalStats.totalTCVTest > 0"
+                      :class="globalStats.totalProfitThisMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                 ({{ roundNumber(globalStats.totalProfitThisMonthTest / globalStats.totalTCVTest * 100, 2) }}%)
               </span>
+              </div>
             </div>
           </div>
         </div>
         <div class="card pl-1 mt-1">
-          <div class="row text-soft-dark">
-            <div class="col-5 text-left font-weight-bold">
-              <span class="">P-Month (Live)</span><br/>
-            </div>
-            <div class="col-7 text-left font-weight-bold">
+          <div class="col-12 text-left font-weight-bold">
+            <div class="row text-soft-dark mb-xxs-2 mb-sm-0">
+              <div class="col-xs-12 col-md-4 pl-0 text-left font-weight-bold">
+                <span class="">P-Month (L)</span><br/>
+              </div>
+              <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
               <span v-if="containsKey(globalStats, 'totalProfitLastMonthLive')"
                     :class="globalStats.totalProfitLastMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundNumber(globalStats.totalProfitLastMonthLive, 2) }} USDT
+                {{ roundNumber(globalStats.totalProfitLastMonthLive, 2) }} {{ globalStats.currency }}
               </span>
-              <span v-if="containsKey(globalStats, 'totalProfitLastMonthLive') && globalStats.totalTCVLive > 0"
-                    :class="globalStats.totalProfitLastMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                <span v-if="containsKey(globalStats, 'totalProfitLastMonthLive') && globalStats.totalTCVLive > 0"
+                      :class="globalStats.totalProfitLastMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                 ({{ roundNumber(globalStats.totalProfitLastMonthLive / globalStats.totalTCVLive * 100, 2) }}%)
               </span>
+              </div>
             </div>
-          </div>
-          <div class="row text-soft-dark">
-            <div class="col-5 text-left font-weight-bold">
-              <span class="">P-Month (Test)</span><br/>
-            </div>
-            <div class="col-7 text-left font-weight-bold">
+            <div class="row text-soft-dark">
+              <div class="col-xs-12 col-md-4 pl-0 text-left font-weight-bold">
+                <span class="">P-Month (T)</span><br/>
+              </div>
+              <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
               <span v-if="containsKey(globalStats, 'totalProfitLastMonthTest')"
                     :class="globalStats.totalProfitLastMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundNumber(globalStats.totalProfitLastMonthTest, 2) }} USDT
+                {{ roundNumber(globalStats.totalProfitLastMonthTest, 2) }} {{ globalStats.currency }}
               </span>
-              <span v-if="containsKey(globalStats, 'totalProfitLastMonthTest') && globalStats.totalTCVTest > 0"
-                    :class="globalStats.totalProfitLastMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                <span v-if="containsKey(globalStats, 'totalProfitLastMonthTest') && globalStats.totalTCVTest > 0"
+                      :class="globalStats.totalProfitLastMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                 ({{ roundNumber(globalStats.totalProfitLastMonthTest / globalStats.totalTCVTest * 100, 2) }}%)
               </span>
+              </div>
             </div>
           </div>
         </div>
         <div class="card pl-1 mt-1">
-          <div class="row text-soft-dark">
-            <div class="col-4 text-left font-weight-bold">
-              <span class="">All (Live)</span><br/>
-            </div>
-            <div class="col-8 text-left font-weight-bold">
+          <div class="col-12 text-left font-weight-bold">
+            <div class="row text-soft-dark mb-xxs-2 mb-sm-0">
+              <div class="col-xs-12 col-md-4 pl-0 text-left font-weight-bold">
+                <span class="">All (L)</span><br/>
+              </div>
+              <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
               <span v-if="containsKey(globalStats, 'totalProfitAllTimeLive')"
                     :class="globalStats.totalProfitAllTimeLive > 0 ? 'text-soft-success' : globalStats.totalProfitAllTimeLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundNumber(globalStats.totalProfitAllTimeLive, 2) }} USDT
+                {{ roundNumber(globalStats.totalProfitAllTimeLive, 2) }} {{ globalStats.currency }}
               </span>
-              <span v-if="containsKey(globalStats, 'totalProfitAllTimeLive') && globalStats.totalTCVLive > 0"
-                    :class="globalStats.totalProfitAllTimeLive > 0 ? 'text-soft-success' : globalStats.totalProfitAllTimeLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                <span v-if="containsKey(globalStats, 'totalProfitAllTimeLive') && globalStats.totalTCVLive > 0"
+                      :class="globalStats.totalProfitAllTimeLive > 0 ? 'text-soft-success' : globalStats.totalProfitAllTimeLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                 ({{ roundNumber(globalStats.totalProfitAllTimeLive / globalStats.totalTCVLive * 100, 2) }}%)
               </span>
+              </div>
             </div>
-          </div>
-          <div class="row text-soft-dark">
-            <div class="col-4 text-left font-weight-bold">
-              <span class="">All (Test)</span><br/>
-            </div>
-            <div class="col-8 text-left font-weight-bold">
+            <div class="row text-soft-dark">
+              <div class="col-xs-12 col-md-4 pl-0 text-left font-weight-bold">
+                <span class="">All (T)</span><br/>
+              </div>
+              <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
               <span v-if="containsKey(globalStats, 'totalProfitAllTimeTest')"
                     :class="globalStats.totalProfitAllTimeTest > 0 ? 'text-soft-success' : globalStats.totalProfitAllTimeTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundNumber(globalStats.totalProfitAllTimeTest, 2) }} USDT
+                {{ roundNumber(globalStats.totalProfitAllTimeTest, 2) }} {{ globalStats.currency }}
               </span>
-              <span v-if="containsKey(globalStats, 'totalProfitAllTimeTest') && globalStats.totalTCVTest > 0"
-                    :class="globalStats.totalProfitAllTimeTest > 0 ? 'text-soft-success' : globalStats.totalProfitAllTimeTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                <span v-if="containsKey(globalStats, 'totalProfitAllTimeTest') && globalStats.totalTCVTest > 0"
+                      :class="globalStats.totalProfitAllTimeTest > 0 ? 'text-soft-success' : globalStats.totalProfitAllTimeTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
                 ({{ roundNumber(globalStats.totalProfitAllTimeTest / globalStats.totalTCVTest * 100, 2) }}%)
               </span>
+              </div>
             </div>
           </div>
         </div>
@@ -223,20 +231,14 @@ export default {
             showCancelButton: true,
             cancelButtonText: 'Exit',
             confirmButtonText: 'Update',
-            reverseButtons: true,
-            input: 'checkbox',
-            inputValue: false,
-            inputPlaceholder: "Check to force update"
+            reverseButtons: true
           }).then((result) => {
-            console.log(result.value);
-            if (typeof (result.value) !== 'undefined') {
-              axios.post('/api/v1/updateBots?forceUrl=' + url + '&forceUpdate=' + result.value)
-                  .then(() => {
-                    this.$swal.fire('The update procedure has started...');
-                  }).catch((error) => {
-                this.$swal.fire('You encountered an error: ' + error.response.data.message);
-              })
-            }
+            axios.post('/api/v1/updateBots?forceUrl=' + url)
+                .then(() => {
+                  this.$swal.fire('The update procedure has started...');
+                }).catch((error) => {
+              this.$swal.fire('You encountered an error: ' + error.response.data.message);
+            })
           })
         }
       })

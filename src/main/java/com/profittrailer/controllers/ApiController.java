@@ -20,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
@@ -144,18 +143,11 @@ public class ApiController {
 
 	@PostMapping("/updateBots")
 	public void updateBots(String forceUrl,
-	                       @RequestParam(defaultValue = "false") boolean forceUpdate,
 	                       String directoryName) {
 
 		if (processService.isDemoServer()) {
 			return;
 		}
-
-		if (directoryName != null) {
-			forceUpdate = true;
-		}
-
-		boolean finalForceUpdate = forceUpdate;
 
 		new Thread(() -> {
 			for (String dir : processService.getBotInfoMap().keySet()) {
@@ -165,7 +157,7 @@ public class ApiController {
 
 				try {
 					BotInfo botInfo = processService.getBotInfoMap().get(dir);
-					processService.updateBot(botInfo, forceUrl, finalForceUpdate, false);
+					processService.updateBot(botInfo, forceUrl, false);
 				} catch (IOException | InterruptedException e) {
 					log.error(e);
 				}
@@ -257,7 +249,7 @@ public class ApiController {
 			return;
 		}
 
-		if(botsLocations.length > 1) {
+		if (botsLocations.length > 1) {
 			log.error("Creation of bot over multiple directories not yet support");
 			return;
 		}
@@ -275,7 +267,7 @@ public class ApiController {
 			try {
 				Files.createDirectories(newBot.toPath());
 				BotInfo botInfo = new BotInfo(path, finalDirectoryName);
-				processService.updateBot(botInfo, null, true, true);
+				processService.updateBot(botInfo, null, true);
 			} catch (IOException | InterruptedException e) {
 				log.error(e);
 			}
@@ -288,13 +280,21 @@ public class ApiController {
 		object.addProperty("demoServer", processService.isDemoServer());
 
 		JsonArray timezones = new JsonArray();
-		StaticUtil.timeZones.forEach((x,y) -> {
+		StaticUtil.timeZones.forEach((x, y) -> {
 			JsonObject jsonObject = new JsonObject();
 			jsonObject.addProperty("id", x);
 			jsonObject.addProperty("value", y);
 			timezones.add(jsonObject);
 		});
 		object.add("timezones", timezones);
+
+		JsonArray currencies = new JsonArray();
+		processService.getCoinGeckoSupportedCurrencies().forEach(x -> {
+			JsonObject jsonObject = new JsonObject();
+			jsonObject.addProperty("id", x);
+			currencies.add(jsonObject);
+		});
+		object.add("currencies", currencies);
 
 		try {
 			File file = new File("application.properties");
