@@ -368,6 +368,7 @@ public class ProcessService {
 			return;
 		}
 
+		String memory = environment.getProperty("default.startup.xmx", "512m");
 		String directoryName = originalBotInfo.getDirectory();
 
 		List<String> commands = new ArrayList<>();
@@ -376,7 +377,7 @@ public class ProcessService {
 		commands.add("-XX:+UseSerialGC");
 		commands.add("-XX:+UseStringDeduplication");
 		commands.add("-Xms64m");
-		commands.add(String.format("-Xmx%s", environment.getProperty(directoryName + ".startup.xmx", "512m")));
+		commands.add(String.format("-Xmx%s", environment.getProperty(directoryName + ".startup.xmx", memory)));
 		commands.add("-XX:CompressedClassSpaceSize=300m");
 		commands.add("-XX:MaxMetaspaceSize=256m");
 		commands.add("-jar");
