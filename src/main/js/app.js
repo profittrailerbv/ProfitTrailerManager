@@ -12,7 +12,7 @@ import {
     faSignInAlt, faStopCircle,
     faToggleOff,
     faToggleOn,
-    faMoneyCheckAlt
+    faMoneyCheckAlt, faPercentage, faRobot, faCoins
 } from '@fortawesome/free-solid-svg-icons'
 
 import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome'
@@ -29,7 +29,8 @@ try {
 }
 
 library.add(faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff,
-    faExternalLinkAlt, faFileAlt, faSignInAlt, faLevelUpAlt, faPlusSquare, faStopCircle, faMoneyCheckAlt)
+    faExternalLinkAlt, faFileAlt, faSignInAlt, faLevelUpAlt, faPlusSquare, faStopCircle, faMoneyCheckAlt,
+    faPercentage, faRobot, faCoins)
 
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 Vue.use(VueSweetalert2);

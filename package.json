@@ -22,22 +22,22 @@
   },
   "devDependencies": {
     "axios": "^0.21.1",
-    "bootstrap": "^4.5.2",
-    "cross-env": "^7.0.2",
+    "bootstrap": "^4.5.3",
+    "cross-env": "^7.0.3",
     "jquery": "^3.5.1",
-    "laravel-mix": "^5.0.5",
-    "lodash": "^4.17.19",
+    "laravel-mix": "^5.0.9",
+    "lodash": "^4.17.20",
     "popper.js": "^1.16.1",
-    "resolve-url-loader": "^3.1.1",
-    "sass": "^1.26.10",
-    "sass-loader": "^8.0.2",
+    "resolve-url-loader": "^3.1.2",
+    "sass": "^1.32.4",
+    "sass-loader": "^10.1.1",
     "vue": "^2.6.12",
     "vue-template-compiler": "^2.6.12"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.2.30",
-    "@fortawesome/free-solid-svg-icons": "^5.14.0",
-    "@fortawesome/vue-fontawesome": "^0.1.10",
-    "vue-sweetalert2": "^3.0.8"
+    "@fortawesome/fontawesome-svg-core": "^1.2.34",
+    "@fortawesome/free-solid-svg-icons": "^5.15.2",
+    "@fortawesome/vue-fontawesome": "^2.0.2",
+    "vue-sweetalert2": "^4.1.1"
   }
 }

@@ -47,6 +47,8 @@ public class ApiController {
 	private ProcessService processService;
 	private Gson parser;
 	private boolean onlyManaged = true;
+	private boolean showPercentage = true;
+	private boolean showAmount = true;
 
 	private static int failedAttempts;
 	private static LocalDateTime timeout = getDateTime();
@@ -88,6 +90,27 @@ public class ApiController {
 
 	}
 
+	@PostMapping("/restartBots")
+	public void restartBots() throws InterruptedException {
+		if (processService.isDemoServer()) {
+			return;
+		}
+		new Thread(() -> {
+			for (String dir : processService.getBotInfoMap().keySet()) {
+				if (!processService.getBotInfoMap().get(dir).isManaged()) {
+					continue;
+				}
+				try {
+					processService.stopBot(dir);
+					Thread.sleep(20000);
+					processService.startBot(processService.getBotInfoMap().get(dir));
+				} catch (Exception e) {
+					log.error(e);
+				}
+			}
+		}).start();
+	}
+
 	@PostMapping("/stopBotAndUnlink")
 	public void stopBot(String directoryName) {
 		if (processService.isDemoServer()) {
@@ -122,6 +145,40 @@ public class ApiController {
 		return object.toString();
 	}
 
+	@GetMapping("/togglePercentage")
+	public String getTogglePercentage() {
+		JsonObject object = new JsonObject();
+		object.addProperty("showPercentage", showPercentage);
+		return object.toString();
+	}
+
+	@PostMapping("/togglePercentage")
+	public String postTogglePercentage() {
+		if (!processService.isDemoServer()) {
+			showPercentage = !showPercentage;
+		}
+		JsonObject object = new JsonObject();
+		object.addProperty("showPercentage", showPercentage);
+		return object.toString();
+	}
+
+	@GetMapping("/toggleAmount")
+	public String getToggleAmount() {
+		JsonObject object = new JsonObject();
+		object.addProperty("showAmount", showAmount);
+		return object.toString();
+	}
+
+	@PostMapping("/toggleAmount")
+	public String postToggleAmount() {
+		if (!processService.isDemoServer()) {
+			showAmount = !showAmount;
+		}
+		JsonObject object = new JsonObject();
+		object.addProperty("showAmount", showAmount);
+		return object.toString();
+	}
+	
 	@PostMapping("/shutdown")
 	public void shutdown() {
 		if (processService.isDemoServer()) {
