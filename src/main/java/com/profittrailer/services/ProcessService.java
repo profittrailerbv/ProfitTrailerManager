@@ -296,7 +296,13 @@ public class ProcessService {
 
 		Map<String, String> reverseBots = new HashMap<>();
 		reverseBots.put("/*", String.format("\treverse_proxy\t%s\t%s", "", "localhost:" + port));
-		for (BotInfo botInfo : botInfoMap.values()) {
+
+		// Sort the bot list so longer names comes first and then shorter names
+		List<BotInfo> botInfoCollection = botInfoMap.values().stream()
+				.sorted(Comparator.comparing(e-> (String) e.getBotProperties().get("context"), Comparator.reverseOrder()))
+				.collect(Collectors.toList());
+
+		for (BotInfo botInfo : botInfoCollection) {
 			String port = (String) botInfo.getBotProperties().get("port");
 			String contextPath = (String) botInfo.getBotProperties().get("context");
 
