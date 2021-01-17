@@ -216,13 +216,13 @@ public class StaticUtil {
 
 	}
 
-	public static double extractTCV(JsonObject miscData){
-		double realBalance = miscData.get("realBalance").getAsDouble();
-		double tcv = miscData.get("totalPairsCurrentValue").getAsDouble()
-				+ miscData.get("totalDCACurrentValue").getAsDouble()
-				+ miscData.get("totalPendingCurrentValue").getAsDouble()
-				+ miscData.get("totalDustCurrentValue").getAsDouble();
-		double exchangeTcv = miscData.get("totalExchangeCurrentValue").getAsDouble();
+	public static double extractTCV(JsonObject tcvData){
+		double realBalance = tcvData.get("realBalance").getAsDouble();
+		double tcv = tcvData.get("totalPairsCurrentValue").getAsDouble()
+				+ tcvData.get("totalDCACurrentValue").getAsDouble()
+				+ tcvData.get("totalPendingCurrentValue").getAsDouble()
+				+ tcvData.get("totalDustCurrentValue").getAsDouble();
+		double exchangeTcv = tcvData.get("totalExchangeCurrentValue").getAsDouble();
 		if (exchangeTcv != 0) {
 			tcv = exchangeTcv;
 		}

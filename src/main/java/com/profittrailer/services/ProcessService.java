@@ -299,7 +299,7 @@ public class ProcessService {
 
 		// Sort the bot list so longer names comes first and then shorter names
 		List<BotInfo> botInfoCollection = botInfoMap.values().stream()
-				.sorted(Comparator.comparing(e-> (String) e.getBotProperties().get("context"), Comparator.reverseOrder()))
+				.sorted(Comparator.comparing(e -> (String) e.getBotProperties().get("context"), Comparator.reverseOrder()))
 				.collect(Collectors.toList());
 
 		for (BotInfo botInfo : botInfoCollection) {
@@ -517,7 +517,7 @@ public class ProcessService {
 				String pairsUrl = createUrl(botInfo, "/api/v2/data/pairs");
 				String dcaUrl = createUrl(botInfo, "/api/v2/data/dca");
 				String pendingUrl = createUrl(botInfo, "/api/v2/data/pending");
-				String salesUrl = createUrl(botInfo, "/api/v2/data/sales");
+				String salesUrl = createUrl(botInfo, "/api/v2/data/sales?page=1&perPage=1&sort=SOLDDATE&sortDirection=DESCENDING");
 				Pair<Integer, String> data = HttpClientManager.getHttp(dataUrl, Collections.emptyList());
 				if (data.getKey() < 202) {
 					botInfo.setStatsData(parser.fromJson(data.getValue(), JsonObject.class));
@@ -534,18 +534,16 @@ public class ProcessService {
 				if (accountSettings.getKey() < 202) {
 					botInfo.setAccountData(parser.fromJson(accountSettings.getValue(), JsonObject.class));
 				}
+
 				Pair<Integer, String> pairs = HttpClientManager.getHttp(pairsUrl, Collections.emptyList());
-				if (pairs.getKey() < 202) {
-					botInfo.setPairsData(parser.fromJson(pairs.getValue(), JsonArray.class));
-				}
 				Pair<Integer, String> dca = HttpClientManager.getHttp(dcaUrl, Collections.emptyList());
-				if (dca.getKey() < 202) {
-					botInfo.setDcaData(parser.fromJson(dca.getValue(), JsonArray.class));
-				}
 				Pair<Integer, String> pending = HttpClientManager.getHttp(pendingUrl, Collections.emptyList());
-				if (dca.getKey() < 202) {
-					botInfo.setPendingData(parser.fromJson(pending.getValue(), JsonArray.class));
+				if (pairs.getKey() < 202 && dca.getKey() < 202 && pending.getKey() < 202) {
+					botInfo.setCoinsData(parser.fromJson(pairs.getValue(), JsonArray.class),
+							parser.fromJson(dca.getValue(), JsonArray.class),
+							parser.fromJson(pending.getValue(), JsonArray.class));
 				}
+
 				Pair<Integer, String> sales = HttpClientManager.getHttp(salesUrl, Collections.emptyList());
 				if (sales.getKey() < 202) {
 					JsonObject object = parser.fromJson(sales.getValue(), JsonObject.class);
@@ -588,7 +586,11 @@ public class ProcessService {
 		String url = String.format("%s%s%s", StaticUtil.url, port, contextPath);
 		url = url + endPoint;
 		if (includeManagerToken) {
-			url = url + "?token=" + token;
+			if (url.contains("?")) {
+				url = url + "&token=" + token;
+			} else {
+				url = url + "?token=" + token;
+			}
 		}
 
 		if (!caddyEnabled && sslEnabledValue != null) {
@@ -707,33 +709,32 @@ public class ProcessService {
 
 		try {
 			for (BotInfo botInfo : botInfoMap.values()) {
-				if (botInfo.getMiscData() == null || !botInfo.getMiscData().has("priceDataUSDConversionRate")) {
-					continue;
-				}
-				if (botInfo.getStatsData() == null) {
-					continue;
-				}
-				if (!botInfo.getStatsData().getAsJsonObject("basic").has("totalProfitLastMonth")) {
+				if (!botInfo.getGlobalStats().has("priceDataUSDConversionRate")) {
 					continue;
 				}
 
-				double cr = botInfo.getMiscData().get("priceDataUSDConversionRate").getAsDouble();
+				if (!botInfo.getGlobalStats().has("totalProfitLastMonth")) {
+					continue;
+				}
+
+				double cr = botInfo.getGlobalStats().get("priceDataUSDConversionRate").getAsDouble();
 				String accountId = "";
 				String market = "";
-				if (botInfo.getMiscData().has("market")) {
-					market = botInfo.getMiscData().get("market").getAsString();
+				if (botInfo.getGlobalStats().has("market")) {
+					market = botInfo.getGlobalStats().get("market").getAsString();
 				}
-				if (botInfo.getMiscData().has("accountId")) {
-					accountId = botInfo.getMiscData().get("accountId").getAsString();
+				if (botInfo.getGlobalStats().has("accountId")) {
+					accountId = botInfo.getGlobalStats().get("accountId").getAsString();
 				}
 
-				double profitToday = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitToday").getAsDouble() * cr * coinGeckoExchangeRate;
-				double profitLastMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitLastMonth").getAsDouble() * cr * coinGeckoExchangeRate;
-				double profitThisMonth = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfitThisMonth").getAsDouble() * cr * coinGeckoExchangeRate;
-				double profitAllTime = botInfo.getStatsData().getAsJsonObject("basic").get("totalProfit").getAsDouble() * cr * coinGeckoExchangeRate;
-				double tcv = StaticUtil.extractTCV(botInfo.getMiscData()) * cr * coinGeckoExchangeRate;
+				double profitToday = botInfo.getGlobalStats().get("totalProfitToday").getAsDouble() * cr * coinGeckoExchangeRate;
+				double profitLastMonth = botInfo.getGlobalStats().get("totalProfitLastMonth").getAsDouble() * cr * coinGeckoExchangeRate;
+				double profitThisMonth = botInfo.getGlobalStats().get("totalProfitThisMonth").getAsDouble() * cr * coinGeckoExchangeRate;
+				double profitAllTime = botInfo.getGlobalStats().get("totalProfit").getAsDouble() * cr * coinGeckoExchangeRate;
 
-				if (botInfo.getPropertiesData().get("testMode").getAsBoolean() || botInfo.getPropertiesData().get("testnet").getAsBoolean()) {
+				double tcv = StaticUtil.extractTCV(botInfo.getTcvData()) * cr * coinGeckoExchangeRate;
+
+				if (botInfo.getGlobalStats().get("testMode").getAsBoolean() || botInfo.getGlobalStats().get("testnet").getAsBoolean()) {
 					totalProfitTodayTest += profitToday;
 					totalProfitLastMonthTest += profitLastMonth;
 					totalProfitThisMonthTest += profitThisMonth;
