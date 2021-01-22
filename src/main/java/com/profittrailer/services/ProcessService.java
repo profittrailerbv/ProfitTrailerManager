@@ -166,6 +166,31 @@ public class ProcessService {
 		}
 	}
 
+	@Scheduled(initialDelay = 10000, fixedDelay = 30000)
+	public void checkVersionUpdate() {
+		File file = new File("data/autoUpdate");
+		if (file.exists()) {
+			new Thread(() -> {
+				for (String dir : getBotInfoMap().keySet()) {
+					try {
+						BotInfo botInfo = getBotInfoMap().get(dir);
+						updateBot(botInfo, null, false);
+					} catch (IOException | InterruptedException e) {
+						log.error(e);
+					}
+				}
+			}).start();
+
+			int i = 0;
+			while (i < 5) {
+				if (file.delete()) {
+					break;
+				}
+				i++;
+			}
+		}
+	}
+
 	private String getStoredCurrency() {
 		String currency = "USDT";
 		try {
