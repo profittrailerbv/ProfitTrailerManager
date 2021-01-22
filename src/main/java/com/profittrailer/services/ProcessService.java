@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -294,7 +295,7 @@ public class ProcessService {
 			return;
 		}
 
-		Map<String, String> reverseBots = new HashMap<>();
+		Map<String, String> reverseBots = new LinkedHashMap<>();
 		reverseBots.put("/*", String.format("\treverse_proxy\t%s\t%s", "", "localhost:" + port));
 
 		// Sort the bot list so longer names comes first and then shorter names
