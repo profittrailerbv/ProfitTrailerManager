@@ -15,7 +15,6 @@ import com.profittrailer.utils.constants.SessionType;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +26,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
@@ -52,9 +50,6 @@ public class ApiController {
 
 	private static int failedAttempts;
 	private static LocalDateTime timeout = getDateTime();
-
-	@Autowired
-	private Environment environment;
 
 	@PostConstruct
 	public void init() {
@@ -178,7 +173,7 @@ public class ApiController {
 		object.addProperty("showAmount", showAmount);
 		return object.toString();
 	}
-	
+
 	@PostMapping("/shutdown")
 	public void shutdown() {
 		if (processService.isDemoServer()) {
@@ -292,7 +287,7 @@ public class ApiController {
 	public void createNewBot(String directoryName,
 	                         HttpServletResponse response) throws IOException {
 
-		String[] botsLocations = environment.getProperty("server.bots.directory", "")
+		String[] botsLocations = Util.readApplicationProperties().getProperty("server.bots.directory", "")
 				.replace("\\", "/")
 				.split(",");
 
@@ -354,20 +349,17 @@ public class ApiController {
 		object.add("currencies", currencies);
 
 		try {
-			File file = new File("application.properties");
-			if (file.exists()) {
-				FileReader reader = new FileReader(file);
-				Properties properties = new Properties();
-				properties.load(reader);
 
-				String timeZone = (String) properties.getOrDefault("server.settings.timezone", "Test");
-				String currency = (String) properties.getOrDefault("server.settings.currency", "");
-				String discordToken = (String) properties.getOrDefault("server.settings.discord.token", "");
+			Properties properties = Util.readApplicationProperties();
 
-				object.addProperty("timezone", timeZone);
-				object.addProperty("currency", currency);
-				object.addProperty("token", discordToken);
-			}
+			String timeZone = (String) properties.getOrDefault("server.settings.timezone", "Test");
+			String currency = (String) properties.getOrDefault("server.settings.currency", "");
+			String discordToken = (String) properties.getOrDefault("server.settings.discord.token", "");
+
+			object.addProperty("timezone", timeZone);
+			object.addProperty("currency", currency);
+			object.addProperty("token", discordToken);
+
 		} catch (Exception e) {
 			log.error("Error getting global properties ", e);
 		}
@@ -383,38 +375,33 @@ public class ApiController {
 		try {
 			JsonObject object = new JsonObject();
 
-			File file = new File("application.properties");
-			if (file.exists()) {
-				FileReader reader = new FileReader(file);
-				Properties properties = new Properties();
-				properties.load(reader);
+			Properties properties = Util.readApplicationProperties();
 
-				if (StringUtils.isNotBlank(timezone)) {
-					properties.put("server.settings.timezone", timezone);
-				}
-				if (StringUtils.isNotBlank(currency)) {
-					properties.put("server.settings.currency", currency);
-				}
-				if (StringUtils.isNotBlank(token)) {
-					properties.put("server.settings.discord.token", token);
-				}
+			if (StringUtils.isNotBlank(timezone)) {
+				properties.put("server.settings.timezone", timezone);
+			}
+			if (StringUtils.isNotBlank(currency)) {
+				properties.put("server.settings.currency", currency);
+			}
+			if (StringUtils.isNotBlank(token)) {
+				properties.put("server.settings.discord.token", token);
+			}
 
-				//send to bots...?
-				if (properties.containsKey("server.settings.timezone")) {
-					object.addProperty("TIMEZONE", (String) properties.get("server.settings.timezone"));
-				}
-				if (properties.containsKey("server.settings.currency")) {
-					object.addProperty("CURRENCY", (String) properties.get("server.settings.currency"));
-				}
-				if (properties.containsKey("server.settings.discord.token")) {
-					object.addProperty("DISCORD_TOKEN_1", (String) properties.get("server.settings.discord.token"));
-				}
-				processService.pushGlobalSettings(object);
+			//send to bots...?
+			if (properties.containsKey("server.settings.timezone")) {
+				object.addProperty("TIMEZONE", (String) properties.get("server.settings.timezone"));
+			}
+			if (properties.containsKey("server.settings.currency")) {
+				object.addProperty("CURRENCY", (String) properties.get("server.settings.currency"));
+			}
+			if (properties.containsKey("server.settings.discord.token")) {
+				object.addProperty("DISCORD_TOKEN_1", (String) properties.get("server.settings.discord.token"));
+			}
+			processService.pushGlobalSettings(object);
 
-				//save file
-				try (OutputStream outputStream = new FileOutputStream("application.properties")) {
-					properties.store(outputStream, null);
-				}
+			//save file
+			try (OutputStream outputStream = new FileOutputStream("application.properties")) {
+				properties.store(outputStream, null);
 			}
 		} catch (Exception e) {
 			response.sendError(HttpStatus.NOT_MODIFIED.value(), e.getMessage());

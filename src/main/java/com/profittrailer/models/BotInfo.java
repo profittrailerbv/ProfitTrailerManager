@@ -206,8 +206,8 @@ public class BotInfo {
 	}
 
 	public void clearData() {
-		globalStats = null;
-		tcvData = null;
-		botData = null;
+		globalStats = new JsonObject();
+		tcvData = new JsonObject();
+		botData = new JsonObject();
 	}
 }

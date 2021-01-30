@@ -7,6 +7,7 @@ import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Properties;
 
 @Log4j2
 public class Util {
@@ -106,5 +108,21 @@ public class Util {
 			return Math.round(minutes / 60.0) + " hours ago";
 		}
 		return minutes + " minutes ago";
+	}
+
+	public static Properties readApplicationProperties() {
+		Properties properties = new Properties();
+
+		try {
+			File file = new File("application.properties");
+			if (file.exists()) {
+				FileReader reader = new FileReader(file);
+				properties.load(reader);
+			}
+		} catch (Exception e) {
+			log.error("Error getting global properties ", e);
+		}
+
+		return properties;
 	}
 }

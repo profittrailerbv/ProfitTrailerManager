@@ -22,9 +22,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.jutils.jprocesses.JProcesses;
 import org.jutils.jprocesses.model.ProcessInfo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
@@ -85,9 +83,6 @@ public class ProcessService {
 	private List<String> coinGeckoSupportedCurrencies = new ArrayList<>();
 	private String coinGeckoSupportedUrl = "https://api.coingecko.com/api/v3/simple/supported_vs_currencies";
 	private String coinGeckoPriceUrl = "https://api.coingecko.com/api/v3/simple/price?";
-
-	@Autowired
-	private Environment environment;
 
 	@PostConstruct
 	public void init() {
@@ -194,14 +189,10 @@ public class ProcessService {
 	private String getStoredCurrency() {
 		String currency = "USDT";
 		try {
-			File file = new File("application.properties");
-			if (file.exists()) {
-				FileReader reader = new FileReader(file);
-				Properties properties = new Properties();
-				properties.load(reader);
 
-				currency = (String) properties.getOrDefault("server.settings.currency", "USDT");
-			}
+			Properties properties = Util.readApplicationProperties();
+			currency = (String) properties.getOrDefault("server.settings.currency", "USDT");
+
 		} catch (Exception e) {
 			log.error("Unable to read properties file..");
 		}
@@ -228,8 +219,9 @@ public class ProcessService {
 
 	@Scheduled(initialDelay = 10000, fixedDelay = 10000)
 	public void refreshBotData() {
-		String[] botsLocations = environment.getProperty("server.bots.directory", "")
+		String[] botsLocations = Util.readApplicationProperties().getProperty("server.bots.directory", "")
 				.replace("\\", "/")
+				.replace("C:", "C:/")
 				.split(",");
 
 		for (String location : botsLocations) {
@@ -399,8 +391,8 @@ public class ProcessService {
 		if (originalBotInfo == null) {
 			return;
 		}
-
-		String memory = environment.getProperty("default.startup.xmx", "512m");
+		Properties properties = Util.readApplicationProperties();
+		String memory = properties.getProperty("default.startup.xmx", "512m");
 		String directoryName = originalBotInfo.getDirectory();
 
 		List<String> commands = new ArrayList<>();
@@ -409,7 +401,7 @@ public class ProcessService {
 		commands.add("-XX:+UseSerialGC");
 		commands.add("-XX:+UseStringDeduplication");
 		commands.add("-Xms64m");
-		commands.add(String.format("-Xmx%s", environment.getProperty(directoryName + ".startup.xmx", memory)));
+		commands.add(String.format("-Xmx%s", properties.getProperty(directoryName + ".startup.xmx", memory)));
 		commands.add("-XX:CompressedClassSpaceSize=300m");
 		commands.add("-XX:MaxMetaspaceSize=256m");
 		commands.add("-jar");
@@ -733,8 +725,11 @@ public class ProcessService {
 		double totalTCVTest = 0;
 		String currency = getStoredCurrency();
 
-		try {
-			for (BotInfo botInfo : botInfoMap.values()) {
+		for (BotInfo botInfo : botInfoMap.values()) {
+			try {
+				if (botInfo.getGlobalStats() == null) {
+					continue;
+				}
 				if (!botInfo.getGlobalStats().has("priceDataUSDConversionRate")) {
 					continue;
 				}
@@ -779,10 +774,10 @@ public class ProcessService {
 						}
 					}
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				log.error("globalStats Error with " + botInfo.getSiteName(), e);
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			log.error(e);
 		}
 
 		JsonObject jsonObject = new JsonObject();
