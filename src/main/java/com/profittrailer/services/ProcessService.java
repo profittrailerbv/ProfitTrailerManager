@@ -117,7 +117,7 @@ public class ProcessService {
 
 	}
 
-	@Scheduled(initialDelay = 10000, fixedDelay = 900000)
+	@Scheduled(initialDelay = 10000, fixedDelay = 1800000)
 	public void updateGithub() {
 		try {
 			Pair<Integer, String> data = HttpClientManager.getHttp(githubUrl, Collections.emptyList());
