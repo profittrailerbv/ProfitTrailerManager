@@ -70,6 +70,8 @@ public class ProcessService {
 	private Gson parser;
 	private String latestVersion = "0.0.0";
 	private String downloadUrl;
+	@Value("${server.caddy.manager.leave.port:false}")
+	private boolean caddyManagerPort;
 	@Value("${server.caddy.enabled:false}")
 	private boolean caddyEnabled;
 	@Value("${server.caddy.domain:}")
@@ -313,7 +315,11 @@ public class ProcessService {
 		}
 
 		Map<String, String> reverseBots = new LinkedHashMap<>();
-		reverseBots.put("/*", String.format("\treverse_proxy\t%s\t%s", "", "localhost:" + port));
+		String mainDomain = "/*";
+		if (caddyManagerPort) {
+			mainDomain = String.format(":%s/*", port);
+		}
+		reverseBots.put(mainDomain, String.format("\treverse_proxy\t%s\t%s", "", "localhost:" + port));
 
 		// Sort the bot list so longer names comes first and then shorter names
 		List<BotInfo> botInfoCollection = botInfoMap.values().stream()
@@ -346,12 +352,13 @@ public class ProcessService {
 		}
 
 		String httpsUrl = StaticUtil.url.replace("http://", "").replace("https://", "");
-		if (!StringUtils.isNotBlank(caddyDomain)) {
+		if (StringUtils.isNotBlank(caddyDomain)) {
 			httpsUrl = "https://" + caddyDomain;
 		}
 
 		for (Map.Entry<String, String> entry : reverseBots.entrySet()) {
 			caddyString.append(httpsUrl).append(entry.getKey()).append(" {\r\n");
+			caddyString.append("\theader X-Forwarded-Proto https\r\n");
 			caddyString.append(entry.getValue());
 			caddyString.append("\r\n}\r\n\r\n");
 		}

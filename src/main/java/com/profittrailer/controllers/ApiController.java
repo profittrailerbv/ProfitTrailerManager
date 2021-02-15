@@ -225,7 +225,7 @@ public class ApiController {
 
 		BotInfo botInfo = processService.getBotInfoMap().get(directoryName);
 		String token = processService.getSSOKey(directoryName);
-		String redirectUrl = processService.createUrl(botInfo, "?sso=" + token, false);
+		String redirectUrl = processService.createUrl(botInfo, "/?sso=" + token, false);
 		response.sendRedirect(redirectUrl);
 	}
 
@@ -251,7 +251,7 @@ public class ApiController {
 
 		failedAttempts++;
 		if (failedAttempts % 3 == 0) {
-			timeout = getDateTime().plusMinutes((failedAttempts / 3) * 5);
+			timeout = getDateTime().plusMinutes((failedAttempts / 3) * 5L);
 		}
 
 		response.sendError(HttpStatus.UNAUTHORIZED.value(), "Incorrect password");
