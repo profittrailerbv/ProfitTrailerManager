@@ -5,6 +5,7 @@ import com.profittrailer.utils.StaticUtil;
 import com.profittrailer.utils.Util;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.ZoneOffset;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.TreeMap;
@@ -34,6 +36,9 @@ public class ProfitTrailerManager {
 	private ResourceLoader resourceLoader;
 
 	public static void main(String[] args) {
+		String port = Util.readApplicationProperties().getOrDefault("server.port", 10000).toString();
+		int timeout = NumberUtils.toInt((String) Util.readApplicationProperties().getOrDefault("server.session.timeout", 7));
+
 		Map<String, Object> props = new TreeMap<>();
 		props.put("spring.thymeleaf.cache", false);
 		props.put("spring.thymeleaf.enabled", true);
@@ -41,9 +46,10 @@ public class ProfitTrailerManager {
 		props.put("spring.thymeleaf.suffix", ".html");
 
 		props.put("server.servlet.session.cookie.http-only", true);
-		props.put("server.servlet.session.cookie.max-age", TimeUnit.DAYS.toSeconds(1));
-		props.put("server.servlet.session.timeout", TimeUnit.DAYS.toSeconds(1));
+		props.put("server.servlet.session.cookie.max-age", TimeUnit.DAYS.toSeconds(timeout));
+		props.put("server.servlet.session.timeout", TimeUnit.DAYS.toSeconds(timeout));
 		props.put("server.servlet.session.persistent", true);
+		props.put("server.servlet.session.cookie.name", String.format(Locale.US, "JSESSIONID-PTM_%s", port));
 
 		props.put("spring.application.name", "ProfitTrailer Manager");
 		props.put("spring.main.banner-mode", "off");
