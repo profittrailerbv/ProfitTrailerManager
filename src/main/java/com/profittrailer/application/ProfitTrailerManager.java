@@ -37,7 +37,7 @@ public class ProfitTrailerManager {
 
 	public static void main(String[] args) {
 		String port = Util.readApplicationProperties().getOrDefault("server.port", 10000).toString();
-		int timeout = NumberUtils.toInt((String) Util.readApplicationProperties().getOrDefault("server.session.timeout", 7));
+		int timeout = NumberUtils.toInt((String) Util.readApplicationProperties().getOrDefault("server.session.timeout", "7"));
 
 		Map<String, Object> props = new TreeMap<>();
 		props.put("spring.thymeleaf.cache", false);
