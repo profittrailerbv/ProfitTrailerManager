@@ -43,6 +43,7 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 Vue.component('toggle-component', require('./components/ToggleComponent').default);
 Vue.component('navigation-component', require('./components/NavigationComponent').default);
 Vue.component('bot-component', require('./components/BotComponent').default);
+Vue.component('addon-component', require('./components/AddonComponent').default);
 Vue.component('login-component', require('./components/LoginComponent').default);
 Vue.component('reset-component', require('./components/ResetPasswordComponent').default);
 Vue.component('settings-component', require('./components/SettingsComponent').default);

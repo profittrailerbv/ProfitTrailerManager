@@ -12,6 +12,7 @@ import com.profittrailer.utils.HttpClientManager;
 import com.profittrailer.utils.StaticUtil;
 import com.profittrailer.utils.Util;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -65,6 +66,7 @@ public class ProcessService {
 	private int maxBots;
 	private Map<String, ProcessInfo> processInfoMap = new HashMap<>();
 	private Map<String, BotInfo> botInfoMap = new ConcurrentHashMap<>();
+	private Map<String, BotInfo> addonInfoMap = new ConcurrentHashMap<>();
 	private boolean initialzed = false;
 	private boolean processedInitialized = false;
 	private Gson parser;
@@ -80,6 +82,9 @@ public class ProcessService {
 	private String caddyImport;
 	@Value("${server.port:10000}")
 	private int port;
+
+	@Setter
+	private boolean onlyManaged = true;
 
 	private double coinGeckoExchangeRate = 1;
 	private List<String> coinGeckoSupportedCurrencies = new ArrayList<>();
@@ -209,7 +214,17 @@ public class ProcessService {
 			if (initialzed) {
 				Map<String, ProcessInfo> tmpProcessInfoMap = new HashMap<>();
 				JProcesses.getProcessList()
-						.forEach(e -> tmpProcessInfoMap.put(e.getPid(), e));
+						.forEach(e -> {
+							if (e.getCommand().contains("pt-feeder")) {
+								String[] splitted = e.getCommand().split(" ");
+								if (splitted.length > 2) {
+									String dir = splitted[2].replace("dir=", "");
+									tmpProcessInfoMap.put(dir, e);
+								}
+							} else {
+								tmpProcessInfoMap.put(e.getPid(), e);
+							}
+						});
 				processInfoMap = tmpProcessInfoMap;
 				processedInitialized = true;
 			}
@@ -287,9 +302,87 @@ public class ProcessService {
 							}
 						}
 						if (offline && managed) {
-							stopBot(botInfo.getDirectory());
+							stopBot(botInfoMap, botInfo.getDirectory());
 							Thread.sleep(3000);
 							startBot(botInfo);
+							Thread.sleep(30000);
+						}
+					}
+				}
+			} catch (Exception e) {
+				log.error("Error auto starting bots? ", e);
+			}
+		}
+		generateCaddyFile();
+	}
+
+
+	@Scheduled(initialDelay = 10000, fixedDelay = 10000)
+	public void refreshAddon() {
+		String[] botsLocations = Util.readApplicationProperties().getProperty("server.bots.directory", "")
+				.replace("\\", "/")
+				.replace("C:", "C:/")
+				.split(",");
+
+		for (String location : botsLocations) {
+			if (StringUtils.isBlank(location)) {
+				continue;
+			}
+
+			try {
+				File botsDirectory = new File(location);
+				File[] files = botsDirectory.listFiles();
+				if (files != null) {
+					Arrays.stream(files)
+							.filter(File::isDirectory)
+							.filter(e -> e.listFiles() != null
+									&& Arrays.stream(Objects.requireNonNull(e.listFiles()))
+									.anyMatch(f -> f.getName().equalsIgnoreCase("pt-feeder.dll")))
+							.forEach(directory -> {
+								String directoryName = directory.getName();
+								String path = directory.getPath();
+								BotInfo botInfo = addonInfoMap.getOrDefault(directoryName, new BotInfo(path, directoryName));
+								botInfo.setAddOn(true);
+								botInfo.setInitialized(initialzed);
+								if (processedInitialized) {
+									botInfo.setProcessInfo(processInfoMap.get(directoryName));
+								}
+								addonInfoMap.put(directoryName, botInfo);
+							});
+				}
+
+				if (autoStartManagedBots && processedInitialized) {
+					for (BotInfo botInfo : addonInfoMap.values()) {
+
+						boolean offline = botInfo.getStatus().equals("OFFLINE");
+						boolean startingUpdating = botInfo.getStatus().equals("STARTING") || botInfo.getStatus().equals("UPDATING");
+						boolean managed = botInfo.isManaged();
+						boolean unlinked = botInfo.isUnlinked();
+						String port = (String) botInfo.getBotProperties().get("port");
+
+						if (unlinked) {
+							continue;
+						}
+
+//						if (!offline
+//								&& port != null
+//								&& !startingUpdating
+//								&& StringUtils.isNotBlank(StaticUtil.url)
+//								&& processedInitialized && managed) {
+//							String healthUrl = createUrl(botInfo, "/api/v2/health");
+//							try {
+//								Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
+//								if (data.getKey() < 202) {
+//									offline = !StringUtils.equalsIgnoreCase(data.getValue(), "true");
+//								}
+//							} catch (Exception e) {
+//								log.error("Error pinging health {}: {}", healthUrl, e.getMessage());
+//							}
+//						}
+						if (offline) {
+							stopBot(addonInfoMap, botInfo.getDirectory());
+							Thread.sleep(3000);
+							startAddon(botInfo);
 							Thread.sleep(30000);
 						}
 					}
@@ -446,8 +539,8 @@ public class ProcessService {
 		}
 	}
 
-	public void stopBot(String botName) {
-		BotInfo bot = botInfoMap.get(botName);
+	public void stopBot(Map<String, BotInfo> infoMap, String botName) {
+		BotInfo bot = infoMap.get(botName);
 		if (bot == null) {
 			return;
 		}
@@ -471,8 +564,50 @@ public class ProcessService {
 		bot.setProcess(null);
 	}
 
-	public void unlinkBot(String botName) {
-		BotInfo bot = botInfoMap.get(botName);
+	public void startAddon(BotInfo originalBotInfo) {
+		if (originalBotInfo == null) {
+			return;
+		}
+		Properties properties = Util.readApplicationProperties();
+		String directoryName = originalBotInfo.getDirectory();
+
+		List<String> commands = new ArrayList<>();
+		commands.add("dotnet");
+		commands.add("pt-feeder.dll");
+		commands.add("dir="+ originalBotInfo.getDirectory());
+		commands.add("server.manager.token=" + managerToken);
+
+		String path = originalBotInfo.getPath();
+		ProcessBuilder builder = new ProcessBuilder(commands);
+		builder.directory(new File(originalBotInfo.getPath()));
+		builder.redirectErrorStream(true);
+
+		try {
+			if (!addonInfoMap.containsKey(directoryName)
+					|| addonInfoMap.get(directoryName).getStatus().equals("OFFLINE")) {
+
+
+				Process process = builder.start();
+				BotInfo botInfo = addonInfoMap.getOrDefault(directoryName, new BotInfo(path, directoryName));
+				botInfo.setProcess(process);
+				botInfo.setStartDate(Util.getDateTime());
+
+				File file = new File(botInfo.getPath() + "/data/unlinked");
+				FileSystemUtils.deleteRecursively(file.toPath());
+
+				addonInfoMap.put(directoryName, botInfo);
+				Thread.sleep(5000);
+				readError(process);
+			} else {
+				log.info("Skipping bot start {} -- {}", addonInfoMap.containsKey(directoryName), addonInfoMap.get(directoryName).getStatus());
+			}
+		} catch (Exception e) {
+			log.error("Error starting bot", e);
+		}
+	}
+
+	public void unlinkBot(Map<String, BotInfo> infoMap, String botName) {
+		BotInfo bot = infoMap.get(botName);
 		if (bot == null) {
 			return;
 		}
@@ -520,6 +655,20 @@ public class ProcessService {
 
 	}
 
+	public Collection<BotInfo> getAddonList(boolean onlyManaged) {
+
+		return addonInfoMap.values()
+				.stream()
+				.sorted(Comparator.comparing(BotInfo::isManaged, Comparator.reverseOrder())
+						.thenComparing(BotInfo::getSiteName))
+				.filter(e -> {
+					if (!onlyManaged) {
+						return true;
+					}
+					return e.isManaged();
+				}).collect(Collectors.toList());
+
+	}
 	public void getBotData(BotInfo botInfo) {
 		if (StringUtils.isBlank(StaticUtil.url)) {
 			return;
@@ -669,7 +818,7 @@ public class ProcessService {
 		String updateFolder = StaticUtil.unzip(updateUrl);
 		if (updateFolder != null) {
 			botInfo.setUpdateDate(Util.getDateTime());
-			stopBot(botInfo.getDirectory());
+			stopBot(botInfoMap,botInfo.getDirectory());
 			Thread.sleep(2000);
 			log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
 			StaticUtil.copyJar(updateFolder, botInfo.getPath());

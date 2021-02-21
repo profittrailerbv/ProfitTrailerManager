@@ -44,7 +44,6 @@ public class ApiController {
 	@Autowired
 	private ProcessService processService;
 	private Gson parser;
-	private boolean onlyManaged = true;
 	private boolean showPercentage = true;
 	private boolean showAmount = true;
 
@@ -61,15 +60,16 @@ public class ApiController {
 	@GetMapping("/data")
 	public String data(HttpServletRequest request) throws MalformedURLException {
 
-		Collection<BotInfo> bots = processService.getBotList(onlyManaged);
+		Collection<BotInfo> bots = processService.getBotList(processService.isOnlyManaged());
 		Collection<BotInfo> allBots = processService.getBotList(false);
+		Collection<BotInfo> allAddons = processService.getAddonList(false);
 		JsonObject object = new JsonObject();
 		object.add("bots", parser.toJsonTree(bots));
 		object.addProperty("baseUrl", StaticUtil.getBaseUrl(request));
 		object.addProperty("demoServer", processService.isDemoServer());
 		object.addProperty("downloadUrl", processService.getDownloadUrl());
 		object.addProperty("version", Util.getVersion());
-		object.addProperty("maxBotsReached", allBots.size() >= processService.getMaxBots());
+		object.addProperty("maxBotsReached", allBots.size() + allAddons.size() >= processService.getMaxBots());
 
 		return object.toString();
 	}
@@ -79,7 +79,7 @@ public class ApiController {
 		if (processService.isDemoServer()) {
 			return;
 		}
-		processService.stopBot(directoryName);
+		processService.stopBot(processService.getBotInfoMap(), directoryName);
 		Thread.sleep(5000);
 		processService.startBot(processService.getBotInfoMap().get(directoryName));
 
@@ -96,7 +96,7 @@ public class ApiController {
 					continue;
 				}
 				try {
-					processService.stopBot(dir);
+					processService.stopBot(processService.getBotInfoMap(), dir);
 					Thread.sleep(20000);
 					processService.startBot(processService.getBotInfoMap().get(dir));
 				} catch (Exception e) {
@@ -111,8 +111,8 @@ public class ApiController {
 		if (processService.isDemoServer()) {
 			return;
 		}
-		processService.stopBot(directoryName);
-		processService.unlinkBot(directoryName);
+		processService.stopBot(processService.getBotInfoMap(), directoryName);
+		processService.unlinkBot(processService.getBotInfoMap(), directoryName);
 	}
 
 	@GetMapping("/status")
@@ -126,17 +126,17 @@ public class ApiController {
 	@GetMapping("/toggleCards")
 	public String getToggle() {
 		JsonObject object = new JsonObject();
-		object.addProperty("onlyManaged", onlyManaged);
+		object.addProperty("onlyManaged", processService.isOnlyManaged());
 		return object.toString();
 	}
 
 	@PostMapping("/toggleCards")
 	public String postToggle() {
 		if (!processService.isDemoServer()) {
-			onlyManaged = !onlyManaged;
+			processService.setOnlyManaged(!processService.isOnlyManaged());
 		}
 		JsonObject object = new JsonObject();
-		object.addProperty("onlyManaged", onlyManaged);
+		object.addProperty("onlyManaged", processService.isOnlyManaged());
 		return object.toString();
 	}
 

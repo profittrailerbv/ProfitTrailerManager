@@ -21,6 +21,8 @@ public class BotInfo {
 	private String directory;
 	private Properties botProperties = new Properties();
 	private String url;
+	private boolean addOn = false;
+
 	private transient boolean initialized;
 	private transient boolean lastUnlinkedStatus;
 	private transient Process process;
@@ -42,6 +44,10 @@ public class BotInfo {
 	}
 
 	public String getStatus() {
+		if (isAddOn()) {
+			return getAddonStatus();
+		}
+
 		if (!initialized) {
 			return "INITIALIZING";
 		}
@@ -61,12 +67,44 @@ public class BotInfo {
 				: "ONLINE";
 	}
 
+	private String getAddonStatus() {
+		if (!initialized) {
+			return "INITIALIZING";
+		}
+
+		if (startDate != null && startDate.plusSeconds(30).isAfter(Util.getDateTime())) {
+			return "STARTING";
+		}
+
+		if (updateDate != null && updateDate.plusSeconds(30).isAfter(Util.getDateTime())) {
+			return "UPDATING";
+		}
+
+		return processInfo == null
+				|| !StringUtils.containsIgnoreCase(processInfo.getCommand(), "pt-feeder.dll")
+				? "OFFLINE"
+				: "ONLINE";
+	}
+
 	public boolean isManaged() {
+		if (isAddOn()) {
+			return isManagedAddon();
+		}
+
 		if (lastUnlinkedStatus) {
 			return false;
 		}
 
 		return Boolean.parseBoolean((String) botProperties.getOrDefault("managed", "false"));
+	}
+
+	private boolean isManagedAddon() {
+		if (lastUnlinkedStatus) {
+			return false;
+		}
+
+		return processInfo != null
+				&& StringUtils.containsIgnoreCase(processInfo.getCommand(), "pt-feeder.dll");
 	}
 
 	public boolean isUnlinked() {
@@ -79,6 +117,10 @@ public class BotInfo {
 	}
 
 	public String getSiteName() {
+		if (isAddOn()) {
+			return directory;
+		}
+
 		String siteName = (String) botProperties.getOrDefault("siteName", "");
 
 		return StringUtils.isNotBlank(siteName)
@@ -93,14 +135,14 @@ public class BotInfo {
 			globalStats.addProperty("priceDataUSDConversionRate", getJsonObjectData("priceDataUSDConversionRate", miscData));
 			globalStats.addProperty("market", getJsonObjectData("market", miscData));
 			globalStats.addProperty("accountId", getJsonObjectData("accountId", miscData));
-			
+
 			tcvData.addProperty("realBalance", getJsonObjectData("realBalance", miscData));
 			tcvData.addProperty("totalPairsCurrentValue", getJsonObjectData("totalPairsCurrentValue", miscData));
 			tcvData.addProperty("totalDCACurrentValue", getJsonObjectData("totalDCACurrentValue", miscData));
 			tcvData.addProperty("totalPendingCurrentValue", getJsonObjectData("totalPendingCurrentValue", miscData));
 			tcvData.addProperty("totalDustCurrentValue", getJsonObjectData("totalDustCurrentValue", miscData));
 			tcvData.addProperty("totalExchangeCurrentValue", getJsonObjectData("totalExchangeCurrentValue", miscData));
-			
+
 			// I know there are some duplicate entries for now
 			botData.addProperty("exchange", miscData.get("exchange").getAsString());
 			botData.addProperty("version", miscData.get("version").getAsString());
@@ -131,7 +173,7 @@ public class BotInfo {
 		}
 	}
 
-	public void setCoinsData(JsonArray pairsData, 
+	public void setCoinsData(JsonArray pairsData,
 	                         JsonArray dcaData,
 	                         JsonArray pendingData) {
 
