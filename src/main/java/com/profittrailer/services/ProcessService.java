@@ -82,6 +82,8 @@ public class ProcessService {
 	private String caddyImport;
 	@Value("${server.port:10000}")
 	private int port;
+	@Value("${server.use.localhost:true}")
+	private boolean useLocalHost;
 
 	@Setter
 	private boolean onlyManaged = true;
@@ -315,7 +317,6 @@ public class ProcessService {
 		}
 		generateCaddyFile();
 	}
-
 
 	@Scheduled(initialDelay = 10000, fixedDelay = 10000)
 	public void refreshAddon() {
@@ -574,7 +575,7 @@ public class ProcessService {
 		List<String> commands = new ArrayList<>();
 		commands.add("dotnet");
 		commands.add("pt-feeder.dll");
-		commands.add("dir="+ originalBotInfo.getDirectory());
+		commands.add("dir=" + originalBotInfo.getDirectory());
 		commands.add("server.manager.token=" + managerToken);
 
 		String path = originalBotInfo.getPath();
@@ -585,7 +586,6 @@ public class ProcessService {
 		try {
 			if (!addonInfoMap.containsKey(directoryName)
 					|| addonInfoMap.get(directoryName).getStatus().equals("OFFLINE")) {
-
 
 				Process process = builder.start();
 				BotInfo botInfo = addonInfoMap.getOrDefault(directoryName, new BotInfo(path, directoryName));
@@ -615,6 +615,12 @@ public class ProcessService {
 		bot.clearData();
 
 		try {
+			File dir = new File(bot.getPath() + "/data");
+			if (!dir.exists() || !dir.isDirectory()) {
+				if (!dir.mkdir()) {
+					log.error("Error creating data folder to unlink bot {}", bot.getSiteName());
+				}
+			}
 			File file = new File(bot.getPath() + "/data/unlinked");
 			if (!file.exists() && !file.createNewFile()) {
 				log.error("Error unlinking bot {}", bot.getSiteName());
@@ -669,6 +675,7 @@ public class ProcessService {
 				}).collect(Collectors.toList());
 
 	}
+
 	public void getBotData(BotInfo botInfo) {
 		if (StringUtils.isBlank(StaticUtil.url)) {
 			return;
@@ -734,12 +741,13 @@ public class ProcessService {
 	public String createUrl(BotInfo botInfo,
 	                        String endPoint) {
 
-		return createUrl(botInfo, endPoint, true);
+		return createUrl(botInfo, endPoint, true, useLocalHost);
 	}
 
 	public String createUrl(BotInfo botInfo,
 	                        String endPoint,
-	                        boolean includeManagerToken) {
+	                        boolean includeManagerToken,
+	                        boolean useLocalhost) {
 
 		String token = managerToken;
 		if (botInfo.getProcessInfo() != null) {
@@ -753,11 +761,15 @@ public class ProcessService {
 		boolean sslEnabled = Boolean.parseBoolean(sslEnabledValue);
 
 		String port = "";
-		if (!caddyEnabled || (sslEnabledValue != null && sslEnabled)) {
+		if (!caddyEnabled || (sslEnabledValue != null && sslEnabled) || useLocalhost) {
 			port = ":" + botInfo.getBotProperties().get("port");
 		}
 		String contextPath = (String) botInfo.getBotProperties().get("context");
 		String url = String.format("%s%s%s", StaticUtil.url, port, contextPath);
+		if (useLocalhost) {
+			url = String.format("http://localhost%s%s", port, contextPath);
+		}
+
 		url = url + endPoint;
 		if (includeManagerToken) {
 			if (url.contains("?")) {
@@ -773,7 +785,7 @@ public class ProcessService {
 				url = url.replace("http:", "https:");
 			}
 		}
-		if (caddyEnabled && !url.contains("https:")) {
+		if (caddyEnabled && !url.contains("https:") && !useLocalhost) {
 			url = url.replace("http:", "https:");
 		}
 		return url;
@@ -818,7 +830,7 @@ public class ProcessService {
 		String updateFolder = StaticUtil.unzip(updateUrl);
 		if (updateFolder != null) {
 			botInfo.setUpdateDate(Util.getDateTime());
-			stopBot(botInfoMap,botInfo.getDirectory());
+			stopBot(botInfoMap, botInfo.getDirectory());
 			Thread.sleep(2000);
 			log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
 			StaticUtil.copyJar(updateFolder, botInfo.getPath());

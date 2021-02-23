@@ -225,7 +225,7 @@ public class ApiController {
 
 		BotInfo botInfo = processService.getBotInfoMap().get(directoryName);
 		String token = processService.getSSOKey(directoryName);
-		String redirectUrl = processService.createUrl(botInfo, "/?sso=" + token, false);
+		String redirectUrl = processService.createUrl(botInfo, "/?sso=" + token, false, false);
 		response.sendRedirect(redirectUrl);
 	}
 
