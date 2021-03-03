@@ -35,6 +35,13 @@
                      placeholder="">
             </div>
           </div>
+          <div class="row mt-3">
+            <div class="col">
+              <label for="tok">Reserve RAM for each bot:</label>
+              <input id="xmx" class="form-control" name="xmx" type="text" v-model="settings.xmx"
+                     placeholder="">
+            </div>
+          </div>
           <div class="row mt-4">
             <div class="col">
               <a v-if="!demoServer" href="#" @click.prevent="saveSettings()">
@@ -64,7 +71,8 @@ export default {
       settings: {
         timezone: "",
         currency: "",
-        token: ""
+        token: "",
+        xmx: "",
       }
     }
   },
@@ -77,6 +85,7 @@ export default {
         this.settings.timezone = response.data.timezone;
         this.settings.currency = response.data.currency;
         this.settings.token = response.data.token;
+        this.settings.xmx = response.data.xmx;
       }).catch((error) => {
         if (!error.response) {
           window.location.href = '/';
@@ -91,6 +100,7 @@ export default {
       formData.append("timezone", this.settings.timezone);
       formData.append("currency", this.settings.currency);
       formData.append("token", this.settings.token);
+      formData.append("xmx", this.settings.xmx);
 
       axios.post('/api/v1/globalSettings', formData).then(() => {
       }).catch((error) => {

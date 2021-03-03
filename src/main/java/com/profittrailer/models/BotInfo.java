@@ -56,7 +56,7 @@ public class BotInfo {
 			return "STARTING";
 		}
 
-		if (updateDate != null && updateDate.plusSeconds(30).isAfter(Util.getDateTime())) {
+		if (updateDate != null && updateDate.plusSeconds(5).isAfter(Util.getDateTime())) {
 			return "UPDATING";
 		}
 

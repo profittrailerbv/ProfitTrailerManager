@@ -355,10 +355,12 @@ public class ApiController {
 			String timeZone = (String) properties.getOrDefault("server.settings.timezone", "Test");
 			String currency = (String) properties.getOrDefault("server.settings.currency", "");
 			String discordToken = (String) properties.getOrDefault("server.settings.discord.token", "");
+			String xmx = (String) properties.getOrDefault("default.startup.xmx", "512m");
 
 			object.addProperty("timezone", timeZone);
 			object.addProperty("currency", currency);
 			object.addProperty("token", discordToken);
+			object.addProperty("xmx", xmx);
 
 		} catch (Exception e) {
 			log.error("Error getting global properties ", e);
@@ -371,6 +373,7 @@ public class ApiController {
 	public void saveGlobalSettings(String timezone,
 	                               String currency,
 	                               String token,
+	                               String xmx,
 	                               HttpServletResponse response) throws IOException {
 		try {
 			JsonObject object = new JsonObject();
@@ -385,6 +388,9 @@ public class ApiController {
 			}
 			if (StringUtils.isNotBlank(token)) {
 				properties.put("server.settings.discord.token", token);
+			}
+			if (StringUtils.isNotBlank(xmx)) {
+				properties.put("default.startup.xmx", xmx);
 			}
 
 			//send to bots...?

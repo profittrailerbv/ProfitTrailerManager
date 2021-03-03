@@ -831,11 +831,11 @@ public class ProcessService {
 		if (updateFolder != null) {
 			botInfo.setUpdateDate(Util.getDateTime());
 			stopBot(botInfoMap, botInfo.getDirectory());
-			Thread.sleep(2000);
 			log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
 			StaticUtil.copyJar(updateFolder, botInfo.getPath());
+			Thread.sleep(7000);
 			startBot(botInfo);
-			Thread.sleep(20000);
+			Thread.sleep(30000);
 			log.info("{} update complete, bot is starting", botInfo.getSiteName());
 		}
 
