@@ -27,7 +27,7 @@ public class BotInfo {
 	private transient boolean lastUnlinkedStatus;
 	private transient Process process;
 	private transient ProcessInfo processInfo;
-	private transient LocalDateTime startDate;
+	private transient LocalDateTime startDelay;
 	private transient LocalDateTime updateDate;
 
 	//These objects only store the data we actually need
@@ -52,7 +52,7 @@ public class BotInfo {
 			return "INITIALIZING";
 		}
 
-		if (startDate != null && startDate.plusSeconds(30).isAfter(Util.getDateTime())) {
+		if (startDelay != null && startDelay.isAfter(Util.getDateTime())) {
 			return "STARTING";
 		}
 
@@ -72,7 +72,7 @@ public class BotInfo {
 			return "INITIALIZING";
 		}
 
-		if (startDate != null && startDate.plusSeconds(30).isAfter(Util.getDateTime())) {
+		if (startDelay != null && startDelay.isAfter(Util.getDateTime())) {
 			return "STARTING";
 		}
 

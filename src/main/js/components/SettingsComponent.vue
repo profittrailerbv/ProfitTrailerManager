@@ -42,6 +42,13 @@
                      placeholder="">
             </div>
           </div>
+          <div class="row mt-3">
+            <div class="col">
+              <label for="tok">Wait time between bot update:</label>
+              <input id="updateDelay" class="form-control" name="updateDelay" type="text" v-model="settings.updateDelay"
+                     placeholder="">
+            </div>
+          </div>
           <div class="row mt-4">
             <div class="col">
               <a v-if="!demoServer" href="#" @click.prevent="saveSettings()">
@@ -86,6 +93,7 @@ export default {
         this.settings.currency = response.data.currency;
         this.settings.token = response.data.token;
         this.settings.xmx = response.data.xmx;
+        this.settings.updateDelay = response.data.updateDelay;
       }).catch((error) => {
         if (!error.response) {
           window.location.href = '/';
@@ -101,6 +109,7 @@ export default {
       formData.append("currency", this.settings.currency);
       formData.append("token", this.settings.token);
       formData.append("xmx", this.settings.xmx);
+      formData.append("updateDelay", this.settings.updateDelay);
 
       axios.post('/api/v1/globalSettings', formData).then(() => {
       }).catch((error) => {

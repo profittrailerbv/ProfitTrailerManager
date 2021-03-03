@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.profittrailer.models.BotInfo;
 import com.profittrailer.models.StreamGobbler;
+import com.profittrailer.models.UpdateBotData;
 import com.profittrailer.utils.BotInfoSerializer;
 import com.profittrailer.utils.HttpClientManager;
 import com.profittrailer.utils.StaticUtil;
@@ -33,6 +34,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -84,6 +86,8 @@ public class ProcessService {
 	private int port;
 	@Value("${server.use.localhost:true}")
 	private boolean useLocalHost;
+	@Setter
+	private UpdateBotData updateBotData;
 
 	@Setter
 	private boolean onlyManaged = true;
@@ -195,6 +199,41 @@ public class ProcessService {
 		}
 	}
 
+	@Scheduled(initialDelay = 10000, fixedDelay = 30000)
+	public void checkAndUpdateBots() {
+		try {
+			if (updateBotData == null) {
+				return;
+			}
+
+			if (updateBotData.getBotsToUpdate().size() == 0) {
+				return;
+			}
+
+			if (StringUtils.isNotBlank(updateBotData.getCurrentlyUpdatingBot())) {
+				BotInfo botInfo = getBotInfoMap().get(updateBotData.getCurrentlyUpdatingBot());
+				boolean startingUpdating = botInfo.getStatus().equals("STARTING") || botInfo.getStatus().equals("UPDATING");
+				if (startingUpdating) {
+					log.info("Waiting for update to finish");
+					return;
+				}
+			}
+
+			updateBotData.getBotsToUpdate().removeIf(e-> e.equalsIgnoreCase(updateBotData.getCurrentlyUpdatingBot()));
+
+			if (updateBotData.getBotsToUpdate().size() > 0) {
+				BotInfo botInfo = getBotInfoMap().get(updateBotData.getBotsToUpdate().get(0));
+				updateBotData.setCurrentlyUpdatingBot(updateBotData.getBotsToUpdate().get(0));
+				updateBot(botInfo, updateBotData.getUpdateUrl(), false);
+			} else {
+				log.info("All done!");
+			}
+
+		} catch (Exception e) {
+			log.error("Error updating currency ", e);
+		}
+	}
+
 	private String getStoredCurrency() {
 		String currency = "USDT";
 		try {
@@ -249,7 +288,7 @@ public class ProcessService {
 			}
 
 			try {
-				File botsDirectory = new File(location);
+				File botsDirectory = Paths.get(location).toFile();
 				File[] files = botsDirectory.listFiles();
 				if (files != null) {
 					Arrays.stream(files)
@@ -494,6 +533,8 @@ public class ProcessService {
 		}
 		Properties properties = Util.readApplicationProperties();
 		String memory = properties.getProperty("default.startup.xmx", "512m");
+		int updateDelay = NumberUtils.toInt(properties.getProperty("default.update.delay", "60"));
+
 		String directoryName = originalBotInfo.getDirectory();
 
 		List<String> commands = new ArrayList<>();
@@ -524,7 +565,7 @@ public class ProcessService {
 				Process process = builder.start();
 				BotInfo botInfo = botInfoMap.getOrDefault(directoryName, new BotInfo(path, directoryName));
 				botInfo.setProcess(process);
-				botInfo.setStartDate(Util.getDateTime());
+				botInfo.setStartDelay(Util.getDateTime().plusSeconds(updateDelay));
 
 				File file = new File(botInfo.getPath() + "/data/unlinked");
 				FileSystemUtils.deleteRecursively(file.toPath());
@@ -590,7 +631,7 @@ public class ProcessService {
 				Process process = builder.start();
 				BotInfo botInfo = addonInfoMap.getOrDefault(directoryName, new BotInfo(path, directoryName));
 				botInfo.setProcess(process);
-				botInfo.setStartDate(Util.getDateTime());
+				botInfo.setStartDelay(Util.getDateTime().plusSeconds(30));
 
 				File file = new File(botInfo.getPath() + "/data/unlinked");
 				FileSystemUtils.deleteRecursively(file.toPath());
@@ -835,7 +876,6 @@ public class ProcessService {
 			StaticUtil.copyJar(updateFolder, botInfo.getPath());
 			Thread.sleep(7000);
 			startBot(botInfo);
-			Thread.sleep(30000);
 			log.info("{} update complete, bot is starting", botInfo.getSiteName());
 		}
 

@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.profittrailer.models.BotInfo;
+import com.profittrailer.models.UpdateBotData;
 import com.profittrailer.services.ProcessService;
 import com.profittrailer.utils.BotInfoSerializer;
 import com.profittrailer.utils.StaticUtil;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -201,20 +203,15 @@ public class ApiController {
 			return;
 		}
 
-		new Thread(() -> {
-			for (String dir : processService.getBotInfoMap().keySet()) {
-				if (directoryName != null && !directoryName.equalsIgnoreCase(dir)) {
-					continue;
-				}
+		UpdateBotData updateBotData = new UpdateBotData(forceUrl);
 
-				try {
-					BotInfo botInfo = processService.getBotInfoMap().get(dir);
-					processService.updateBot(botInfo, forceUrl, false);
-				} catch (IOException | InterruptedException e) {
-					log.error(e);
-				}
+		for (String dir : processService.getBotInfoMap().keySet()) {
+			if (directoryName != null && !directoryName.equalsIgnoreCase(dir)) {
+				continue;
 			}
-		}).start();
+			updateBotData.getBotsToUpdate().add(dir);
+		}
+		processService.setUpdateBotData(updateBotData);
 	}
 
 	@GetMapping("/linkout")
@@ -308,7 +305,7 @@ public class ApiController {
 
 		directoryName = Util.cleanValue(directoryName).toLowerCase(Locale.ROOT);
 		String path = botsLocations[0] + File.separator + directoryName;
-		File newBot = new File(path);
+		File newBot = Paths.get(path).toFile();
 		if (newBot.exists()) {
 			response.sendError(HttpStatus.BAD_REQUEST.value(), "Directory Already Exists");
 			return;
@@ -356,11 +353,13 @@ public class ApiController {
 			String currency = (String) properties.getOrDefault("server.settings.currency", "");
 			String discordToken = (String) properties.getOrDefault("server.settings.discord.token", "");
 			String xmx = (String) properties.getOrDefault("default.startup.xmx", "512m");
+			String updateDelay = (String) properties.getOrDefault("default.update.delay", "60");
 
 			object.addProperty("timezone", timeZone);
 			object.addProperty("currency", currency);
 			object.addProperty("token", discordToken);
 			object.addProperty("xmx", xmx);
+			object.addProperty("updateDelay", updateDelay);
 
 		} catch (Exception e) {
 			log.error("Error getting global properties ", e);
@@ -374,6 +373,7 @@ public class ApiController {
 	                               String currency,
 	                               String token,
 	                               String xmx,
+	                               String updateDelay,
 	                               HttpServletResponse response) throws IOException {
 		try {
 			JsonObject object = new JsonObject();
@@ -391,6 +391,9 @@ public class ApiController {
 			}
 			if (StringUtils.isNotBlank(xmx)) {
 				properties.put("default.startup.xmx", xmx);
+			}
+			if (StringUtils.isNotBlank(updateDelay)) {
+				properties.put("default.update.delay", updateDelay);
 			}
 
 			//send to bots...?
