@@ -1,7 +1,5 @@
 package com.profittrailer.controllers;
 
-import static com.profittrailer.utils.Util.getDateTime;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -19,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
-import java.time.LocalDateTime;
 import java.util.Collection;
 
 @Log4j2
@@ -30,12 +27,6 @@ public class AddonApiController {
 	@Autowired
 	private ProcessService processService;
 	private Gson parser;
-	private boolean onlyManaged = true;
-	private boolean showPercentage = true;
-	private boolean showAmount = true;
-
-	private static int failedAttempts;
-	private static LocalDateTime timeout = getDateTime();
 
 	@PostConstruct
 	public void init() {
@@ -47,7 +38,7 @@ public class AddonApiController {
 	@GetMapping("/data")
 	public String addon(HttpServletRequest request) throws MalformedURLException {
 
-		Collection<BotInfo> bots = processService.getAddonList(onlyManaged);
+		Collection<BotInfo> bots = processService.getAddonList(processService.isOnlyManaged());
 		JsonObject object = new JsonObject();
 		object.add("addons", parser.toJsonTree(bots));
 		object.addProperty("baseUrl", StaticUtil.getBaseUrl(request));
@@ -63,7 +54,7 @@ public class AddonApiController {
 		}
 		processService.stopBot(processService.getAddonInfoMap(), directoryName);
 		Thread.sleep(5000);
-		processService.startBot(processService.getAddonInfoMap().get(directoryName));
+		processService.startAddon(processService.getAddonInfoMap().get(directoryName));
 
 	}
 

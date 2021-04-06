@@ -219,7 +219,7 @@ public class ProcessService {
 				}
 			}
 
-			updateBotData.getBotsToUpdate().removeIf(e-> e.equalsIgnoreCase(updateBotData.getCurrentlyUpdatingBot()));
+			updateBotData.getBotsToUpdate().removeIf(e -> e.equalsIgnoreCase(updateBotData.getCurrentlyUpdatingBot()));
 
 			if (updateBotData.getBotsToUpdate().size() > 0) {
 				BotInfo botInfo = getBotInfoMap().get(updateBotData.getBotsToUpdate().get(0));
@@ -256,15 +256,7 @@ public class ProcessService {
 				Map<String, ProcessInfo> tmpProcessInfoMap = new HashMap<>();
 				JProcesses.getProcessList()
 						.forEach(e -> {
-							if (e.getCommand().contains("pt-feeder")) {
-								String[] splitted = e.getCommand().split(" ");
-								if (splitted.length > 2) {
-									String dir = splitted[2].replace("dir=", "");
-									tmpProcessInfoMap.put(dir, e);
-								}
-							} else {
-								tmpProcessInfoMap.put(e.getPid(), e);
-							}
+							tmpProcessInfoMap.put(e.getPid(), e);
 						});
 				processInfoMap = tmpProcessInfoMap;
 				processedInitialized = true;
@@ -385,7 +377,11 @@ public class ProcessService {
 								botInfo.setAddOn(true);
 								botInfo.setInitialized(initialzed);
 								if (processedInitialized) {
-									botInfo.setProcessInfo(processInfoMap.get(directoryName));
+									botInfo.setBotProperties(getAddonProperties(path));
+									String pid = (String) botInfo.getBotProperties().get("processid");
+									if (pid != null) {
+										botInfo.setProcessInfo(processInfoMap.get("" + pid));
+									}
 								}
 								addonInfoMap.put(directoryName, botInfo);
 							});
@@ -404,21 +400,6 @@ public class ProcessService {
 							continue;
 						}
 
-//						if (!offline
-//								&& port != null
-//								&& !startingUpdating
-//								&& StringUtils.isNotBlank(StaticUtil.url)
-//								&& processedInitialized && managed) {
-//							String healthUrl = createUrl(botInfo, "/api/v2/health");
-//							try {
-//								Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
-//								if (data.getKey() < 202) {
-//									offline = !StringUtils.equalsIgnoreCase(data.getValue(), "true");
-//								}
-//							} catch (Exception e) {
-//								log.error("Error pinging health {}: {}", healthUrl, e.getMessage());
-//							}
-//						}
 						if (offline) {
 							stopBot(addonInfoMap, botInfo.getDirectory());
 							Thread.sleep(3000);
@@ -610,14 +591,14 @@ public class ProcessService {
 		if (originalBotInfo == null) {
 			return;
 		}
-		Properties properties = Util.readApplicationProperties();
+
 		String directoryName = originalBotInfo.getDirectory();
 
 		List<String> commands = new ArrayList<>();
 		commands.add("dotnet");
 		commands.add("pt-feeder.dll");
-		commands.add("dir=" + originalBotInfo.getDirectory());
-		commands.add("server.manager.token=" + managerToken);
+		//commands.add("dir=" + originalBotInfo.getDirectory());
+		//commands.add("ptmanager=true");
 
 		String path = originalBotInfo.getPath();
 		ProcessBuilder builder = new ProcessBuilder(commands);
@@ -675,6 +656,21 @@ public class ProcessService {
 	public Properties getBotProperties(String path) {
 		try {
 			File file = new File(path + "/data/details");
+			if (file.exists()) {
+				FileReader reader = new FileReader(file);
+				Properties properties = new Properties();
+				properties.load(reader);
+				return properties;
+			}
+		} catch (Exception e) {
+			log.error("Error getting bot properties ", e);
+		}
+		return new Properties();
+	}
+
+	public Properties getAddonProperties(String path) {
+		try {
+			File file = new File(path + "/details");
 			if (file.exists()) {
 				FileReader reader = new FileReader(file);
 				Properties properties = new Properties();
