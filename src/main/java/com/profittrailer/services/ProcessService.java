@@ -917,14 +917,14 @@ public class ProcessService {
 
 	public JsonObject generateGlobalStats() {
 		Set<String> accountIds = new HashSet<>();
-		double totalProfitTodayLive = 0;
-		double totalProfitTodayTest = 0;
-		double totalProfitLastMonthLive = 0;
-		double totalProfitLastMonthTest = 0;
-		double totalProfitThisMonthLive = 0;
-		double totalProfitThisMonthTest = 0;
-		double totalProfitAllTimeLive = 0;
-		double totalProfitAllTimeTest = 0;
+		double totalCombinedTodayLive = 0;
+		double totalCombinedTodayTest = 0;
+		double totalCombinedLastMonthLive = 0;
+		double totalCombinedLastMonthTest = 0;
+		double totalCombinedThisMonthLive = 0;
+		double totalCombinedThisMonthTest = 0;
+		double totalCombinedAllTimeLive = 0;
+		double totalCombinedAllTimeTest = 0;
 		double totalTCVLive = 0;
 		double totalTCVTest = 0;
 		String currency = getStoredCurrency();
@@ -938,7 +938,7 @@ public class ProcessService {
 					continue;
 				}
 
-				if (!botInfo.getGlobalStats().has("totalProfitLastMonth")) {
+				if (!botInfo.getGlobalStats().has("totalCombinedLastMonth")) {
 					continue;
 				}
 
@@ -952,24 +952,24 @@ public class ProcessService {
 					accountId = botInfo.getGlobalStats().get("accountId").getAsString();
 				}
 
-				double profitToday = botInfo.getGlobalStats().get("totalProfitToday").getAsDouble() * cr * coinGeckoExchangeRate;
-				double profitLastMonth = botInfo.getGlobalStats().get("totalProfitLastMonth").getAsDouble() * cr * coinGeckoExchangeRate;
-				double profitThisMonth = botInfo.getGlobalStats().get("totalProfitThisMonth").getAsDouble() * cr * coinGeckoExchangeRate;
-				double profitAllTime = botInfo.getGlobalStats().get("totalProfit").getAsDouble() * cr * coinGeckoExchangeRate;
+				double profitToday = botInfo.getGlobalStats().get("totalCombinedToday").getAsDouble() * cr * coinGeckoExchangeRate;
+				double profitLastMonth = botInfo.getGlobalStats().get("totalCombinedLastMonth").getAsDouble() * cr * coinGeckoExchangeRate;
+				double profitThisMonth = botInfo.getGlobalStats().get("totalCombinedThisMonth").getAsDouble() * cr * coinGeckoExchangeRate;
+				double profitAllTime = botInfo.getGlobalStats().get("totalCombined").getAsDouble() * cr * coinGeckoExchangeRate;
 
 				double tcv = StaticUtil.extractTCV(botInfo.getTcvData()) * cr * coinGeckoExchangeRate;
 
 				if (botInfo.getGlobalStats().get("testMode").getAsBoolean() || botInfo.getGlobalStats().get("testnet").getAsBoolean()) {
-					totalProfitTodayTest += profitToday;
-					totalProfitLastMonthTest += profitLastMonth;
-					totalProfitThisMonthTest += profitThisMonth;
-					totalProfitAllTimeTest += profitAllTime;
+					totalCombinedTodayTest += profitToday;
+					totalCombinedLastMonthTest += profitLastMonth;
+					totalCombinedThisMonthTest += profitThisMonth;
+					totalCombinedAllTimeTest += profitAllTime;
 					totalTCVTest += tcv;
 				} else {
-					totalProfitTodayLive += profitToday;
-					totalProfitLastMonthLive += profitLastMonth;
-					totalProfitThisMonthLive += profitThisMonth;
-					totalProfitAllTimeLive += profitAllTime;
+					totalCombinedTodayLive += profitToday;
+					totalCombinedLastMonthLive += profitLastMonth;
+					totalCombinedThisMonthLive += profitThisMonth;
+					totalCombinedAllTimeLive += profitAllTime;
 					if (StringUtils.isBlank(accountId) || !accountIds.contains(market + accountId)) {
 						totalTCVLive += tcv;
 
@@ -985,14 +985,14 @@ public class ProcessService {
 		}
 
 		JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty("totalProfitTodayLive", totalProfitTodayLive);
-		jsonObject.addProperty("totalProfitTodayTest", totalProfitTodayTest);
-		jsonObject.addProperty("totalProfitLastMonthLive", totalProfitLastMonthLive);
-		jsonObject.addProperty("totalProfitLastMonthTest", totalProfitLastMonthTest);
-		jsonObject.addProperty("totalProfitThisMonthLive", totalProfitThisMonthLive);
-		jsonObject.addProperty("totalProfitThisMonthTest", totalProfitThisMonthTest);
-		jsonObject.addProperty("totalProfitAllTimeLive", totalProfitAllTimeLive);
-		jsonObject.addProperty("totalProfitAllTimeTest", totalProfitAllTimeTest);
+		jsonObject.addProperty("totalCombinedTodayLive", totalCombinedTodayLive);
+		jsonObject.addProperty("totalCombinedTodayTest", totalCombinedTodayTest);
+		jsonObject.addProperty("totalCombinedLastMonthLive", totalCombinedLastMonthLive);
+		jsonObject.addProperty("totalCombinedLastMonthTest", totalCombinedLastMonthTest);
+		jsonObject.addProperty("totalCombinedThisMonthLive", totalCombinedThisMonthLive);
+		jsonObject.addProperty("totalCombinedThisMonthTest", totalCombinedThisMonthTest);
+		jsonObject.addProperty("totalCombinedAllTimeLive", totalCombinedAllTimeLive);
+		jsonObject.addProperty("totalCombinedAllTimeTest", totalCombinedAllTimeTest);
 		jsonObject.addProperty("totalTCVLive", totalTCVLive);
 		jsonObject.addProperty("totalTCVTest", totalTCVTest);
 		jsonObject.addProperty("currency", currency);

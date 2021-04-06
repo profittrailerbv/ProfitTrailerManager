@@ -52,14 +52,14 @@
                 <span class="">Today (L)</span><br/>
               </div>
               <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
-              <span v-if="containsKey(globalStats, 'totalProfitTodayLive')"
-                    :class="globalStats.totalProfitTodayLive > 0 ? 'text-soft-success' : globalStats.totalProfitTodayLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundSensitiveNumber(globalStats.totalProfitTodayLive, 2) }} {{ globalStats.currency }}
+              <span v-if="containsKey(globalStats, 'totalCombinedTodayLive')"
+                    :class="globalStats.totalCombinedTodayLive > 0 ? 'text-soft-success' : globalStats.totalCombinedTodayLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundSensitiveNumber(globalStats.totalCombinedTodayLive, 2) }} {{ globalStats.currency }}
               </span>
                 <span
-                    v-if="containsKey(globalStats, 'totalProfitTodayLive') && globalStats.totalTCVLive > 0 && showPercentage"
-                    :class="globalStats.totalProfitTodayLive > 0 ? 'text-soft-success' : globalStats.totalProfitTodayLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                ({{ roundNumber(globalStats.totalProfitTodayLive / globalStats.totalTCVLive * 100, 2) }}%)
+                    v-if="containsKey(globalStats, 'totalCombinedTodayLive') && globalStats.totalTCVLive > 0 && showPercentage"
+                    :class="globalStats.totalCombinedTodayLive > 0 ? 'text-soft-success' : globalStats.totalCombinedTodayLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                ({{ roundNumber(globalStats.totalCombinedTodayLive / globalStats.totalTCVLive * 100, 2) }}%)
               </span>
               </div>
             </div>
@@ -68,14 +68,14 @@
                 <span class="">Today (T)</span><br/>
               </div>
               <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
-              <span v-if="containsKey(globalStats, 'totalProfitTodayTest')"
-                    :class="globalStats.totalProfitTodayTest > 0 ? 'text-soft-success' : globalStats.totalProfitTodayTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundSensitiveNumber(globalStats.totalProfitTodayTest, 2) }} {{ globalStats.currency }}
+              <span v-if="containsKey(globalStats, 'totalCombinedTodayTest')"
+                    :class="globalStats.totalCombinedTodayTest > 0 ? 'text-soft-success' : globalStats.totalCombinedTodayTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundSensitiveNumber(globalStats.totalCombinedTodayTest, 2) }} {{ globalStats.currency }}
               </span>
                 <span
-                    v-if="containsKey(globalStats, 'totalProfitTodayTest') && globalStats.totalTCVTest > 0 && showPercentage"
-                    :class="globalStats.totalProfitTodayTest > 0 ? 'text-soft-success' : globalStats.totalProfitTodayTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                ({{ roundNumber(globalStats.totalProfitTodayTest / globalStats.totalTCVTest * 100, 2) }}%)
+                    v-if="containsKey(globalStats, 'totalCombinedTodayTest') && globalStats.totalTCVTest > 0 && showPercentage"
+                    :class="globalStats.totalCombinedTodayTest > 0 ? 'text-soft-success' : globalStats.totalCombinedTodayTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                ({{ roundNumber(globalStats.totalCombinedTodayTest / globalStats.totalTCVTest * 100, 2) }}%)
               </span>
               </div>
             </div>
@@ -88,14 +88,14 @@
                 <span class="">Month (L)</span><br/>
               </div>
               <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
-              <span v-if="containsKey(globalStats, 'totalProfitThisMonthLive')"
-                    :class="globalStats.totalProfitThisMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundSensitiveNumber(globalStats.totalProfitThisMonthLive, 2) }} {{ globalStats.currency }}
+              <span v-if="containsKey(globalStats, 'totalCombinedThisMonthLive')"
+                    :class="globalStats.totalCombinedThisMonthLive > 0 ? 'text-soft-success' : globalStats.totalCombinedThisMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundSensitiveNumber(globalStats.totalCombinedThisMonthLive, 2) }} {{ globalStats.currency }}
               </span>
                 <span
-                    v-if="containsKey(globalStats, 'totalProfitThisMonthLive') && globalStats.totalTCVLive > 0 && showPercentage"
-                    :class="globalStats.totalProfitThisMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                ({{ roundNumber(globalStats.totalProfitThisMonthLive / globalStats.totalTCVLive * 100, 2) }}%)
+                    v-if="containsKey(globalStats, 'totalCombinedThisMonthLive') && globalStats.totalTCVLive > 0 && showPercentage"
+                    :class="globalStats.totalCombinedThisMonthLive > 0 ? 'text-soft-success' : globalStats.totalCombinedThisMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                ({{ roundNumber(globalStats.totalCombinedThisMonthLive / globalStats.totalTCVLive * 100, 2) }}%)
               </span>
               </div>
             </div>
@@ -104,14 +104,14 @@
                 <span class="">Month (T)</span><br/>
               </div>
               <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
-              <span v-if="containsKey(globalStats, 'totalProfitThisMonthTest')"
-                    :class="globalStats.totalProfitThisMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundSensitiveNumber(globalStats.totalProfitThisMonthTest, 2) }} {{ globalStats.currency }}
+              <span v-if="containsKey(globalStats, 'totalCombinedThisMonthTest')"
+                    :class="globalStats.totalCombinedThisMonthTest > 0 ? 'text-soft-success' : globalStats.totalCombinedThisMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundSensitiveNumber(globalStats.totalCombinedThisMonthTest, 2) }} {{ globalStats.currency }}
               </span>
                 <span
-                    v-if="containsKey(globalStats, 'totalProfitThisMonthTest') && globalStats.totalTCVTest > 0 && showPercentage"
-                    :class="globalStats.totalProfitThisMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitThisMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                ({{ roundNumber(globalStats.totalProfitThisMonthTest / globalStats.totalTCVTest * 100, 2) }}%)
+                    v-if="containsKey(globalStats, 'totalCombinedThisMonthTest') && globalStats.totalTCVTest > 0 && showPercentage"
+                    :class="globalStats.totalCombinedThisMonthTest > 0 ? 'text-soft-success' : globalStats.totalCombinedThisMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                ({{ roundNumber(globalStats.totalCombinedThisMonthTest / globalStats.totalTCVTest * 100, 2) }}%)
               </span>
               </div>
             </div>
@@ -124,14 +124,14 @@
                 <span class="">P-Month (L)</span><br/>
               </div>
               <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
-              <span v-if="containsKey(globalStats, 'totalProfitLastMonthLive')"
-                    :class="globalStats.totalProfitLastMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundSensitiveNumber(globalStats.totalProfitLastMonthLive, 2) }} {{ globalStats.currency }}
+              <span v-if="containsKey(globalStats, 'totalCombinedLastMonthLive')"
+                    :class="globalStats.totalCombinedLastMonthLive > 0 ? 'text-soft-success' : globalStats.totalCombinedLastMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundSensitiveNumber(globalStats.totalCombinedLastMonthLive, 2) }} {{ globalStats.currency }}
               </span>
                 <span
-                    v-if="containsKey(globalStats, 'totalProfitLastMonthLive') && globalStats.totalTCVLive > 0 && showPercentage"
-                    :class="globalStats.totalProfitLastMonthLive > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                ({{ roundNumber(globalStats.totalProfitLastMonthLive / globalStats.totalTCVLive * 100, 2) }}%)
+                    v-if="containsKey(globalStats, 'totalCombinedLastMonthLive') && globalStats.totalTCVLive > 0 && showPercentage"
+                    :class="globalStats.totalCombinedLastMonthLive > 0 ? 'text-soft-success' : globalStats.totalCombinedLastMonthLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                ({{ roundNumber(globalStats.totalCombinedLastMonthLive / globalStats.totalTCVLive * 100, 2) }}%)
               </span>
               </div>
             </div>
@@ -140,14 +140,14 @@
                 <span class="">P-Month (T)</span><br/>
               </div>
               <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
-              <span v-if="containsKey(globalStats, 'totalProfitLastMonthTest')"
-                    :class="globalStats.totalProfitLastMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundSensitiveNumber(globalStats.totalProfitLastMonthTest, 2) }} {{ globalStats.currency }}
+              <span v-if="containsKey(globalStats, 'totalCombinedLastMonthTest')"
+                    :class="globalStats.totalCombinedLastMonthTest > 0 ? 'text-soft-success' : globalStats.totalCombinedLastMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundSensitiveNumber(globalStats.totalCombinedLastMonthTest, 2) }} {{ globalStats.currency }}
               </span>
                 <span
-                    v-if="containsKey(globalStats, 'totalProfitLastMonthTest') && globalStats.totalTCVTest > 0 && showPercentage"
-                    :class="globalStats.totalProfitLastMonthTest > 0 ? 'text-soft-success' : globalStats.totalProfitLastMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                ({{ roundNumber(globalStats.totalProfitLastMonthTest / globalStats.totalTCVTest * 100, 2) }}%)
+                    v-if="containsKey(globalStats, 'totalCombinedLastMonthTest') && globalStats.totalTCVTest > 0 && showPercentage"
+                    :class="globalStats.totalCombinedLastMonthTest > 0 ? 'text-soft-success' : globalStats.totalCombinedLastMonthTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                ({{ roundNumber(globalStats.totalCombinedLastMonthTest / globalStats.totalTCVTest * 100, 2) }}%)
               </span>
               </div>
             </div>
@@ -160,14 +160,14 @@
                 <span class="">All (L)</span><br/>
               </div>
               <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
-              <span v-if="containsKey(globalStats, 'totalProfitAllTimeLive')"
-                    :class="globalStats.totalProfitAllTimeLive > 0 ? 'text-soft-success' : globalStats.totalProfitAllTimeLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundSensitiveNumber(globalStats.totalProfitAllTimeLive, 2) }} {{ globalStats.currency }}
+              <span v-if="containsKey(globalStats, 'totalCombinedAllTimeLive')"
+                    :class="globalStats.totalCombinedAllTimeLive > 0 ? 'text-soft-success' : globalStats.totalCombinedAllTimeLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundSensitiveNumber(globalStats.totalCombinedAllTimeLive, 2) }} {{ globalStats.currency }}
               </span>
                 <span
-                    v-if="containsKey(globalStats, 'totalProfitAllTimeLive') && globalStats.totalTCVLive > 0 && showPercentage"
-                    :class="globalStats.totalProfitAllTimeLive > 0 ? 'text-soft-success' : globalStats.totalProfitAllTimeLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                ({{ roundNumber(globalStats.totalProfitAllTimeLive / globalStats.totalTCVLive * 100, 2) }}%)
+                    v-if="containsKey(globalStats, 'totalCombinedAllTimeLive') && globalStats.totalTCVLive > 0 && showPercentage"
+                    :class="globalStats.totalCombinedAllTimeLive > 0 ? 'text-soft-success' : globalStats.totalCombinedAllTimeLive < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                ({{ roundNumber(globalStats.totalCombinedAllTimeLive / globalStats.totalTCVLive * 100, 2) }}%)
               </span>
               </div>
             </div>
@@ -176,14 +176,14 @@
                 <span class="">All (T)</span><br/>
               </div>
               <div class="col-xs-12 col-md-8 pl-0 text-left font-weight-bold">
-              <span v-if="containsKey(globalStats, 'totalProfitAllTimeTest')"
-                    :class="globalStats.totalProfitAllTimeTest > 0 ? 'text-soft-success' : globalStats.totalProfitAllTimeTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                {{ roundSensitiveNumber(globalStats.totalProfitAllTimeTest, 2) }} {{ globalStats.currency }}
+              <span v-if="containsKey(globalStats, 'totalCombinedAllTimeTest')"
+                    :class="globalStats.totalCombinedAllTimeTest > 0 ? 'text-soft-success' : globalStats.totalCombinedAllTimeTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                {{ roundSensitiveNumber(globalStats.totalCombinedAllTimeTest, 2) }} {{ globalStats.currency }}
               </span>
                 <span
-                    v-if="containsKey(globalStats, 'totalProfitAllTimeTest') && globalStats.totalTCVTest > 0 && showPercentage"
-                    :class="globalStats.totalProfitAllTimeTest > 0 ? 'text-soft-success' : globalStats.totalProfitAllTimeTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
-                ({{ roundNumber(globalStats.totalProfitAllTimeTest / globalStats.totalTCVTest * 100, 2) }}%)
+                    v-if="containsKey(globalStats, 'totalCombinedAllTimeTest') && globalStats.totalTCVTest > 0 && showPercentage"
+                    :class="globalStats.totalCombinedAllTimeTest > 0 ? 'text-soft-success' : globalStats.totalCombinedAllTimeTest < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                ({{ roundNumber(globalStats.totalCombinedAllTimeTest / globalStats.totalTCVTest * 100, 2) }}%)
               </span>
               </div>
             </div>

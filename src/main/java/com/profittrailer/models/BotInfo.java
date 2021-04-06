@@ -223,20 +223,20 @@ public class BotInfo {
 
 	public void setStatsData(JsonObject statsData) {
 		if (statsData != null) {
-			globalStats.addProperty("totalProfitLastMonth", getJsonObjectData("totalProfitLastMonth", statsData.getAsJsonObject("basic")));
-			globalStats.addProperty("totalProfitToday", getJsonObjectData("totalProfitToday", statsData.getAsJsonObject("basic")));
-			globalStats.addProperty("totalProfitThisMonth", getJsonObjectData("totalProfitThisMonth", statsData.getAsJsonObject("basic")));
-			globalStats.addProperty("totalProfit", getJsonObjectData("totalProfit", statsData.getAsJsonObject("basic")));
+			globalStats.addProperty("totalCombinedLastMonth", getJsonObjectData("totalCombinedLastMonth", statsData.getAsJsonObject("basic")));
+			globalStats.addProperty("totalCombinedToday", getJsonObjectData("totalCombinedToday", statsData.getAsJsonObject("basic")));
+			globalStats.addProperty("totalCombinedThisMonth", getJsonObjectData("totalCombinedThisMonth", statsData.getAsJsonObject("basic")));
+			globalStats.addProperty("totalCombined", getJsonObjectData("totalCombined", statsData.getAsJsonObject("basic")));
 
 			botData.addProperty("totalSalesToday", statsData.getAsJsonObject("basic").get("totalSalesToday").getAsDouble());
-			botData.addProperty("totalProfitToday", statsData.getAsJsonObject("basic").get("totalProfitToday").getAsDouble());
-			botData.addProperty("totalProfitPercToday", statsData.getAsJsonObject("basic").get("totalProfitPercToday").getAsDouble());
+			botData.addProperty("totalCombinedToday", statsData.getAsJsonObject("basic").get("totalCombinedToday").getAsDouble());
+			botData.addProperty("totalCombinedPercToday", statsData.getAsJsonObject("basic").get("totalCombinedPercToday").getAsDouble());
 			botData.addProperty("totalSalesYesterday", statsData.getAsJsonObject("basic").get("totalSalesYesterday").getAsDouble());
-			botData.addProperty("totalProfitYesterday", statsData.getAsJsonObject("basic").get("totalProfitYesterday").getAsDouble());
-			botData.addProperty("totalProfitPercYesterday", statsData.getAsJsonObject("basic").get("totalProfitPercYesterday").getAsDouble());
+			botData.addProperty("totalCombinedYesterday", statsData.getAsJsonObject("basic").get("totalCombinedYesterday").getAsDouble());
+			botData.addProperty("totalCombinedPercYesterday", statsData.getAsJsonObject("basic").get("totalCombinedPercYesterday").getAsDouble());
 			botData.addProperty("totalSalesAllTime", statsData.getAsJsonObject("basic").get("totalSales").getAsDouble());
-			botData.addProperty("totalProfitAllTime", statsData.getAsJsonObject("basic").get("totalProfit").getAsDouble());
-			botData.addProperty("totalProfitPercAllTime", statsData.getAsJsonObject("basic").get("totalProfitPerc").getAsDouble());
+			botData.addProperty("totalCombinedAllTime", statsData.getAsJsonObject("basic").get("totalCombined").getAsDouble());
+			botData.addProperty("totalCombinedPercAllTime", statsData.getAsJsonObject("basic").get("totalCombinedPerc").getAsDouble());
 		}
 	}
 

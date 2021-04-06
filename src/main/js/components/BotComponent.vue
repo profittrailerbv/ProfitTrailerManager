@@ -19,7 +19,7 @@
               </a>
             </div>
           </div>
-          <div class="row small" :class="bot.data.totalProfitAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
+          <div class="row small" :class="bot.data.totalCombinedAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
             <div class="col-12 text-left">
               {{ bot.data.config }} <span class="smallest">({{ bot.data.exchange }})</span>
             </div>
@@ -29,13 +29,13 @@
               <span class="">Today ({{ bot.data.totalSalesToday }})</span><br/>
             </div>
             <div class="col-6 text-right font-weight-bold"
-                 :class="bot.data.totalProfitToday > 0 ? 'text-soft-success' : bot.data.totalProfitToday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                 :class="bot.data.totalCombinedToday > 0 ? 'text-soft-success' : bot.data.totalCombinedToday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
               <span
-                  v-if="bot.managed && containsKey(bot.data, 'totalProfitToday')"> {{
-                  roundNumber(bot.data.totalProfitToday, bot.data.guiPrecision)
+                  v-if="bot.managed && containsKey(bot.data, 'totalCombinedToday')"> {{
+                  roundNumber(bot.data.totalCombinedToday, bot.data.guiPrecision)
                 }}</span>
-              <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercToday')"
-                    class="small"> ({{ roundNumber(bot.data.totalProfitPercToday , 2) }}%)</span>
+              <span v-if="bot.managed && containsKey(bot.data, 'totalCombinedPercToday')"
+                    class="small"> ({{ roundNumber(bot.data.totalCombinedPercToday , 2) }}%)</span>
             </div>
           </div>
           <div class="row text-soft-dark">
@@ -43,13 +43,13 @@
               <span class="">Yesterday ({{ bot.data.totalSalesYesterday }})</span><br/>
             </div>
             <div class="col-6 text-right font-weight-bold"
-                 :class="bot.data.totalProfitYesterday > 0 ? 'text-soft-success' : bot.data.totalProfitYesterday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
+                 :class="bot.data.totalCombinedYesterday > 0 ? 'text-soft-success' : bot.data.totalCombinedYesterday < 0 ? 'text-soft-danger' : 'text-soft-dark'">
               <span
-                  v-if="bot.managed && containsKey(bot.data, 'totalProfitYesterday')"> {{
-                  roundNumber(bot.data.totalProfitYesterday, bot.data.guiPrecision)
+                  v-if="bot.managed && containsKey(bot.data, 'totalCombinedYesterday')"> {{
+                  roundNumber(bot.data.totalCombinedYesterday, bot.data.guiPrecision)
                 }}</span>
-              <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercYesterday')"
-                    class="small"> ({{ roundNumber(bot.data.totalProfitPercYesterday , 2) }}%)</span>
+              <span v-if="bot.managed && containsKey(bot.data, 'totalCombinedPercYesterday')"
+                    class="small"> ({{ roundNumber(bot.data.totalCombinedPercYesterday , 2) }}%)</span>
             </div>
           </div>
           <div class="row text-soft-dark">
@@ -73,23 +73,23 @@
           </div>
         </div>
         <div style="border-width:5px" class="card-footer border-dark"
-             :class="bot.data.totalProfitAllTime > 0 ? 'bg-soft-green' : bot.data.totalProfitAllTime < 0 ? 'bg-soft-red' : ''">
-          <div class="row" :class="bot.data.totalProfitAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
+             :class="bot.data.totalCombinedAllTime > 0 ? 'bg-soft-green' : bot.data.totalCombinedAllTime < 0 ? 'bg-soft-red' : ''">
+          <div class="row" :class="bot.data.totalCombinedAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
             <div class="col-5 text-left font-weight-bold font-italic pr-0">
               <span class="">Profit All Time</span><br/>
             </div>
             <div class="col-7 text-right font-weight-bold pl-3"
-                 :class="bot.data.totalProfitAllTime > 0 ? 'text-soft-success' : bot.data.totalProfitAllTime < 0 ? 'text-soft-danger' : 'text-secondary'">
+                 :class="bot.data.totalCombinedAllTime > 0 ? 'text-soft-success' : bot.data.totalCombinedAllTime < 0 ? 'text-soft-danger' : 'text-secondary'">
               <span
-                  v-if="bot.managed && containsKey(bot.data, 'totalProfitAllTime')"> {{
-                  roundNumber(bot.data.totalProfitAllTime, bot.data.guiPrecision)
+                  v-if="bot.managed && containsKey(bot.data, 'totalCombinedAllTime')"> {{
+                  roundNumber(bot.data.totalCombinedAllTime, bot.data.guiPrecision)
                 }}</span>
-              <span v-if="bot.managed && containsKey(bot.data, 'totalProfitPercAllTime')"
-                    class="small"> ({{ bot.data.totalProfitPercAllTime }}%)</span>
+              <span v-if="bot.managed && containsKey(bot.data, 'totalCombinedPercAllTime')"
+                    class="small"> ({{ roundNumber(bot.data.totalCombinedPercAllTime, 2) }}%)</span>
             </div>
           </div>
           <div class="row mt-3 small"
-               :class="bot.data.totalProfitAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
+               :class="bot.data.totalCombinedAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
             <div class="col-4 text-left">
               <span v-if="bot.managed && containsKey(bot.data, 'pairsTotal')"> PAIRS: {{ bot.data.pairsTotal }}</span>
             </div>
@@ -100,7 +100,7 @@
                 }}</span>
             </div>
           </div>
-          <div class="row small" :class="bot.data.totalProfitAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
+          <div class="row small" :class="bot.data.totalCombinedAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
             <div class="col-4 text-left">
               <span v-if="bot.managed && containsKey(bot.data, 'dcaTotal')"> DCA: {{ bot.data.dcaTotal }}</span>
             </div>
@@ -108,7 +108,7 @@
               <span v-if="bot.managed && containsKey(bot.data, 'tcv')"> TCV: {{ roundNumber(bot.data.tcv, bot.data.guiPrecision) }}</span>
             </div>
           </div>
-          <div class="row small" :class="bot.data.totalProfitAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
+          <div class="row small" :class="bot.data.totalCombinedAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
             <div class="col-4 text-left">
               <span v-if="bot.managed && containsKey(bot.data, 'dcaTotal')"> Pending: {{ bot.data.pendingTotal }}</span>
             </div>
@@ -117,7 +117,7 @@
           </div>
         </div>
         <div style="border-width:1px" class="card-footer border-dark"
-             :class="bot.data.totalProfitAllTime > 0 ? 'bg-soft-green' : bot.data.totalProfitAllTime < 0 ? 'bg-soft-red' : ''">
+             :class="bot.data.totalCombinedAllTime > 0 ? 'bg-soft-green' : bot.data.totalCombinedAllTime < 0 ? 'bg-soft-red' : ''">
           <div class="row">
             <div class="col-6 text-left">
               <a v-if="!demoServer && bot.managed" href="#"

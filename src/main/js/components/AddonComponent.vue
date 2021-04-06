@@ -14,7 +14,7 @@
           </div>
         </div>
         <div style="border-width:1px" class="card-footer border-dark"
-             :class="addon.data.totalProfitAllTime > 0 ? 'bg-soft-green' : addon.data.totalProfitAllTime < 0 ? 'bg-soft-red' : ''">
+             :class="addon.data.totalCombinedAllTime > 0 ? 'bg-soft-green' : addon.data.totalCombinedAllTime < 0 ? 'bg-soft-red' : ''">
           <div class="row">
             <div class="col-6 text-left">
 <!--              C: {{bot.cpu}}-->
