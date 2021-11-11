@@ -9,7 +9,7 @@ mix
     .sass("src/main/sass/app.scss", "src/main/resources/static")
     // This one is important: you have to set the local path to the folder
     // for public accessible static resources.
-    .setPublicPath("src/main/resources/static/");
+    .setPublicPath("src/main/resources/static/").vue();
 
 // API
 //
