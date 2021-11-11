@@ -21,11 +21,13 @@ public class BotInfo {
 	private String directory;
 	private Properties botProperties = new Properties();
 	private String url;
+	private boolean addOn = false;
+
 	private transient boolean initialized;
 	private transient boolean lastUnlinkedStatus;
 	private transient Process process;
 	private transient ProcessInfo processInfo;
-	private transient LocalDateTime startDate;
+	private transient LocalDateTime startDelay;
 	private transient LocalDateTime updateDate;
 
 	//These objects only store the data we actually need
@@ -42,15 +44,19 @@ public class BotInfo {
 	}
 
 	public String getStatus() {
+		if (isAddOn()) {
+			return getAddonStatus();
+		}
+
 		if (!initialized) {
 			return "INITIALIZING";
 		}
 
-		if (startDate != null && startDate.plusSeconds(30).isAfter(Util.getDateTime())) {
+		if (startDelay != null && startDelay.isAfter(Util.getDateTime())) {
 			return "STARTING";
 		}
 
-		if (updateDate != null && updateDate.plusSeconds(30).isAfter(Util.getDateTime())) {
+		if (updateDate != null && updateDate.plusSeconds(5).isAfter(Util.getDateTime())) {
 			return "UPDATING";
 		}
 
@@ -61,12 +67,44 @@ public class BotInfo {
 				: "ONLINE";
 	}
 
+	private String getAddonStatus() {
+		if (!initialized) {
+			return "INITIALIZING";
+		}
+
+		if (startDelay != null && startDelay.isAfter(Util.getDateTime())) {
+			return "STARTING";
+		}
+
+		if (updateDate != null && updateDate.plusSeconds(30).isAfter(Util.getDateTime())) {
+			return "UPDATING";
+		}
+
+		return processInfo == null
+				|| !StringUtils.containsIgnoreCase(processInfo.getCommand(), "pt-feeder.dll")
+				? "OFFLINE"
+				: "ONLINE";
+	}
+
 	public boolean isManaged() {
+		if (isAddOn()) {
+			return isManagedAddon();
+		}
+
 		if (lastUnlinkedStatus) {
 			return false;
 		}
 
 		return Boolean.parseBoolean((String) botProperties.getOrDefault("managed", "false"));
+	}
+
+	private boolean isManagedAddon() {
+		if (lastUnlinkedStatus) {
+			return false;
+		}
+
+		return processInfo != null
+				&& StringUtils.containsIgnoreCase(processInfo.getCommand(), "pt-feeder.dll");
 	}
 
 	public boolean isUnlinked() {
@@ -79,6 +117,10 @@ public class BotInfo {
 	}
 
 	public String getSiteName() {
+		if (isAddOn()) {
+			return directory;
+		}
+
 		String siteName = (String) botProperties.getOrDefault("siteName", "");
 
 		return StringUtils.isNotBlank(siteName)
@@ -93,14 +135,14 @@ public class BotInfo {
 			globalStats.addProperty("priceDataUSDConversionRate", getJsonObjectData("priceDataUSDConversionRate", miscData));
 			globalStats.addProperty("market", getJsonObjectData("market", miscData));
 			globalStats.addProperty("accountId", getJsonObjectData("accountId", miscData));
-			
+
 			tcvData.addProperty("realBalance", getJsonObjectData("realBalance", miscData));
 			tcvData.addProperty("totalPairsCurrentValue", getJsonObjectData("totalPairsCurrentValue", miscData));
 			tcvData.addProperty("totalDCACurrentValue", getJsonObjectData("totalDCACurrentValue", miscData));
 			tcvData.addProperty("totalPendingCurrentValue", getJsonObjectData("totalPendingCurrentValue", miscData));
 			tcvData.addProperty("totalDustCurrentValue", getJsonObjectData("totalDustCurrentValue", miscData));
 			tcvData.addProperty("totalExchangeCurrentValue", getJsonObjectData("totalExchangeCurrentValue", miscData));
-			
+
 			// I know there are some duplicate entries for now
 			botData.addProperty("exchange", miscData.get("exchange").getAsString());
 			botData.addProperty("version", miscData.get("version").getAsString());
@@ -131,7 +173,7 @@ public class BotInfo {
 		}
 	}
 
-	public void setCoinsData(JsonArray pairsData, 
+	public void setCoinsData(JsonArray pairsData,
 	                         JsonArray dcaData,
 	                         JsonArray pendingData) {
 
@@ -181,20 +223,20 @@ public class BotInfo {
 
 	public void setStatsData(JsonObject statsData) {
 		if (statsData != null) {
-			globalStats.addProperty("totalProfitLastMonth", getJsonObjectData("totalProfitLastMonth", statsData.getAsJsonObject("basic")));
-			globalStats.addProperty("totalProfitToday", getJsonObjectData("totalProfitToday", statsData.getAsJsonObject("basic")));
-			globalStats.addProperty("totalProfitThisMonth", getJsonObjectData("totalProfitThisMonth", statsData.getAsJsonObject("basic")));
-			globalStats.addProperty("totalProfit", getJsonObjectData("totalProfit", statsData.getAsJsonObject("basic")));
+			globalStats.addProperty("totalCombinedLastMonth", getJsonObjectData("totalCombinedLastMonth", statsData.getAsJsonObject("basic")));
+			globalStats.addProperty("totalCombinedToday", getJsonObjectData("totalCombinedToday", statsData.getAsJsonObject("basic")));
+			globalStats.addProperty("totalCombinedThisMonth", getJsonObjectData("totalCombinedThisMonth", statsData.getAsJsonObject("basic")));
+			globalStats.addProperty("totalCombined", getJsonObjectData("totalCombined", statsData.getAsJsonObject("basic")));
 
 			botData.addProperty("totalSalesToday", statsData.getAsJsonObject("basic").get("totalSalesToday").getAsDouble());
-			botData.addProperty("totalProfitToday", statsData.getAsJsonObject("basic").get("totalProfitToday").getAsDouble());
-			botData.addProperty("totalProfitPercToday", statsData.getAsJsonObject("basic").get("totalProfitPercToday").getAsDouble());
+			botData.addProperty("totalCombinedToday", statsData.getAsJsonObject("basic").get("totalCombinedToday").getAsDouble());
+			botData.addProperty("totalCombinedPercToday", StaticUtil.roundPercentage(statsData.getAsJsonObject("basic").get("totalCombinedPercToday").getAsDouble()));
 			botData.addProperty("totalSalesYesterday", statsData.getAsJsonObject("basic").get("totalSalesYesterday").getAsDouble());
-			botData.addProperty("totalProfitYesterday", statsData.getAsJsonObject("basic").get("totalProfitYesterday").getAsDouble());
-			botData.addProperty("totalProfitPercYesterday", statsData.getAsJsonObject("basic").get("totalProfitPercYesterday").getAsDouble());
+			botData.addProperty("totalCombinedYesterday", statsData.getAsJsonObject("basic").get("totalCombinedYesterday").getAsDouble());
+			botData.addProperty("totalCombinedPercYesterday", StaticUtil.roundPercentage(statsData.getAsJsonObject("basic").get("totalCombinedPercYesterday").getAsDouble()));
 			botData.addProperty("totalSalesAllTime", statsData.getAsJsonObject("basic").get("totalSales").getAsDouble());
-			botData.addProperty("totalProfitAllTime", statsData.getAsJsonObject("basic").get("totalProfit").getAsDouble());
-			botData.addProperty("totalProfitPercAllTime", statsData.getAsJsonObject("basic").get("totalProfitPerc").getAsDouble());
+			botData.addProperty("totalCombinedAllTime", statsData.getAsJsonObject("basic").get("totalCombined").getAsDouble());
+			botData.addProperty("totalCombinedPercAllTime", StaticUtil.roundPercentage(statsData.getAsJsonObject("basic").get("totalCombinedPerc").getAsDouble()));
 		}
 	}
 
@@ -206,8 +248,8 @@ public class BotInfo {
 	}
 
 	public void clearData() {
-		globalStats = null;
-		tcvData = null;
-		botData = null;
+		globalStats = new JsonObject();
+		tcvData = new JsonObject();
+		botData = new JsonObject();
 	}
 }

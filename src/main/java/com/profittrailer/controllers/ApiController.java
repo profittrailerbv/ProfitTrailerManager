@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.profittrailer.models.BotInfo;
+import com.profittrailer.models.UpdateBotData;
 import com.profittrailer.services.ProcessService;
 import com.profittrailer.utils.BotInfoSerializer;
 import com.profittrailer.utils.StaticUtil;
@@ -15,7 +16,6 @@ import com.profittrailer.utils.constants.SessionType;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,11 +27,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -46,15 +46,11 @@ public class ApiController {
 	@Autowired
 	private ProcessService processService;
 	private Gson parser;
-	private boolean onlyManaged = true;
 	private boolean showPercentage = true;
 	private boolean showAmount = true;
 
 	private static int failedAttempts;
 	private static LocalDateTime timeout = getDateTime();
-
-	@Autowired
-	private Environment environment;
 
 	@PostConstruct
 	public void init() {
@@ -66,15 +62,16 @@ public class ApiController {
 	@GetMapping("/data")
 	public String data(HttpServletRequest request) throws MalformedURLException {
 
-		Collection<BotInfo> bots = processService.getBotList(onlyManaged);
+		Collection<BotInfo> bots = processService.getBotList(processService.isOnlyManaged());
 		Collection<BotInfo> allBots = processService.getBotList(false);
+		Collection<BotInfo> allAddons = processService.getAddonList(false);
 		JsonObject object = new JsonObject();
 		object.add("bots", parser.toJsonTree(bots));
 		object.addProperty("baseUrl", StaticUtil.getBaseUrl(request));
 		object.addProperty("demoServer", processService.isDemoServer());
 		object.addProperty("downloadUrl", processService.getDownloadUrl());
 		object.addProperty("version", Util.getVersion());
-		object.addProperty("maxBotsReached", allBots.size() >= processService.getMaxBots());
+		object.addProperty("maxBotsReached", allBots.size() + allAddons.size() >= processService.getMaxBots());
 
 		return object.toString();
 	}
@@ -84,7 +81,7 @@ public class ApiController {
 		if (processService.isDemoServer()) {
 			return;
 		}
-		processService.stopBot(directoryName);
+		processService.stopBot(processService.getBotInfoMap(), directoryName);
 		Thread.sleep(5000);
 		processService.startBot(processService.getBotInfoMap().get(directoryName));
 
@@ -101,7 +98,7 @@ public class ApiController {
 					continue;
 				}
 				try {
-					processService.stopBot(dir);
+					processService.stopBot(processService.getBotInfoMap(), dir);
 					Thread.sleep(20000);
 					processService.startBot(processService.getBotInfoMap().get(dir));
 				} catch (Exception e) {
@@ -116,8 +113,8 @@ public class ApiController {
 		if (processService.isDemoServer()) {
 			return;
 		}
-		processService.stopBot(directoryName);
-		processService.unlinkBot(directoryName);
+		processService.stopBot(processService.getBotInfoMap(), directoryName);
+		processService.unlinkBot(processService.getBotInfoMap(), directoryName);
 	}
 
 	@GetMapping("/status")
@@ -131,17 +128,17 @@ public class ApiController {
 	@GetMapping("/toggleCards")
 	public String getToggle() {
 		JsonObject object = new JsonObject();
-		object.addProperty("onlyManaged", onlyManaged);
+		object.addProperty("onlyManaged", processService.isOnlyManaged());
 		return object.toString();
 	}
 
 	@PostMapping("/toggleCards")
 	public String postToggle() {
 		if (!processService.isDemoServer()) {
-			onlyManaged = !onlyManaged;
+			processService.setOnlyManaged(!processService.isOnlyManaged());
 		}
 		JsonObject object = new JsonObject();
-		object.addProperty("onlyManaged", onlyManaged);
+		object.addProperty("onlyManaged", processService.isOnlyManaged());
 		return object.toString();
 	}
 
@@ -178,7 +175,7 @@ public class ApiController {
 		object.addProperty("showAmount", showAmount);
 		return object.toString();
 	}
-	
+
 	@PostMapping("/shutdown")
 	public void shutdown() {
 		if (processService.isDemoServer()) {
@@ -206,20 +203,15 @@ public class ApiController {
 			return;
 		}
 
-		new Thread(() -> {
-			for (String dir : processService.getBotInfoMap().keySet()) {
-				if (directoryName != null && !directoryName.equalsIgnoreCase(dir)) {
-					continue;
-				}
+		UpdateBotData updateBotData = new UpdateBotData(forceUrl);
 
-				try {
-					BotInfo botInfo = processService.getBotInfoMap().get(dir);
-					processService.updateBot(botInfo, forceUrl, false);
-				} catch (IOException | InterruptedException e) {
-					log.error(e);
-				}
+		for (String dir : processService.getBotInfoMap().keySet()) {
+			if (directoryName != null && !directoryName.equalsIgnoreCase(dir)) {
+				continue;
 			}
-		}).start();
+			updateBotData.getBotsToUpdate().add(dir);
+		}
+		processService.setUpdateBotData(updateBotData);
 	}
 
 	@GetMapping("/linkout")
@@ -230,7 +222,7 @@ public class ApiController {
 
 		BotInfo botInfo = processService.getBotInfoMap().get(directoryName);
 		String token = processService.getSSOKey(directoryName);
-		String redirectUrl = processService.createUrl(botInfo, "?sso=" + token, false);
+		String redirectUrl = processService.createUrl(botInfo, "/?sso=" + token, false, false);
 		response.sendRedirect(redirectUrl);
 	}
 
@@ -256,7 +248,7 @@ public class ApiController {
 
 		failedAttempts++;
 		if (failedAttempts % 3 == 0) {
-			timeout = getDateTime().plusMinutes((failedAttempts / 3) * 5);
+			timeout = getDateTime().plusMinutes((failedAttempts / 3) * 5L);
 		}
 
 		response.sendError(HttpStatus.UNAUTHORIZED.value(), "Incorrect password");
@@ -292,7 +284,7 @@ public class ApiController {
 	public void createNewBot(String directoryName,
 	                         HttpServletResponse response) throws IOException {
 
-		String[] botsLocations = environment.getProperty("server.bots.directory", "")
+		String[] botsLocations = Util.readApplicationProperties().getProperty("server.bots.directory", "")
 				.replace("\\", "/")
 				.split(",");
 
@@ -313,7 +305,7 @@ public class ApiController {
 
 		directoryName = Util.cleanValue(directoryName).toLowerCase(Locale.ROOT);
 		String path = botsLocations[0] + File.separator + directoryName;
-		File newBot = new File(path);
+		File newBot = Paths.get(path).toFile();
 		if (newBot.exists()) {
 			response.sendError(HttpStatus.BAD_REQUEST.value(), "Directory Already Exists");
 			return;
@@ -335,6 +327,7 @@ public class ApiController {
 	public String getGlobalSettings() {
 		JsonObject object = new JsonObject();
 		object.addProperty("demoServer", processService.isDemoServer());
+		object.addProperty("maxBots", processService.getMaxBots());
 
 		JsonArray timezones = new JsonArray();
 		StaticUtil.timeZones.forEach((x, y) -> {
@@ -354,20 +347,21 @@ public class ApiController {
 		object.add("currencies", currencies);
 
 		try {
-			File file = new File("application.properties");
-			if (file.exists()) {
-				FileReader reader = new FileReader(file);
-				Properties properties = new Properties();
-				properties.load(reader);
 
-				String timeZone = (String) properties.getOrDefault("server.settings.timezone", "Test");
-				String currency = (String) properties.getOrDefault("server.settings.currency", "");
-				String discordToken = (String) properties.getOrDefault("server.settings.discord.token", "");
+			Properties properties = Util.readApplicationProperties();
 
-				object.addProperty("timezone", timeZone);
-				object.addProperty("currency", currency);
-				object.addProperty("token", discordToken);
-			}
+			String timeZone = (String) properties.getOrDefault("server.settings.timezone", "Test");
+			String currency = (String) properties.getOrDefault("server.settings.currency", "");
+			String discordToken = (String) properties.getOrDefault("server.settings.discord.token", "");
+			String xmx = (String) properties.getOrDefault("default.startup.xmx", "512m");
+			String updateDelay = (String) properties.getOrDefault("default.update.delay", "60");
+
+			object.addProperty("timezone", timeZone);
+			object.addProperty("currency", currency);
+			object.addProperty("token", discordToken);
+			object.addProperty("xmx", xmx);
+			object.addProperty("updateDelay", updateDelay);
+
 		} catch (Exception e) {
 			log.error("Error getting global properties ", e);
 		}
@@ -379,42 +373,45 @@ public class ApiController {
 	public void saveGlobalSettings(String timezone,
 	                               String currency,
 	                               String token,
+	                               String xmx,
+	                               String updateDelay,
 	                               HttpServletResponse response) throws IOException {
 		try {
 			JsonObject object = new JsonObject();
 
-			File file = new File("application.properties");
-			if (file.exists()) {
-				FileReader reader = new FileReader(file);
-				Properties properties = new Properties();
-				properties.load(reader);
+			Properties properties = Util.readApplicationProperties();
 
-				if (StringUtils.isNotBlank(timezone)) {
-					properties.put("server.settings.timezone", timezone);
-				}
-				if (StringUtils.isNotBlank(currency)) {
-					properties.put("server.settings.currency", currency);
-				}
-				if (StringUtils.isNotBlank(token)) {
-					properties.put("server.settings.discord.token", token);
-				}
+			if (StringUtils.isNotBlank(timezone)) {
+				properties.put("server.settings.timezone", timezone);
+			}
+			if (StringUtils.isNotBlank(currency)) {
+				properties.put("server.settings.currency", currency);
+			}
+			if (StringUtils.isNotBlank(token)) {
+				properties.put("server.settings.discord.token", token);
+			}
+			if (StringUtils.isNotBlank(xmx)) {
+				properties.put("default.startup.xmx", xmx);
+			}
+			if (StringUtils.isNotBlank(updateDelay)) {
+				properties.put("default.update.delay", updateDelay);
+			}
 
-				//send to bots...?
-				if (properties.containsKey("server.settings.timezone")) {
-					object.addProperty("TIMEZONE", (String) properties.get("server.settings.timezone"));
-				}
-				if (properties.containsKey("server.settings.currency")) {
-					object.addProperty("CURRENCY", (String) properties.get("server.settings.currency"));
-				}
-				if (properties.containsKey("server.settings.discord.token")) {
-					object.addProperty("DISCORD_TOKEN_1", (String) properties.get("server.settings.discord.token"));
-				}
-				processService.pushGlobalSettings(object);
+			//send to bots...?
+			if (properties.containsKey("server.settings.timezone")) {
+				object.addProperty("TIMEZONE", (String) properties.get("server.settings.timezone"));
+			}
+			if (properties.containsKey("server.settings.currency")) {
+				object.addProperty("CURRENCY", (String) properties.get("server.settings.currency"));
+			}
+			if (properties.containsKey("server.settings.discord.token")) {
+				object.addProperty("DISCORD_TOKEN_1", (String) properties.get("server.settings.discord.token"));
+			}
+			processService.pushGlobalSettings(object);
 
-				//save file
-				try (OutputStream outputStream = new FileOutputStream("application.properties")) {
-					properties.store(outputStream, null);
-				}
+			//save file
+			try (OutputStream outputStream = new FileOutputStream("application.properties")) {
+				properties.store(outputStream, null);
 			}
 		} catch (Exception e) {
 			response.sendError(HttpStatus.NOT_MODIFIED.value(), e.getMessage());

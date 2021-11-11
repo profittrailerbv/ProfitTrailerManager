@@ -35,6 +35,20 @@
                      placeholder="">
             </div>
           </div>
+          <div v-if="maxBots === 0" class="row mt-3">
+            <div class="col">
+              <label for="tok">Reserve RAM for each bot:</label>
+              <input id="xmx" class="form-control" name="xmx" type="text" v-model="settings.xmx"
+                     placeholder="">
+            </div>
+          </div>
+          <div class="row mt-3">
+            <div class="col">
+              <label for="tok">Wait time between bot update:</label>
+              <input id="updateDelay" class="form-control" name="updateDelay" type="text" v-model="settings.updateDelay"
+                     placeholder="">
+            </div>
+          </div>
           <div class="row mt-4">
             <div class="col">
               <a v-if="!demoServer" href="#" @click.prevent="saveSettings()">
@@ -59,12 +73,14 @@ export default {
     return {
       error: "",
       demoServer: false,
+      maxBots: 0,
       timezones: [],
       currencies: [],
       settings: {
         timezone: "",
         currency: "",
-        token: ""
+        token: "",
+        xmx: "",
       }
     }
   },
@@ -72,11 +88,14 @@ export default {
     getSettings() {
       axios.get('/api/v1/globalSettings').then((response) => {
         this.demoServer = response.data.demoServer;
+        this.maxBots = response.data.maxBots;
         this.timezones = response.data.timezones;
         this.currencies = response.data.currencies;
         this.settings.timezone = response.data.timezone;
         this.settings.currency = response.data.currency;
         this.settings.token = response.data.token;
+        this.settings.xmx = response.data.xmx;
+        this.settings.updateDelay = response.data.updateDelay;
       }).catch((error) => {
         if (!error.response) {
           window.location.href = '/';
@@ -91,6 +110,10 @@ export default {
       formData.append("timezone", this.settings.timezone);
       formData.append("currency", this.settings.currency);
       formData.append("token", this.settings.token);
+      if (this.maxBots === 0) {
+        formData.append("xmx", this.settings.xmx);
+      }
+      formData.append("updateDelay", this.settings.updateDelay);
 
       axios.post('/api/v1/globalSettings', formData).then(() => {
       }).catch((error) => {
