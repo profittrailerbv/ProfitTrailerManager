@@ -6,7 +6,7 @@
 
     <groupId>com.profittrailer</groupId>
     <artifactId>ProfitTrailerManager</artifactId>
-    <version>0.6.10-PRE11</version>
+    <version>0.6.10</version>
     <packaging>jar</packaging>
 
     <parent>

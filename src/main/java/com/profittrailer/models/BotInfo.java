@@ -230,13 +230,13 @@ public class BotInfo {
 
 			botData.addProperty("totalSalesToday", statsData.getAsJsonObject("basic").get("totalSalesToday").getAsDouble());
 			botData.addProperty("totalCombinedToday", statsData.getAsJsonObject("basic").get("totalCombinedToday").getAsDouble());
-			botData.addProperty("totalCombinedPercToday", statsData.getAsJsonObject("basic").get("totalCombinedPercToday").getAsDouble());
+			botData.addProperty("totalCombinedPercToday", StaticUtil.roundPercentage(statsData.getAsJsonObject("basic").get("totalCombinedPercToday").getAsDouble()));
 			botData.addProperty("totalSalesYesterday", statsData.getAsJsonObject("basic").get("totalSalesYesterday").getAsDouble());
 			botData.addProperty("totalCombinedYesterday", statsData.getAsJsonObject("basic").get("totalCombinedYesterday").getAsDouble());
-			botData.addProperty("totalCombinedPercYesterday", statsData.getAsJsonObject("basic").get("totalCombinedPercYesterday").getAsDouble());
+			botData.addProperty("totalCombinedPercYesterday", StaticUtil.roundPercentage(statsData.getAsJsonObject("basic").get("totalCombinedPercYesterday").getAsDouble()));
 			botData.addProperty("totalSalesAllTime", statsData.getAsJsonObject("basic").get("totalSales").getAsDouble());
 			botData.addProperty("totalCombinedAllTime", statsData.getAsJsonObject("basic").get("totalCombined").getAsDouble());
-			botData.addProperty("totalCombinedPercAllTime", statsData.getAsJsonObject("basic").get("totalCombinedPerc").getAsDouble());
+			botData.addProperty("totalCombinedPercAllTime", StaticUtil.roundPercentage(statsData.getAsJsonObject("basic").get("totalCombinedPerc").getAsDouble()));
 		}
 	}
 

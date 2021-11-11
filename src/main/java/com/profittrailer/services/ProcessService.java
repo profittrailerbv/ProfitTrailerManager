@@ -64,6 +64,7 @@ public class ProcessService {
 	private boolean autoStartManagedBots;
 	@Value("${server.demo:false}")
 	private boolean demoServer;
+	@Getter
 	@Value("${server.bots.max:999}")
 	private int maxBots;
 	private Map<String, ProcessInfo> processInfoMap = new HashMap<>();

@@ -327,6 +327,7 @@ public class ApiController {
 	public String getGlobalSettings() {
 		JsonObject object = new JsonObject();
 		object.addProperty("demoServer", processService.isDemoServer());
+		object.addProperty("maxBots", processService.getMaxBots());
 
 		JsonArray timezones = new JsonArray();
 		StaticUtil.timeZones.forEach((x, y) -> {
