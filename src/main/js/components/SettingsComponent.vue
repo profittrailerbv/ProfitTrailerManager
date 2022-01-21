@@ -35,7 +35,7 @@
                      placeholder="">
             </div>
           </div>
-          <div v-if="maxBots === 0" class="row mt-3">
+          <div v-if="maxBots === 0 || maxBots === 999" class="row mt-3">
             <div class="col">
               <label for="tok">Reserve RAM for each bot:</label>
               <input id="xmx" class="form-control" name="xmx" type="text" v-model="settings.xmx"
