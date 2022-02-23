@@ -3,6 +3,7 @@ package com.profittrailer.application;
 import com.profittrailer.form.ManagerForm;
 import com.profittrailer.utils.StaticUtil;
 import com.profittrailer.utils.Util;
+import de.dentrassi.crypto.pem.PemKeyStoreProvider;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -18,6 +19,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.security.Security;
 import java.time.ZoneOffset;
 import java.util.Locale;
 import java.util.Map;
@@ -36,6 +38,8 @@ public class ProfitTrailerManager {
 	private ResourceLoader resourceLoader;
 
 	public static void main(String[] args) {
+		Security.addProvider(new PemKeyStoreProvider());
+
 		String port = Util.readApplicationProperties().getOrDefault("server.port", 10000).toString();
 		int timeout = NumberUtils.toInt((String) Util.readApplicationProperties().getOrDefault("server.session.timeout", "7"));
 

@@ -4,12 +4,13 @@ let mix = require("laravel-mix");
 mix
     // Enable content-hashes for cache-busting
     // Process app.js and copy result to static folder
-    .js("src/main/js/app.js", "src/main/resources/static")
+    .setPublicPath("src/main/resources/static/")
+    .js("src/main/js/app.js", "")
     // Process app.scss and copy result to static folder
-    .sass("src/main/sass/app.scss", "src/main/resources/static")
+    .sass("src/main/sass/app.scss", "")
     // This one is important: you have to set the local path to the folder
     // for public accessible static resources.
-    .setPublicPath("src/main/resources/static/").vue();
+    .vue();
 
 // API
 //

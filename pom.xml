@@ -6,7 +6,7 @@
 
     <groupId>com.profittrailer</groupId>
     <artifactId>ProfitTrailerManager</artifactId>
-    <version>0.6.10</version>
+    <version>0.6.11-PRE2</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -106,6 +106,11 @@
             <groupId>net.lingala.zip4j</groupId>
             <artifactId>zip4j</artifactId>
             <version>2.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.dentrassi.crypto</groupId>
+            <artifactId>pem-keystore</artifactId>
+            <version>2.1.1</version>
         </dependency>
     </dependencies>
     <build>

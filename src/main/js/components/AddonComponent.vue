@@ -20,7 +20,7 @@
 <!--              C: {{bot.cpu}}-->
 <!--              R: {{roundNumber(bot.ram/1000,0)}}-->
             </div>
-            <div class="col-6 text-right"lo>
+            <div class="col-6 text-right">
               <a v-if="!demoServer && addon.managed" href="#"
                  @click.prevent="restartBot(addon.directory, addon.siteName)">
                 <font-awesome-icon :icon="['fas','redo-alt']" class="text-dark"></font-awesome-icon>

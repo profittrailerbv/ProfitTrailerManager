@@ -804,7 +804,7 @@ public class ProcessService {
 		}
 		String contextPath = (String) botInfo.getBotProperties().get("context");
 		String url = String.format("%s%s%s", StaticUtil.url, port, contextPath);
-		if (useLocalhost) {
+		if (useLocalhost && !sslEnabled) {
 			url = String.format("http://localhost%s%s", port, contextPath);
 		}
 
