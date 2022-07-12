@@ -434,8 +434,6 @@ public class ProcessService {
 		if (caddyManagerPort) {
 			mainDomain = String.format(":%s/*", port);
 		}
-		reverseBots.put(mainDomain, String.format("\treverse_proxy\t%s\t%s", "", "localhost:" + port));
-
 		// Sort the bot list so longer names comes first and then shorter names
 		List<BotInfo> botInfoCollection = botInfoMap.values().stream()
 				.sorted(Comparator.comparing(e -> (String) e.getBotProperties().get("context"), Comparator.reverseOrder()))
@@ -457,9 +455,7 @@ public class ProcessService {
 			reverseBots.put(contextPath + "*", String.format("\treverse_proxy\t%s", localUrl));
 		}
 
-		if (reverseBots.size() == 0) {
-			return;
-		}
+		reverseBots.put(mainDomain, String.format("\treverse_proxy\t%s\t%s", "", "localhost:" + port));
 
 		StringBuilder caddyString = new StringBuilder();
 		if (StringUtils.isNotBlank(caddyImport)) {
@@ -471,12 +467,16 @@ public class ProcessService {
 			httpsUrl = "https://" + caddyDomain;
 		}
 
+		caddyString.append(httpsUrl).append(" {").append("\r\n\r\n");
+
 		for (Map.Entry<String, String> entry : reverseBots.entrySet()) {
-			caddyString.append(httpsUrl).append(entry.getKey()).append(" {\r\n");
-			caddyString.append("\theader X-Forwarded-Proto https\r\n");
-			caddyString.append(entry.getValue());
-			caddyString.append("\r\n}\r\n\r\n");
+			caddyString.append("\t").append("handle ").append(entry.getKey()).append(" {\r\n");
+			caddyString.append("\t").append("\theader X-Forwarded-Proto http\r\n");
+			caddyString.append("\t").append(entry.getValue());
+			caddyString.append("\t").append("\r\n\t}\r\n\r\n");
 		}
+
+		caddyString.append("}");
 
 		File caddyFile = new File("data/Caddyfile");
 		try {
