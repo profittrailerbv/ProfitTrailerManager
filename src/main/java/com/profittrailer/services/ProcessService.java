@@ -76,13 +76,19 @@ public class ProcessService {
 	private String latestVersion = "0.0.0";
 	private String downloadUrl;
 	@Value("${server.caddy.manager.leave.port:false}")
+
 	private boolean caddyManagerPort;
 	@Value("${server.caddy.enabled:false}")
 	private boolean caddyEnabled;
+	@Value("${server.caddy.file.directory:data/}")
+	private String caddyFileDirectory;
+	@Value("${server.caddy.file.name:Caddyfile}")
+	private String caddyFileName;
 	@Value("${server.caddy.domain:}")
 	private String caddyDomain;
 	@Value("${server.caddy.import:}")
 	private String caddyImport;
+
 	@Value("${server.port:10000}")
 	private int port;
 	@Value("${server.use.localhost:true}")
@@ -478,7 +484,7 @@ public class ProcessService {
 
 		caddyString.append("}");
 
-		File caddyFile = new File("data/Caddyfile");
+		File caddyFile = new File(caddyFileDirectory + caddyFileName);
 		try {
 			String oldCaddyString = "";
 			if (caddyFile.exists()) {
@@ -501,6 +507,9 @@ public class ProcessService {
 		List<String> commands = new ArrayList<>();
 		commands.add("caddy");
 		commands.add("reload");
+		if (!StringUtils.equalsIgnoreCase(caddyFileDirectory, "data/")) {
+			commands.add("--config " + caddyFileDirectory + "Caddyfile");
+		}
 
 		ProcessBuilder builder = new ProcessBuilder(commands);
 		builder.directory(new File("data"));
