@@ -442,6 +442,7 @@ public class ProcessService {
 		}
 		// Sort the bot list so longer names comes first and then shorter names
 		List<BotInfo> botInfoCollection = botInfoMap.values().stream()
+				.filter(e-> e.getBotProperties().containsKey("context"))
 				.sorted(Comparator.comparing(e -> (String) e.getBotProperties().get("context"), Comparator.reverseOrder()))
 				.collect(Collectors.toList());
 
