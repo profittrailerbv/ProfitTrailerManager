@@ -39,6 +39,7 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.34",
     "@fortawesome/free-solid-svg-icons": "^5.15.2",
     "@fortawesome/vue-fontawesome": "^2.0.2",
-    "vue-sweetalert2": "^4.1.1"
+    "vue-sweetalert2": "^4.1.1",
+    "yarn": "^1.22.19"
   }
 }

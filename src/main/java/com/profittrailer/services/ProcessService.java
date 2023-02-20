@@ -507,12 +507,10 @@ public class ProcessService {
 		List<String> commands = new ArrayList<>();
 		commands.add("caddy");
 		commands.add("reload");
-		if (!StringUtils.equalsIgnoreCase(caddyFileDirectory, "data/")) {
-			commands.add("--config " + caddyFileDirectory + "Caddyfile");
-		}
 
+		log.info("Reload caddy command sent: {} -- {}", caddyFileDirectory, parser.toJson(commands));
 		ProcessBuilder builder = new ProcessBuilder(commands);
-		builder.directory(new File("data"));
+		builder.directory(new File(caddyFileDirectory));
 		builder.redirectErrorStream(true);
 		Process process = builder.start();
 		readError(process);

@@ -194,13 +194,22 @@ public class BotInfo {
 		}
 
 		double totalDown = 0;
+		double totalCost = 0;
 		for (JsonElement element : jsonArray) {
 			double fee = element.getAsJsonObject().get("fee").getAsDouble();
 			double currentValue = element.getAsJsonObject().get("currentValue").getAsDouble() * (1 - fee / 100);
 			totalDown += (currentValue - element.getAsJsonObject().get("totalCost").getAsDouble());
+			totalCost += element.getAsJsonObject().get("totalCost").getAsDouble();
 		}
 
 		botData.addProperty("diff", totalDown);
+
+		if (botData.has("tcv")) {
+			double tcv = botData.get("tcv").getAsDouble();
+			if (tcv > 0 && totalCost > 0) {
+				botData.addProperty("score", totalCost / tcv);
+			}
+		}
 	}
 
 	public void setSalesData(JsonArray salesData) {
