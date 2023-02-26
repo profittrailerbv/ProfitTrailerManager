@@ -596,6 +596,22 @@ public class ProcessService {
 		bot.setProcess(null);
 	}
 
+	public void deleteBot(Map<String, BotInfo> infoMap, String botName) {
+		BotInfo bot = infoMap.get(botName);
+		if (bot == null) {
+			return;
+		}
+
+		File file = new File(bot.getPath());
+		try {
+			FileUtils.deleteDirectory(file);
+			infoMap.remove(bot.getDirectory());
+		} catch (IOException e) {
+			log.error(e);
+		}
+	}
+
+
 	public void startAddon(BotInfo originalBotInfo) {
 		if (originalBotInfo == null) {
 			return;

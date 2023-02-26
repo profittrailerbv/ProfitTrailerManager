@@ -143,6 +143,13 @@
                  @click.prevent="manageBot(bot.directory, bot.siteName)">
                 <button type="button" class="btn btn-primary small">Manage</button>
               </a>
+              <span v-if="!demoServer && !bot.managed" class="border border-dark border-right mx-1"></span>
+              <a v-if="!demoServer && !bot.managed" href="#"
+                 @click.prevent="deleteBot(bot.directory, bot.siteName)"
+                 class="text-left ml-1">
+                <font-awesome-icon class="text-danger"
+                                   :icon="['fas','trash']"></font-awesome-icon>
+              </a>
               <a v-if="!demoServer && bot.managed" href="#"
                  @click.prevent="updateVersion(bot.directory, bot.siteName)"
                  class="text-left ml-1">
@@ -251,6 +258,26 @@ export default {
         }
       })
       this.getBotStatus(name)
+    },
+    deleteBot(name, siteName) {
+      this.$swal.fire({
+        title: 'Confirm delete',
+        text: 'Delete this bot ' + siteName + '? The folder will deleted. This action cannot be reverted',
+        showCancelButton: true,
+        cancelButtonText: 'Exit',
+        confirmButtonText: 'Delete',
+        reverseButtons: true
+      }).then((result) => {
+        if (typeof (result.value) !== 'undefined') {
+          axios.post('/api/v1/deleteBot?directoryName=' + name).then(() => {
+            this.$swal.fire('The delete command has been sent...');
+            this.getAllBots();
+          }).catch((error) => {
+            this.$swal.fire(error.response.data.message);
+          })
+        }
+      })
+      this.getAllBots();
     },
     getBotStatus(name) {
       axios.get('/api/v1/status?directoryName=' + name).then(() => {

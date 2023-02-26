@@ -87,6 +87,15 @@ public class ApiController {
 
 	}
 
+	@PostMapping("/deleteBot")
+	public void deleteBot(String directoryName) throws InterruptedException {
+		if (processService.isDemoServer()) {
+			return;
+		}
+
+		processService.deleteBot(processService.getBotInfoMap(), directoryName);
+	}
+
 	@PostMapping("/restartBots")
 	public void restartBots() throws InterruptedException {
 		if (processService.isDemoServer()) {
