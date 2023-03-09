@@ -203,13 +203,14 @@ public class BotInfo {
 		}
 
 		botData.addProperty("diff", totalDown);
-
+		double score = 0;
 		if (botData.has("tcv")) {
 			double tcv = botData.get("tcv").getAsDouble();
 			if (tcv > 0 && totalCost > 0) {
-				botData.addProperty("score", totalCost / tcv);
+				score = totalCost / tcv;
 			}
 		}
+		botData.addProperty("score", score);
 	}
 
 	public void setSalesData(JsonArray salesData) {

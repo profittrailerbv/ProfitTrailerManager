@@ -110,10 +110,10 @@
           </div>
           <div class="row small" :class="bot.data.totalCombinedAllTime === 0 ? 'text-muted' : 'text-soft-dark'">
             <div class="col-4 text-left">
-              <span v-if="bot.managed && containsKey(bot.data, 'pendingTotal')"> Pending: {{ bot.data.pendingTotal }}</span>
+              <span v-if="bot.managed && containsKey(bot.data, 'pendingTotal')"> PENDING: {{ bot.data.pendingTotal }}</span>
             </div>
             <div class="col-8 text-right">
-              <span v-if="bot.managed && containsKey(bot.data, 'score')"> Score: {{ roundNumber(bot.data.score, bot.data.guiPrecision) }}</span>
+              <span v-if="bot.managed && containsKey(bot.data, 'score')"> SCORE: {{ roundNumber(bot.data.score, bot.data.guiPrecision) }}</span>
             </div>
           </div>
         </div>
