@@ -38,7 +38,7 @@ public class Util {
 	}
 
 	public static Long getDateTimeSeconds() {
-		return getDateTime().toEpochSecond(ZoneOffset.of(ZoneOffset.systemDefault().getId()));
+		return getDateTime().toEpochSecond(ZoneOffset.of(ZoneOffset.UTC.getId()));
 	}
 
 	public static String simpleHash(String input) throws NoSuchAlgorithmException {

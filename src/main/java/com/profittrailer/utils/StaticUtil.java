@@ -6,6 +6,7 @@ import net.lingala.zip4j.ZipFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.FileSystemUtils;
@@ -232,5 +233,28 @@ public class StaticUtil {
 
 	public static double roundPercentage(double value) {
 		return Math.round(value * 100) / 100.0;
+	}
+
+	public static boolean isVersionNewer(String latestVersion, String botVersion) {
+		String[] latestVersionParts = latestVersion.split("[-.]");
+		String[] botVersionParts = botVersion.split("[-.]");
+
+		int length = Math.max(latestVersionParts.length, botVersionParts.length);
+
+		for (int i = 0; i < length; i++) {
+			int latestVersionPart = i < latestVersionParts.length ? NumberUtils.toInt(latestVersionParts[i]) : 0;
+			int botVersionPart = i < botVersionParts.length ? NumberUtils.toInt(botVersionParts[i]) : 0;
+
+			if (latestVersionPart != botVersionPart) {
+				return latestVersionPart > botVersionPart;
+			}
+		}
+
+		// IF we come here the version parts are identical. The part without a prerelease tag is newer
+		if (latestVersionParts.length != botVersionParts.length) {
+			return latestVersionParts.length < botVersionParts.length;
+		}
+
+		return false;
 	}
 }

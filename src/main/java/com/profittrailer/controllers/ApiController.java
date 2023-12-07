@@ -364,12 +364,14 @@ public class ApiController {
 			String discordToken = (String) properties.getOrDefault("server.settings.discord.token", "");
 			String xmx = (String) properties.getOrDefault("default.startup.xmx", "512m");
 			String updateDelay = (String) properties.getOrDefault("default.update.delay", "60");
+			boolean autoUpdate = Boolean.parseBoolean((String) properties.getOrDefault("server.bots.autoupdate", "false"));
 
 			object.addProperty("timezone", timeZone);
 			object.addProperty("currency", currency);
 			object.addProperty("token", discordToken);
-			object.addProperty("xmx", xmx);
+			object.addProperty("ram", xmx);
 			object.addProperty("updateDelay", updateDelay);
+			object.addProperty("autoUpdate", autoUpdate);
 
 		} catch (Exception e) {
 			log.error("Error getting global properties ", e);
@@ -382,29 +384,21 @@ public class ApiController {
 	public void saveGlobalSettings(String timezone,
 	                               String currency,
 	                               String token,
-	                               String xmx,
+	                               String ram,
 	                               String updateDelay,
+	                               boolean autoUpdate,
 	                               HttpServletResponse response) throws IOException {
 		try {
 			JsonObject object = new JsonObject();
 
 			Properties properties = Util.readApplicationProperties();
 
-			if (StringUtils.isNotBlank(timezone)) {
-				properties.put("server.settings.timezone", timezone);
-			}
-			if (StringUtils.isNotBlank(currency)) {
-				properties.put("server.settings.currency", currency);
-			}
-			if (StringUtils.isNotBlank(token)) {
-				properties.put("server.settings.discord.token", token);
-			}
-			if (StringUtils.isNotBlank(xmx)) {
-				properties.put("default.startup.xmx", xmx);
-			}
-			if (StringUtils.isNotBlank(updateDelay)) {
-				properties.put("default.update.delay", updateDelay);
-			}
+			addOrRemoveProperty("server.settings.timezone", timezone, properties);
+			addOrRemoveProperty("server.settings.currency", currency, properties);
+			addOrRemoveProperty("server.settings.discord.token", token, properties);
+			addOrRemoveProperty("default.startup.xmx", ram, properties);
+			addOrRemoveProperty("server.bots.autoupdate", Boolean.toString(autoUpdate), properties);
+			addOrRemoveProperty("default.update.delay", updateDelay, properties);
 
 			//send to bots...?
 			if (properties.containsKey("server.settings.timezone")) {
@@ -428,6 +422,13 @@ public class ApiController {
 		}
 	}
 
+	private void addOrRemoveProperty(String property, String value, Properties properties){
+		if (StringUtils.isNotBlank(property)) {
+			properties.put(property, value);
+		} else {
+			properties.remove(property);
+		}
+	}
 	@PostMapping("/toggleSOM")
 	public void toggleSOM(String directoryName, boolean enabled) throws Exception {
 		if (processService.isDemoServer()) {

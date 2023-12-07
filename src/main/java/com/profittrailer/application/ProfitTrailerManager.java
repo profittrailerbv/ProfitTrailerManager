@@ -34,6 +34,14 @@ public class ProfitTrailerManager {
 
 	@Value("${server.port:10000}")
 	private String port;
+
+	//On automated systems where the domain name is randomly generated this is random enough
+	@Value("${server.randomid.usedomain:false}")
+	private boolean useDomainAsRandomId;
+
+	@Value("${server.caddy.domain:}")
+	private String caddyDomain;
+
 	@Autowired
 	private ResourceLoader resourceLoader;
 
@@ -89,8 +97,12 @@ public class ProfitTrailerManager {
 			});
 		}
 
+
 		log.info("ProfitTrailer Manager version: {} started", Util.getVersion());
 		if (StringUtils.isNotBlank(StaticUtil.randomSystemId)) {
+			if (useDomainAsRandomId) {
+				StaticUtil.randomSystemId = caddyDomain;
+			}
 			System.out.println("Random System Id " + StaticUtil.randomSystemId);
 		}
 	}

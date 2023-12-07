@@ -38,17 +38,22 @@
           <div v-if="maxBots === 0 || maxBots === 999" class="row mt-3">
             <div class="col">
               <label for="tok">Reserve RAM for each bot:</label>
-              <input id="xmx" class="form-control" name="xmx" type="text" v-model="settings.xmx"
+              <input id="ram" class="form-control" name="ram" type="text" v-model="settings.ram"
                      placeholder="">
             </div>
           </div>
           <div class="row mt-3">
+            <div class="col-2">
+              <label class ="" for="tok">Auto update bots:</label>
+              <input id="autoUpdate" class="form-control" name="autoUpdate" type="checkbox" v-model="settings.autoUpdate"
+                     placeholder="">
+            </div>
             <div class="col">
               <label for="tok">Wait time between bot update:</label>
               <input id="updateDelay" class="form-control" name="updateDelay" type="text" v-model="settings.updateDelay"
                      placeholder="">
             </div>
-          </div>
+          </div >
           <div class="row mt-4">
             <div class="col">
               <a v-if="!demoServer" href="#" @click.prevent="saveSettings()">
@@ -59,6 +64,11 @@
           <div class="row mt-2">
             <div class="col">
               <span v-if="error" class="text-soft-danger">{{ error }}</span>
+            </div>
+          </div>
+          <div class="row mt-2">
+            <div class="col">
+              <span v-if="success" class="text-soft-success">{{ success }}</span>
             </div>
           </div>
         </div>
@@ -72,6 +82,7 @@ export default {
   data() {
     return {
       error: "",
+      success: "",
       demoServer: false,
       maxBots: 0,
       timezones: [],
@@ -80,7 +91,8 @@ export default {
         timezone: "",
         currency: "",
         token: "",
-        xmx: "",
+        ram: "",
+        autoUpdate:false,
       }
     }
   },
@@ -94,8 +106,9 @@ export default {
         this.settings.timezone = response.data.timezone;
         this.settings.currency = response.data.currency;
         this.settings.token = response.data.token;
-        this.settings.xmx = response.data.xmx;
+        this.settings.ram = response.data.ram;
         this.settings.updateDelay = response.data.updateDelay;
+        this.settings.autoUpdate = response.data.autoUpdate;
       }).catch((error) => {
         if (!error.response) {
           window.location.href = '/';
@@ -110,12 +123,12 @@ export default {
       formData.append("timezone", this.settings.timezone);
       formData.append("currency", this.settings.currency);
       formData.append("token", this.settings.token);
-      if (this.maxBots === 0) {
-        formData.append("xmx", this.settings.xmx);
-      }
+      formData.append("ram", this.settings.ram);
       formData.append("updateDelay", this.settings.updateDelay);
+      formData.append("autoUpdate", this.settings.autoUpdate);
 
-      axios.post('/api/v1/globalSettings', formData).then(() => {
+      axios.post('/api/v1/globalSettings', formData).then((response) => {
+        this.success = "Settings were saved!";
       }).catch((error) => {
         this.error = error.response.data.message;
       })
