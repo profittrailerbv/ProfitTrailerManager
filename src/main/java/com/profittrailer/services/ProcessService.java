@@ -66,6 +66,8 @@ public class ProcessService {
     private boolean autoStartManagedBots;
     @Value("${server.bots.autoupdate:false}")
     private boolean autoUpdateManagedBots;
+    @Value("${server.bots.debug.port:0}")
+    private int debugPort;
     @Value("${server.demo:false}")
     private boolean demoServer;
     @Getter
@@ -80,7 +82,6 @@ public class ProcessService {
     private String latestVersion = "0.0.0";
     private String downloadUrl;
     @Value("${server.caddy.manager.leave.port:false}")
-
     private boolean caddyManagerPort;
     @Value("${server.caddy.enabled:false}")
     private boolean caddyEnabled;
@@ -551,6 +552,10 @@ public class ProcessService {
         commands.add(String.format("-Xmx%s", properties.getProperty(directoryName + ".startup.xmx", memory)));
         commands.add("-XX:CompressedClassSpaceSize=300m");
         commands.add("-XX:MaxMetaspaceSize=256m");
+        if(debugPort > 0) {
+            commands.add("-Xdebug");
+            commands.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=" + debugPort);
+        }
         commands.add("-jar");
         commands.add("ProfitTrailer.jar");
         commands.add("--server.port.forcenew");
