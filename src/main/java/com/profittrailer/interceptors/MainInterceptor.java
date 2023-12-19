@@ -42,7 +42,7 @@ public class MainInterceptor extends HandlerInterceptorAdapter {
 		}
 
 		if (StringUtils.isBlank(Util.loadPasswordHash())) {
-			response.sendRedirect(StaticUtil.redirectUrl(request, "/resetPassword"));
+			response.sendRedirect(StaticUtil.redirectUrl(request, "/setPassword"));
 			return false;
 		}
 

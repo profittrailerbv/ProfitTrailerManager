@@ -12,7 +12,7 @@ import {
     faSignInAlt, faStopCircle,
     faToggleOff,
     faToggleOn,
-    faMoneyCheckAlt, faPercentage, faRobot, faCoins, faTrash
+    faMoneyCheckAlt, faPercentage, faRobot, faCoins, faTrash, faPaperPlane
 } from '@fortawesome/free-solid-svg-icons'
 
 import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome'
@@ -30,7 +30,7 @@ try {
 
 library.add(faToggleOff, faToggleOn, faCircle, faRedoAlt, faPowerOff,
     faExternalLinkAlt, faFileAlt, faSignInAlt, faLevelUpAlt, faPlusSquare, faStopCircle, faMoneyCheckAlt,
-    faPercentage, faRobot, faCoins, faTrash)
+    faPercentage, faRobot, faCoins, faTrash, faPaperPlane)
 
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 Vue.use(VueSweetalert2);
@@ -45,7 +45,8 @@ Vue.component('navigation-component', require('./components/NavigationComponent'
 Vue.component('bot-component', require('./components/BotComponent').default);
 Vue.component('addon-component', require('./components/AddonComponent').default);
 Vue.component('login-component', require('./components/LoginComponent').default);
-Vue.component('reset-component', require('./components/ResetPasswordComponent').default);
+Vue.component('setpw-component', require('./components/setPasswordComponent').default);
+Vue.component('resetpw-component', require('./components/resetPasswordComponent').default);
 Vue.component('settings-component', require('./components/SettingsComponent').default);
 
 // Instantiate

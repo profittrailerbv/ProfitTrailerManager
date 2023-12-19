@@ -10,11 +10,16 @@ import com.profittrailer.models.BotInfo;
 import com.profittrailer.models.UpdateBotData;
 import com.profittrailer.services.ProcessService;
 import com.profittrailer.utils.BotInfoSerializer;
+import com.profittrailer.utils.HttpClientManager;
 import com.profittrailer.utils.StaticUtil;
 import com.profittrailer.utils.Util;
 import com.profittrailer.utils.constants.SessionType;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,9 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Locale;
-import java.util.Properties;
+import java.util.*;
 
 @Log4j2
 @RestController
@@ -51,6 +54,8 @@ public class ApiController {
 
 	private static int failedAttempts;
 	private static LocalDateTime timeout = getDateTime();
+	private static LocalDateTime lastDiscordCodeSend = getDateTime().minusHours(1);
+	private static String discordCode = RandomStringUtils.randomAlphanumeric(100);
 
 	@PostConstruct
 	public void init() {
@@ -265,11 +270,47 @@ public class ApiController {
 	}
 
 	@PostMapping("/resetPassword")
-	public void resetPassword(String randomSystemId,
+	public void resetPassword(String code,
 	                          String password,
 	                          String passwordConfirm,
 	                          HttpServletResponse response,
 	                          HttpServletRequest request) throws IOException, NoSuchAlgorithmException {
+
+		if (lastDiscordCodeSend.isBefore(Util.getDateTime().minusMinutes(10))) {
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), "Expired password reset code");
+			return;
+		}
+
+		if (!code.equals(discordCode)) {
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid password reset code");
+			return;
+		}
+
+		if (!password.equals(passwordConfirm)) {
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), "Passwords do not match");
+			return;
+		}
+
+		if (Util.createPassword(password)) {
+			request.getSession(true).setAttribute("sessionType", SessionType.ADMIN);
+			return;
+		}
+
+		response.sendError(HttpStatus.UNAUTHORIZED.value(), "Something went wrong creating your password. Try again");
+	}
+
+	@PostMapping("/setPassword")
+	public void setPassword(String randomSystemId,
+							String password,
+							String passwordConfirm,
+							HttpServletResponse response,
+							HttpServletRequest request) throws IOException, NoSuchAlgorithmException {
+
+		String currentPassword = Util.loadPasswordHash();
+		if (StringUtils.isNotBlank(currentPassword)){
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), "The password was already set");
+			return;
+		}
 
 		if (!randomSystemId.equals(StaticUtil.randomSystemId)) {
 			response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid system Id");
@@ -287,6 +328,43 @@ public class ApiController {
 		}
 
 		response.sendError(HttpStatus.UNAUTHORIZED.value(), "something went wrong creating your password. Try again");
+	}
+
+	@PostMapping("/resetPassword/code")
+	public String resetPasswordCode() throws IOException {
+
+
+		JsonObject returnMessageObject = new JsonObject();
+
+		Properties properties = Util.readApplicationProperties();
+		String webHookUrl = (String) properties.get("server.settings.discord.webhook");
+		if (StringUtils.isBlank(webHookUrl)) {
+			returnMessageObject.addProperty("error", "Discord Webhook url is not setup");
+			return returnMessageObject.toString();
+		}
+
+		if (lastDiscordCodeSend.isAfter(Util.getDateTime().minusMinutes(10))) {
+			returnMessageObject.addProperty("error", "Wait 10 minutes to send new code");
+			return returnMessageObject.toString();
+		}
+
+		discordCode = RandomStringUtils.randomAlphanumeric(10).toLowerCase(Locale.ROOT);
+
+		List<NameValuePair> headers = new ArrayList<>();
+		headers.add(new BasicNameValuePair("Content-type", "application/json"));
+
+		JsonObject object = new JsonObject();
+		object.addProperty("content", "**Password Reset Code**\nUse this code to reset your manager Password\n\n" + discordCode);
+		Pair<Integer, String> response = HttpClientManager.postHttpJson(webHookUrl, object, headers);
+		if (response.getKey() > 300) {
+			returnMessageObject.addProperty("error", "There was an error sending the message. Try again. Code: " + response.getKey());
+			return returnMessageObject.toString();
+		}
+
+		lastDiscordCodeSend = Util.getDateTime();
+
+		returnMessageObject.addProperty("success", "Reset Password Code was sent");
+		return returnMessageObject.toString();
 	}
 
 	@PostMapping("/createNewBot")
@@ -365,6 +443,7 @@ public class ApiController {
 			String xmx = (String) properties.getOrDefault("default.startup.xmx", "512m");
 			String updateDelay = (String) properties.getOrDefault("default.update.delay", "60");
 			boolean autoUpdate = Boolean.parseBoolean((String) properties.getOrDefault("server.bots.autoupdate", "false"));
+			String webhookUrl = (String) properties.get("server.settings.discord.webhook");
 
 			object.addProperty("timezone", timeZone);
 			object.addProperty("currency", currency);
@@ -372,6 +451,7 @@ public class ApiController {
 			object.addProperty("ram", xmx);
 			object.addProperty("updateDelay", updateDelay);
 			object.addProperty("autoUpdate", autoUpdate);
+			object.addProperty("webhookUrl", webhookUrl);
 
 		} catch (Exception e) {
 			log.error("Error getting global properties ", e);
@@ -387,6 +467,7 @@ public class ApiController {
 	                               String ram,
 	                               String updateDelay,
 	                               boolean autoUpdate,
+								   String webhookUrl,
 	                               HttpServletResponse response) throws IOException {
 		try {
 			JsonObject object = new JsonObject();
@@ -399,6 +480,7 @@ public class ApiController {
 			addOrRemoveProperty("default.startup.xmx", ram, properties);
 			addOrRemoveProperty("server.bots.autoupdate", Boolean.toString(autoUpdate), properties);
 			addOrRemoveProperty("default.update.delay", updateDelay, properties);
+			addOrRemoveProperty("server.settings.discord.webhook", webhookUrl, properties);
 
 			//send to bots...?
 			if (properties.containsKey("server.settings.timezone")) {
@@ -413,7 +495,7 @@ public class ApiController {
 			processService.pushGlobalSettings(object);
 
 			//save file
-			try (OutputStream outputStream = new FileOutputStream("application.properties")) {
+			try (OutputStream outputStream = Files.newOutputStream(Paths.get("application.properties"))) {
 				properties.store(outputStream, null);
 			}
 		} catch (Exception e) {
@@ -423,7 +505,7 @@ public class ApiController {
 	}
 
 	private void addOrRemoveProperty(String property, String value, Properties properties){
-		if (StringUtils.isNotBlank(property)) {
+		if (StringUtils.isNotBlank(value)) {
 			properties.put(property, value);
 		} else {
 			properties.remove(property);

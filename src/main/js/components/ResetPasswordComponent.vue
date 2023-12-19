@@ -5,15 +5,26 @@
                 <div class="card-body bg-light">
                     <div class="row px-5 pt-3">
                         <div class="col align-self-center">
-                            ProfitTrailer Manager
+                            Reset Password
                         </div>
                     </div>
                     <div class="row mt-3 px-5">
                         <div class="col">
-                            <input name="systemId" type="password" v-model="input.systemId"
-                                   placeholder="Random System Id" class="mr-2">
+                            <input name="systemId" type="text" v-model="input.code"
+                                   placeholder="Discord Reset Code" class="mr-2">
+                            <a href="#" @click.prevent="sendCode()" class="font-">
+                              <font-awesome-icon :icon="['fas','paper-plane']"
+                                                 class="text-dark big"></font-awesome-icon>
+                            </a>
                         </div>
+
                     </div>
+                  <div class="row px-5">
+                    <div class="col">
+                      <span v-if="codesuccess" class="text-soft-success">{{codesuccess}}</span>
+                      <span v-if="codeerror" class="text-soft-danger">{{codeerror}}</span>
+                    </div>
+                  </div>
                     <div class="row mt-3 px-5">
                         <div class="col">
                             <input name="password" type="password" v-model="input.password" placeholder="New Password"
@@ -47,20 +58,22 @@
         data() {
             return {
                 error: "",
+                codeerror:"",
+                codesuccess:"",
                 input: {
                     password: "",
                     confirm: "",
-                    systemId: ""
+                    code: ""
                 }
             }
         },
         methods: {
             login() {
-                if (this.input.password !== "" && this.input.confirm !== "" && this.input.systemId !== "") {
+                if (this.input.password !== "" && this.input.confirm !== "" && this.input.code !== "") {
                     const formData = new FormData();
                     formData.append("password", this.input.password);
                     formData.append("passwordConfirm", this.input.confirm);
-                    formData.append("randomSystemId", this.input.systemId);
+                    formData.append("code", this.input.code);
 
                     axios.post('/api/v1/resetPassword', formData).then(() => {
                         window.location.href = '/';
@@ -74,6 +87,18 @@
                 } else {
                     this.error = "Provide a password"
                 }
+            },
+            sendCode() {
+                axios.post('/api/v1/resetPassword/code').then((response) => {
+                  console.log(response.data);
+                  this.codeerror = response.data.error;
+                  this.codesuccess = response.data.success;
+                }).catch((error) => {
+
+                  if (error.response) {
+                    this.codeerror = error.response.data.message;
+                  }
+                })
             }
         }
     }

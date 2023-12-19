@@ -22,6 +22,13 @@
                             </a>
                         </div>
                     </div>
+                    <div class="row mt-1">
+                      <div class="col text-right">
+                        <a href="/resetPassword">
+                          Forgot password?
+                        </a>
+                      </div>
+                    </div>
                     <div class="row mt-2">
                         <div class="col">
                             <span v-if="error" class="text-soft-danger">{{error}}</span>

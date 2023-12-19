@@ -35,9 +35,16 @@
                      placeholder="">
             </div>
           </div>
+          <div class="row mt-3">
+            <div class="col">
+              <label for="whu">Discord Webhook Url (for password reset):</label>
+              <input id="whu" class="form-control" name="webhookUrl" type="text" v-model="settings.webhookUrl"
+                     placeholder="">
+            </div>
+          </div>
           <div v-if="maxBots === 0 || maxBots === 999" class="row mt-3">
             <div class="col">
-              <label for="tok">Reserve RAM for each bot:</label>
+              <label for="ram">Reserve RAM for each bot:</label>
               <input id="ram" class="form-control" name="ram" type="text" v-model="settings.ram"
                      placeholder="">
             </div>
@@ -91,6 +98,7 @@ export default {
         timezone: "",
         currency: "",
         token: "",
+        webhookUrl: "",
         ram: "",
         autoUpdate:false,
       }
@@ -106,6 +114,7 @@ export default {
         this.settings.timezone = response.data.timezone;
         this.settings.currency = response.data.currency;
         this.settings.token = response.data.token;
+        this.settings.webhookUrl = response.data.webhookUrl;
         this.settings.ram = response.data.ram;
         this.settings.updateDelay = response.data.updateDelay;
         this.settings.autoUpdate = response.data.autoUpdate;
@@ -123,6 +132,7 @@ export default {
       formData.append("timezone", this.settings.timezone);
       formData.append("currency", this.settings.currency);
       formData.append("token", this.settings.token);
+      formData.append("webhookUrl", this.settings.webhookUrl);
       formData.append("ram", this.settings.ram);
       formData.append("updateDelay", this.settings.updateDelay);
       formData.append("autoUpdate", this.settings.autoUpdate);
