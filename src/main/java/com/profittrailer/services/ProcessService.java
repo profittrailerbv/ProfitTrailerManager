@@ -23,6 +23,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.jutils.jprocesses.JProcesses;
+import org.jutils.jprocesses.model.JProcessesResponse;
 import org.jutils.jprocesses.model.ProcessInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -190,32 +191,32 @@ public class ProcessService {
         }
     }
 
-    @Scheduled(initialDelay = 10000, fixedDelay = 60000)
+    @Scheduled(initialDelay = 10000, fixedDelay = 180000)
     public void checkVersionUpdate() {
         if (!autoUpdateManagedBots || autoUpdateInProgress || Util.getDateTimeSeconds() < autoUpdateNextRun) {
             return;
         }
 
-        new Thread(() -> {
-            for (String dir : getBotInfoMap().keySet()) {
-                try {
-                    BotInfo botInfo = getBotInfoMap().get(dir);
-                    if (!botInfo.getBotData().has("version")) {
-                        return;
-                    }
-                    String version = botInfo.getBotData().get("version").getAsString();
-                    if (StaticUtil.isVersionNewer(latestVersion, version)) {
-                        updateBot(botInfo, null, false);
-                        autoUpdateInProgress = true;
-                    }
-                } catch (IOException | InterruptedException e) {
-                    log.error(e);
-                }
-            }
-            autoUpdateInProgress = false;
-            autoUpdateNextRun = Util.getDateTimeSeconds() + 1800;
 
-        }).start();
+        Set<String> bots = getBotInfoMap().keySet();
+        for (String dir : bots) {
+            try {
+                BotInfo botInfo = getBotInfoMap().get(dir);
+                if (!botInfo.getBotData().has("version")) {
+                    continue;
+                }
+                String version = botInfo.getBotData().get("version").getAsString();
+                if (StaticUtil.isVersionNewer(latestVersion, version)) {
+                    updateBot(botInfo, null, false);
+                    autoUpdateInProgress = true;
+                }
+            } catch (IOException | InterruptedException e) {
+                log.error(e);
+            }
+        }
+        autoUpdateInProgress = false;
+        autoUpdateNextRun = Util.getDateTimeSeconds() + 1800;
+
     }
 
     @Scheduled(initialDelay = 10000, fixedDelay = 30000)
@@ -552,7 +553,7 @@ public class ProcessService {
         commands.add(String.format("-Xmx%s", properties.getProperty(directoryName + ".startup.xmx", memory)));
         commands.add("-XX:CompressedClassSpaceSize=300m");
         commands.add("-XX:MaxMetaspaceSize=256m");
-        if(debugPort > 0) {
+        if (debugPort > 0) {
             commands.add("-Xdebug");
             commands.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=" + debugPort);
         }
@@ -603,9 +604,28 @@ public class ProcessService {
         boolean managed = bot.isManaged();
         int processId = NumberUtils.toInt((String) bot.getBotProperties().getOrDefault("process", "0"));
         if (managed && bot.getProcess() != null) {
+            log.info("Stopping bot {} with process {}", bot.getSiteName(), processId);
             bot.getProcess().destroy();
             if (processId > 0) {
-                JProcesses.killProcess(processId);
+                int tries = 0;
+                while (true) {
+                    if (tries == 3) {
+                        break;
+                    }
+
+                    JProcessesResponse response = JProcesses.killProcess(processId);
+                    if (response.isSuccess()) {
+                        break;
+                    }
+
+                    log.info("{} - Failed to stop process {}. We will retry", bot.getSiteName(), processId);
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ignored) {
+                    }
+
+                    tries++;
+                }
             }
         } else if (bot.getProcessInfo() != null) {
             JProcesses.killProcess(Integer.parseInt(bot.getProcessInfo().getPid()));
