@@ -71,8 +71,8 @@
             login() {
                 if (this.input.password !== "" && this.input.confirm !== "" && this.input.code !== "") {
                     const formData = new FormData();
-                    formData.append("password", this.input.password);
-                    formData.append("passwordConfirm", this.input.confirm);
+                    formData.append("password", encodeURIComponent(this.input.password));
+                    formData.append("passwordConfirm", encodeURIComponent(this.input.confirm));
                     formData.append("code", this.input.code);
 
                     axios.post('/api/v1/resetPassword', formData).then(() => {

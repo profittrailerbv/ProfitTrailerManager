@@ -54,7 +54,7 @@
         methods: {
             login() {
                 if (this.input.password !== "") {
-                    axios.post('/api/v1/login?password=' + this.input.password).then(() => {
+                    axios.post('/api/v1/login?test1=1&password=' + encodeURIComponent(this.input.password)).then(() => {
                         window.location.href = '/';
                     }).catch((error) => {
                         if (!error.response) {

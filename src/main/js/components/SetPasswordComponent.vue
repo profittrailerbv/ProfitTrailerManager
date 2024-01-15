@@ -59,8 +59,8 @@
             login() {
                 if (this.input.password !== "" && this.input.confirm !== "" && this.input.systemId !== "") {
                     const formData = new FormData();
-                    formData.append("password", this.input.password);
-                    formData.append("passwordConfirm", this.input.confirm);
+                    formData.append("password", encodeURIComponent(this.input.password));
+                    formData.append("passwordConfirm", encodeURIComponent(this.input.confirm));
                     formData.append("randomSystemId", this.input.systemId);
 
                     axios.post('/api/v1/setPassword', formData).then(() => {
