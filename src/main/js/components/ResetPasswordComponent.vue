@@ -11,7 +11,7 @@
                     <div class="row mt-3 px-5">
                         <div class="col">
                             <input name="systemId" type="text" v-model="input.code"
-                                   placeholder="Discord Reset Code" class="mr-2">
+                                   placeholder="Reset Code" class="mr-2">
                             <a href="#" @click.prevent="sendCode()" class="font-">
                               <font-awesome-icon :icon="['fas','paper-plane']"
                                                  class="text-dark big"></font-awesome-icon>

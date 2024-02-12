@@ -81,11 +81,6 @@ public class StaticUtil {
 		}
 	}
 
-	public static boolean isWinOrMac() {
-		String os = System.getProperty("os.name").toLowerCase();
-		return os.contains("win") || os.contains("mac");
-	}
-
 	public static long minutesLeft(long currentTime, long untilTime) {
 		long seconds = untilTime - currentTime;
 		if (seconds > 0 && seconds < 60) {

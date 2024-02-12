@@ -19,7 +19,10 @@ public class InterceptorConfig implements WebMvcConfigurer {
 
 		registry.addInterceptor(mainInterceptor)
 				.addPathPatterns("/", "/status", "/api/**")
-				.excludePathPatterns("/api/*/login/**", "/api/*/setPassword/**");
+				.excludePathPatterns("/api/*/login/**"
+						, "/api/*/setPassword/**"
+						, "/api/*/resetPassword/**"
+						, "/api/*/hetzner/**");
 	}
 
 }
