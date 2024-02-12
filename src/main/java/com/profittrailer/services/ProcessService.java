@@ -545,9 +545,6 @@ public class ProcessService {
         String directoryName = originalBotInfo.getDirectory();
 
         List<String> commands = new ArrayList<>();
-        if (!StaticUtil.isWinOrMac()) {
-            commands.add("nohup");
-        }
         commands.add("java");
         commands.add("-Djava.net.preferIPv4Stack=true");
         commands.add("-XX:+UseSerialGC");
@@ -575,7 +572,6 @@ public class ProcessService {
         ProcessBuilder builder = new ProcessBuilder(commands);
         builder.directory(new File(originalBotInfo.getPath()));
         builder.redirectErrorStream(true);
-        builder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
         try {
             if (!botInfoMap.containsKey(directoryName)
