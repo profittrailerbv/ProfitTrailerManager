@@ -15,6 +15,7 @@ import com.profittrailer.utils.StaticUtil;
 import com.profittrailer.utils.Util;
 import com.profittrailer.utils.constants.SessionType;
 import lombok.extern.log4j.Log4j2;
+import net.lingala.zip4j.ZipFile;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -22,21 +23,24 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -397,8 +401,9 @@ public class ApiController {
         return returnMessageObject.toString();
     }
 
-    @PostMapping("/createNewBot")
-    public void createNewBot(String directoryName,
+    @PostMapping(value = "/createNewBot", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void createNewBot(@RequestParam("directoryName") String directoryName,
+                             @RequestParam(value = "zip", required = false) MultipartFile zip,
                              HttpServletResponse response) throws IOException {
 
         String[] botsLocations = Util.readApplicationProperties().getProperty("server.bots.directory", "")
@@ -432,12 +437,110 @@ public class ApiController {
         new Thread(() -> {
             try {
                 Files.createDirectories(newBot.toPath());
+
+                if (zip != null && !zip.isEmpty()) {
+                    Path dataDir = newBot.toPath().resolve("data");
+                    Files.createDirectories(dataDir);
+
+                    File tempZip = File.createTempFile("bot-upload-", ".zip");
+
+                    long maxZipSize = 50L * 1024 * 1024;
+                    if (zip.getSize() > maxZipSize) {
+                        log.error("Zip upload too large: {} bytes", zip.getSize());
+                        return;
+                    }
+
+                    try {
+                        Files.copy(zip.getInputStream(), tempZip.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        ZipFile zipFile = new ZipFile(tempZip.getAbsoluteFile());
+
+                        if (!validateBackupZipBeforeExtract(tempZip)) {
+                            log.error("Invalid backup zip. Aborting bot creation for {}", finalDirectoryName);
+                            return;
+                        }
+
+                        zipFile.extractAll(dataDir.toFile().getAbsolutePath());
+                    } finally {
+                        try {
+                            Files.deleteIfExists(tempZip.toPath());
+                        } catch (Exception ignore) {
+                        }
+                    }
+                }
+
                 BotInfo botInfo = new BotInfo(path, finalDirectoryName);
                 processService.updateBot(botInfo, null, true);
             } catch (IOException | InterruptedException e) {
                 log.error(e);
             }
         }).start();
+    }
+
+    private boolean zipContainsPtdb(File zipFile) {
+        try {
+            ZipFile zf = new ZipFile(zipFile);
+            return zf.getFileHeaders().stream()
+                    .anyMatch(h -> h.getFileName() != null &&
+                            h.getFileName().toLowerCase(Locale.ROOT).contains("ptdb"));
+        } catch (Exception e) {
+            log.error("Failed to inspect zip contents", e);
+            return false;
+        }
+    }
+
+    private boolean validateBackupZipBeforeExtract(File zipFile) {
+        try {
+            ZipFile zf = new ZipFile(zipFile);
+
+            int maxEntries = 3;
+            int entries = 0;
+            boolean hasPtdb = false;
+
+            for (net.lingala.zip4j.model.FileHeader h : zf.getFileHeaders()) {
+                if (h.isDirectory()) {
+                    continue;
+                }
+
+                entries++;
+                if (entries > maxEntries) {
+                    log.error("Zip contains more than {} files", maxEntries);
+                    return false;
+                }
+
+                String name = h.getFileName();
+                if (name == null) {
+                    log.error("Zip contains file with null name");
+                    return false;
+                }
+
+                String n = name.replace("\\", "/");
+
+                if (n.startsWith("/") || n.startsWith("../") || n.contains("/../")) {
+                    log.error("Zip contains illegal path entry: {}", name);
+                    return false;
+                }
+
+                if (n.matches("^[a-zA-Z]:/.*")) {
+                    log.error("Zip contains absolute path entry: {}", name);
+                    return false;
+                }
+
+                if (n.toLowerCase(Locale.ROOT).contains("ptdb")) {
+                    hasPtdb = true;
+                }
+            }
+
+            if (!hasPtdb) {
+                log.error("Zip does not contain PTDB file");
+                return false;
+            }
+
+            return true;
+
+        } catch (Exception e) {
+            log.error("Failed to inspect zip contents", e);
+            return false;
+        }
     }
 
     @GetMapping("/globalSettings")
@@ -554,4 +657,92 @@ public class ApiController {
     public String globalStats() {
         return processService.generateGlobalStats().toString();
     }
+
+
+    @GetMapping("/botLog")
+    public void downloadBotLog(@RequestParam("directoryName") String directoryName,
+                               HttpServletResponse response) throws IOException {
+
+        if (processService.isDemoServer()) {
+            response.sendError(HttpStatus.FORBIDDEN.value(), "Not available on demo server");
+            return;
+        }
+
+        String[] botsLocations = Util.readApplicationProperties()
+                .getProperty("server.bots.directory", "")
+                .replace("\\", "/")
+                .split(",");
+
+        if (botsLocations.length > 1) {
+            response.sendError(HttpStatus.BAD_REQUEST.value(), "Multiple bot directories not supported");
+            return;
+        }
+
+        directoryName = Util.cleanValue(directoryName).toLowerCase(Locale.ROOT);
+        Path botPath = Paths.get(botsLocations[0], directoryName);
+
+        if (!Files.exists(botPath)) {
+            response.sendError(HttpStatus.NOT_FOUND.value(), "Bot not found");
+            return;
+        }
+
+        Path logFile = botPath
+                .resolve("logs")
+                .resolve("ProfitTrailer.log");
+
+        if (!Files.exists(logFile) || !Files.isRegularFile(logFile)) {
+            response.sendError(HttpStatus.NOT_FOUND.value(), "ProfitTrailer.log not found");
+            return;
+        }
+
+        response.setContentType("text/plain");
+        response.setHeader(
+                HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"ProfitTrailer.log\""
+        );
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+
+        try (InputStream in = Files.newInputStream(logFile);
+             OutputStream out = response.getOutputStream()) {
+
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+            out.flush();
+        }
+    }
+
+    @GetMapping("/managerLog")
+    public void downloadManagerLog(HttpServletResponse response) throws IOException {
+
+        if (processService.isDemoServer()) {
+            response.sendError(HttpStatus.FORBIDDEN.value(), "Not available on demo server");
+            return;
+        }
+
+        Path logFile = Paths.get("logs").resolve("PTManager.log");
+
+        if (!Files.exists(logFile) || !Files.isRegularFile(logFile)) {
+            response.sendError(HttpStatus.NOT_FOUND.value(), "PTManager.log not found");
+            return;
+        }
+
+        response.setContentType("text/plain");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"PTManager.log\"");
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+
+        try (InputStream in = Files.newInputStream(logFile);
+             OutputStream out = response.getOutputStream()) {
+
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+            out.flush();
+        }
+    }
+
 }

@@ -120,7 +120,7 @@
         <div style="border-width:1px" class="card-footer border-dark"
              :class="bot.data.totalCombinedAllTime > 0 ? 'bg-soft-green' : bot.data.totalCombinedAllTime < 0 ? 'bg-soft-red' : ''">
           <div class="row">
-            <div class="col-6 text-left">
+            <div class="col-5 text-left">
               <a v-if="!demoServer && bot.managed" href="#"
                  @click.prevent="toggleSOM(bot.directory, bot.siteName, !bot.data.sellOnlyMode)">
                 <font-awesome-icon :icon="['fas','money-check-alt']"
@@ -129,7 +129,7 @@
 <!--              C: {{bot.cpu}}-->
 <!--              R: {{roundNumber(bot.ram/1000,0)}}-->
             </div>
-            <div class="col-6 text-right">
+            <div class="col-7 text-right">
               <a v-if="!demoServer && bot.managed" href="#"
                  @click.prevent="restartBot(bot.directory, bot.siteName)">
                 <font-awesome-icon :icon="['fas','redo-alt']" class="text-dark"></font-awesome-icon>
@@ -137,6 +137,10 @@
               <a v-if="!demoServer && bot.managed" href="#"
                  @click.prevent="stopBot(bot.directory, bot.siteName)">
                 <font-awesome-icon :icon="['fas','stop-circle']" class="text-dark"></font-awesome-icon>
+              </a>
+              <a v-if="!demoServer" href="#"
+                 @click.prevent="downloadLog(bot.directory, bot.siteName)">
+                <font-awesome-icon :icon="['fas','download']" class="text-dark"></font-awesome-icon>
               </a>
               <span class="border border-dark border-right mx-1"></span>
               <a v-if="!demoServer && !bot.managed" href="#"
@@ -239,6 +243,38 @@ export default {
         }
       })
     },
+    async downloadLog(directoryName, siteName) {
+      try {
+        const response = await axios.get('/api/v1/botLog', {
+          params: { directoryName },
+          responseType: 'blob'
+        })
+
+        const contentDisposition = response.headers['content-disposition'] || ''
+        let filename = (siteName || directoryName || 'bot') + '-log.txt'
+
+        const match = contentDisposition.match(/filename="([^"]+)"/i)
+        if (match && match[1]) filename = match[1]
+
+        const blobUrl = window.URL.createObjectURL(response.data)
+        const a = document.createElement('a')
+        a.href = blobUrl
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        window.URL.revokeObjectURL(blobUrl)
+
+
+      } catch (error) {
+        const msg =
+            error?.response?.data?.message ||
+            error?.response?.data ||
+            error?.message ||
+            'Download failed'
+        this.$swal.fire(String(msg))
+      }
+    },
     manageBot(name, siteName) {
       this.$swal.fire({
         title: 'Confirm manage',
@@ -304,27 +340,82 @@ export default {
     roundNumber(number, decimals) {
       return number.toFixed(decimals);
     },
-    createNewBot() {
-      this.$swal.fire({
+    async createNewBot() {
+      const namePrompt = await this.$swal.fire({
         title: 'Create new bot',
         text: 'Enter the directory name for your new bot (No spaces)',
         showCancelButton: true,
         cancelButtonText: 'Exit',
-        confirmButtonText: 'Create',
+        confirmButtonText: 'Next',
         reverseButtons: true,
         input: 'text',
-        inputValue: false,
-        inputPlaceholder: "binancebot"
-      }).then((result) => {
-        if (result.value) {
-          axios.post('/api/v1/createNewBot?directoryName=' + result.value)
-              .then(() => {
-                this.$swal.fire('Your bot will be created and started...');
-              }).catch((error) => {
-            this.$swal.fire(error.response.data.message);
-          })
+        inputValue: '',
+        inputPlaceholder: 'binancebot',
+        inputValidator: (value) => {
+          if (!value) return 'Directory name is required'
+          if (/\s/.test(value)) return 'No spaces allowed'
+          if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Use only letters, numbers, underscore, dash'
+          return null
         }
       })
+
+      if (!namePrompt.isConfirmed) return
+      const directoryName = namePrompt.value
+
+      const choice = await this.$swal.fire({
+        title: 'Upload zip',
+        text: 'Do you want to upload an existing bot?',
+        showCancelButton: true,
+        confirmButtonText: 'Upload Backup',
+        cancelButtonText: 'New Bot',
+        reverseButtons: true,
+        focusCancel: true
+      })
+
+      let zipFile = null
+
+      if (choice.isConfirmed) {
+        const pick = await this.$swal.fire({
+          title: 'Select zip file',
+          text: 'Choose a .zip file to upload',
+          showCancelButton: true,
+          cancelButtonText: 'Back',
+          confirmButtonText: 'Continue',
+          reverseButtons: true,
+          input: 'file',
+          inputAttributes: { accept: '.zip,application/zip' },
+          inputValidator: (file) => {
+            if (!file) return 'Please select a zip file'
+            const ok = (file.name || '').toLowerCase().endsWith('.zip')
+            if (!ok) return 'File must be a .zip'
+            return null
+          }
+        })
+
+        if (!pick.isConfirmed) return
+        zipFile = pick.value
+      }
+
+      try {
+        const form = new FormData()
+        form.append('directoryName', directoryName)
+        if (zipFile) {
+          form.append('zip', zipFile)
+        }
+
+        await axios.post('/api/v1/createNewBot', form, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+
+        await this.$swal.fire('Your bot will be created and started...')
+      } catch (error) {
+        const msg =
+            error?.response?.data?.message ||
+            error?.response?.data ||
+            error?.message ||
+            'Request failed'
+        this.$swal.fire(String(msg))
+      }
     },
     updateVersion(name, siteName) {
       this.$swal.fire({

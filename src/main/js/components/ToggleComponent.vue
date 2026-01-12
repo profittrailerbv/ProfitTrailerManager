@@ -36,6 +36,9 @@
             <a v-if="!demoServer" href="#" @click.prevent="updateVersion()" class="text-left">
               <font-awesome-icon class="text-danger" :icon="['fas','level-up-alt']"></font-awesome-icon>
             </a>
+            <a  href="#" @click.prevent="downloadManagerLog()" class="text-left">
+              <font-awesome-icon class="text-dark" :icon="['fas','download']"></font-awesome-icon>
+            </a>
             <span class="border border-dark border-right mx-1"></span>
             <a v-if="!demoServer" href="#"
                @click.prevent="restartBots()">
@@ -301,6 +304,29 @@ export default {
           })
         }
       })
+    },
+    async downloadManagerLog() {
+      try {
+        const response = await axios.get('/api/v1/managerLog', {
+          responseType: 'blob'
+        })
+
+        const blobUrl = window.URL.createObjectURL(response.data)
+        const a = document.createElement('a')
+        a.href = blobUrl
+        a.download = 'PTManager.log'
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        window.URL.revokeObjectURL(blobUrl)
+      } catch (error) {
+        const msg =
+            error?.response?.data?.message ||
+            error?.response?.data ||
+            error?.message ||
+            'Download failed'
+        this.$swal.fire(String(msg))
+      }
     },
     restartBots() {
       this.$swal.fire({
