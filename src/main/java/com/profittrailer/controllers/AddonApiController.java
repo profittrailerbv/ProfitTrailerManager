@@ -9,10 +9,12 @@ import com.profittrailer.utils.BotInfoSerializer;
 import com.profittrailer.utils.StaticUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -52,7 +54,9 @@ public class AddonApiController {
 		if (processService.isDemoServer()) {
 			return;
 		}
-		processService.stopBot(processService.getAddonInfoMap(), directoryName);
+		if (!processService.stopBot(processService.getAddonInfoMap(), directoryName)) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Addon is still running");
+		}
 		Thread.sleep(5000);
 		processService.startAddon(processService.getAddonInfoMap().get(directoryName));
 
@@ -63,7 +67,9 @@ public class AddonApiController {
 		if (processService.isDemoServer()) {
 			return;
 		}
-		processService.stopBot(processService.getAddonInfoMap(), directoryName);
+		if (!processService.stopBot(processService.getAddonInfoMap(), directoryName)) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Addon is still running");
+		}
 		processService.unlinkBot(processService.getAddonInfoMap(), directoryName);
 	}
 

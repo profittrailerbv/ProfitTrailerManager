@@ -28,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -93,7 +94,9 @@ public class ApiController {
         if (processService.isDemoServer()) {
             return;
         }
-        processService.stopBot(processService.getBotInfoMap(), directoryName);
+        if (!processService.stopBot(processService.getBotInfoMap(), directoryName)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Bot is still running");
+        }
         Thread.sleep(5000);
         processService.startBot(processService.getBotInfoMap().get(directoryName));
 
@@ -119,7 +122,9 @@ public class ApiController {
                     continue;
                 }
                 try {
-                    processService.stopBot(processService.getBotInfoMap(), dir);
+                    if (!processService.stopBot(processService.getBotInfoMap(), dir)) {
+                        continue;
+                    }
                     Thread.sleep(20000);
                     processService.startBot(processService.getBotInfoMap().get(dir));
                 } catch (Exception e) {
@@ -134,7 +139,9 @@ public class ApiController {
         if (processService.isDemoServer()) {
             return;
         }
-        processService.stopBot(processService.getBotInfoMap(), directoryName);
+        if (!processService.stopBot(processService.getBotInfoMap(), directoryName)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Bot is still running");
+        }
         processService.unlinkBot(processService.getBotInfoMap(), directoryName);
     }
 

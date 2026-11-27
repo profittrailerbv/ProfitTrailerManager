@@ -25,7 +25,7 @@ public class BotInfo {
 
 	private transient boolean initialized;
 	private transient boolean lastUnlinkedStatus;
-	private transient Process process;
+	private transient volatile Process process;
 	private transient ProcessInfo processInfo;
 	private transient LocalDateTime startDelay;
 	private transient LocalDateTime updateDate;
@@ -60,11 +60,15 @@ public class BotInfo {
 			return "UPDATING";
 		}
 
-		return (process == null && processInfo == null)
-				|| process != null && !process.isAlive()
-				|| processInfo != null && !StringUtils.containsIgnoreCase(processInfo.getName(), "java")
-				? "OFFLINE"
-				: "ONLINE";
+		Process runningProcess = process;
+		if (runningProcess != null) {
+			return runningProcess.isAlive() ? "ONLINE" : "OFFLINE";
+		}
+
+		ProcessInfo discoveredProcess = processInfo;
+		return discoveredProcess != null && StringUtils.containsIgnoreCase(discoveredProcess.getName(), "java")
+				? "ONLINE"
+				: "OFFLINE";
 	}
 
 	private String getAddonStatus() {

@@ -23,7 +23,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.jutils.jprocesses.JProcesses;
-import org.jutils.jprocesses.model.JProcessesResponse;
 import org.jutils.jprocesses.model.ProcessInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -51,6 +50,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,7 +74,7 @@ public class ProcessService {
     @Getter
     @Value("${server.bots.max:999}")
     private int maxBots;
-    private Map<String, ProcessInfo> processInfoMap = new HashMap<>();
+    private volatile Map<String, ProcessInfo> processInfoMap = new ConcurrentHashMap<>();
     private Map<String, BotInfo> botInfoMap = new ConcurrentHashMap<>();
     private Map<String, BotInfo> addonInfoMap = new ConcurrentHashMap<>();
     private boolean initialzed = false;
@@ -273,7 +273,7 @@ public class ProcessService {
         //log.info("Start");
         try {
             if (initialzed) {
-                Map<String, ProcessInfo> tmpProcessInfoMap = new HashMap<>();
+                Map<String, ProcessInfo> tmpProcessInfoMap = new ConcurrentHashMap<>();
                 JProcesses.getProcessList()
                         .forEach(e -> {
                             tmpProcessInfoMap.put(e.getPid(), e);
@@ -311,18 +311,17 @@ public class ProcessService {
                             .forEach(directory -> {
                                 String directoryName = directory.getName();
                                 String path = directory.getPath();
-                                BotInfo botInfo = botInfoMap.getOrDefault(directoryName, new BotInfo(path, directoryName));
+                                BotInfo botInfo = botInfoMap.computeIfAbsent(directoryName, name -> new BotInfo(path, name));
                                 botInfo.setBotProperties(getBotProperties(path));
                                 String pid = (String) botInfo.getBotProperties().get("process");
                                 if (pid != null) {
-                                    botInfo.setProcessInfo(processInfoMap.get("" + pid));
+                                    botInfo.setProcessInfo(processInfoMap.get(pid));
                                 }
                                 if (processedInitialized) {
                                     getBotData(botInfo);
                                     botInfo.setInitialized(initialzed);
                                 }
                                 botInfo.isUnlinked();
-                                botInfoMap.put(directoryName, botInfo);
                             });
                 }
 
@@ -342,20 +341,20 @@ public class ProcessService {
                         if (!offline
                                 && port != null
                                 && !startingUpdating
+                                && !botInfo.isInitialSetup()
                                 && StringUtils.isNotBlank(StaticUtil.url)
                                 && processedInitialized && managed) {
                             String healthUrl = createUrl(botInfo, "/api/v2/health");
                             try {
                                 Pair<Integer, String> data = HttpClientManager.getHttp(healthUrl, Collections.emptyList());
-                                if (data.getKey() < 202) {
-                                    offline = !StringUtils.equalsIgnoreCase(data.getValue(), "true");
-                                }
+                                // A setup or login redirect can end with a successful HTML response.
+                                offline = data.getKey() == 200
+                                        && StringUtils.equalsIgnoreCase(StringUtils.trim(data.getValue()), "false");
                             } catch (Exception e) {
                                 log.error("Error pinging health {}: {}", healthUrl, e.getMessage());
                             }
                         }
-                        if (offline && managed) {
-                            stopBot(botInfoMap, botInfo.getDirectory());
+                        if (offline && managed && stopBot(botInfoMap, botInfo.getDirectory())) {
                             Thread.sleep(3000);
                             startBot(botInfo);
                             Thread.sleep(30000);
@@ -420,8 +419,7 @@ public class ProcessService {
                             continue;
                         }
 
-                        if (offline) {
-                            stopBot(addonInfoMap, botInfo.getDirectory());
+                        if (offline && stopBot(addonInfoMap, botInfo.getDirectory())) {
                             Thread.sleep(3000);
                             startAddon(botInfo);
                             Thread.sleep(30000);
@@ -574,69 +572,68 @@ public class ProcessService {
         builder.redirectErrorStream(true);
 
         try {
-            if (!botInfoMap.containsKey(directoryName)
-                    || botInfoMap.get(directoryName).getStatus().equals("OFFLINE")) {
-                Process process = builder.start();
-                BotInfo botInfo = botInfoMap.getOrDefault(directoryName, new BotInfo(path, directoryName));
+            BotInfo existingBot = botInfoMap.putIfAbsent(directoryName, originalBotInfo);
+            BotInfo botInfo = existingBot == null ? originalBotInfo : existingBot;
+            Process process;
+            synchronized (botInfo) {
+                String status = botInfo.getStatus();
+                if (existingBot != null && !status.equals("OFFLINE")) {
+                    log.info("Skipping bot start {} -- {}", botInfo.getSiteName(), status);
+                    return;
+                }
+                process = builder.start();
                 botInfo.setProcess(process);
                 botInfo.setStartDelay(Util.getDateTime().plusSeconds(updateDelay));
 
                 File file = new File(botInfo.getPath() + "/data/unlinked");
                 FileSystemUtils.deleteRecursively(file.toPath());
-
-                botInfoMap.put(directoryName, botInfo);
-                Thread.sleep(5000);
-                readError(process);
-            } else {
-                log.info("Skipping bot start {} -- {}", botInfoMap.containsKey(directoryName), botInfoMap.get(directoryName).getStatus());
             }
+            Thread.sleep(5000);
+            readError(process);
         } catch (Exception e) {
             log.error("Error starting bot", e);
         }
     }
 
-    public void stopBot(Map<String, BotInfo> infoMap, String botName) {
+    public boolean stopBot(Map<String, BotInfo> infoMap, String botName) {
         BotInfo bot = infoMap.get(botName);
         if (bot == null) {
-            return;
+            return true;
         }
 
-        boolean managed = bot.isManaged();
-        int processId = NumberUtils.toInt((String) bot.getBotProperties().getOrDefault("process", "0"));
-        if (managed && bot.getProcess() != null) {
-            log.info("Stopping bot {} with process {}", bot.getSiteName(), processId);
-            bot.getProcess().destroy();
-            if (processId > 0) {
-                int tries = 0;
-                while (true) {
-                    if (tries == 3) {
-                        break;
+        synchronized (bot) {
+            Process process = bot.getProcess();
+            ProcessInfo processInfo = bot.getProcessInfo();
+            if (process != null && process.isAlive()) {
+                log.info("Stopping bot {}", bot.getSiteName());
+                process.destroy();
+                try {
+                    if (!process.waitFor(5, TimeUnit.SECONDS)) {
+                        process.destroyForcibly();
+                        if (!process.waitFor(5, TimeUnit.SECONDS)) {
+                            log.warn("Failed to stop bot {}", bot.getSiteName());
+                            return false;
+                        }
                     }
-
-                    JProcessesResponse response = JProcesses.killProcess(processId);
-                    if (response.isSuccess()) {
-                        break;
-                    }
-
-                    log.info("{} - Failed to stop process {}. We will retry", bot.getSiteName(), processId);
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException ignored) {
-                    }
-
-                    tries++;
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return false;
+                }
+            } else if (process == null && processInfo != null) {
+                int pid = Integer.parseInt(processInfo.getPid());
+                if (!JProcesses.killProcess(pid).isSuccess() && JProcesses.getProcess(pid) != null) {
+                    log.warn("Failed to stop bot {} with process {}", bot.getSiteName(), pid);
+                    return false;
                 }
             }
-        } else if (bot.getProcessInfo() != null) {
-            JProcesses.killProcess(Integer.parseInt(bot.getProcessInfo().getPid()));
-        }
 
-        if (processId > 0) {
-            processInfoMap.remove("" + processId);
+            if (processInfo != null) {
+                processInfoMap.remove(processInfo.getPid(), processInfo);
+            }
+            bot.setProcessInfo(null);
+            bot.setProcess(null);
+            return true;
         }
-
-        bot.setProcessInfo(null);
-        bot.setProcess(null);
     }
 
     public void deleteBot(Map<String, BotInfo> infoMap, String botName) {
@@ -782,7 +779,7 @@ public class ProcessService {
     }
 
     public void getBotData(BotInfo botInfo) {
-        if (StringUtils.isBlank(StaticUtil.url)) {
+        if (botInfo.isInitialSetup() || StringUtils.isBlank(StaticUtil.url)) {
             return;
         }
         String port = (String) botInfo.getBotProperties().get("port");
@@ -855,8 +852,9 @@ public class ProcessService {
                             boolean useLocalhost) {
 
         String token = managerToken;
-        if (botInfo.getProcessInfo() != null) {
-            String[] args = botInfo.getProcessInfo().getCommand().split(" ");
+        ProcessInfo processInfo = botInfo.getProcessInfo();
+        if (botInfo.getProcess() == null && processInfo != null && processInfo.getCommand() != null) {
+            String[] args = processInfo.getCommand().split(" ");
             String managerToken = Arrays.stream(args).filter(e -> e.contains("--server.manager.token")).findFirst().orElse("");
             token = managerToken.split("=").length > 1 ? managerToken.split("=")[1] : "";
         }
@@ -934,7 +932,9 @@ public class ProcessService {
         String updateFolder = StaticUtil.unzip(updateUrl);
         if (updateFolder != null) {
             botInfo.setUpdateDate(Util.getDateTime());
-            stopBot(botInfoMap, botInfo.getDirectory());
+            if (!stopBot(botInfoMap, botInfo.getDirectory())) {
+                return;
+            }
             log.info("Updating {} to version {}", botInfo.getSiteName(), updateMessage);
             StaticUtil.copyJar(updateFolder, botInfo.getPath());
             Thread.sleep(7000);
